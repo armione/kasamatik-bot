@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bahis Takip ve Kasa Yönetimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-button {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-button:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .success-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .success-gradient:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+        
+        .danger-gradient {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .danger-gradient:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+        }
+        
+        .stat-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profit { color: #10b981; font-weight: 600; }
+        .loss { color: #ef4444; font-weight: 600; }
+        
+        .modern-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .modern-input:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .floating-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modern-table {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .table-row:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .icon-button:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+            
+            .floating-header {
+                padding: 1.5rem !important;
+                margin-bottom: 1.5rem !important;
+                border-radius: 1.5rem !important;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            }
+            
+            .floating-header h1 {
+                font-size: 1.75rem !important;
+                line-height: 1.2;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .floating-header p {
+                font-size: 0.875rem !important;
+                color: #6b7280;
+            }
+            
+            .stat-card {
+                padding: 1.25rem !important;
+                border-radius: 1.5rem !important;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+            
+            .stat-card:active {
+                transform: scale(0.98);
+            }
+            
+            .stat-card .text-2xl {
+                font-size: 1.5rem !important;
+                font-weight: 800;
+            }
+            
+            .glass-card {
+                padding: 1.5rem !important;
+                border-radius: 1.5rem !important;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            
+            .modern-input {
+                padding: 1rem !important;
+                font-size: 1rem;
+                border-radius: 1rem !important;
+                background: rgba(255, 255, 255, 0.95);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+            
+            .modern-input:focus {
+                background: rgba(255, 255, 255, 1);
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                transform: translateY(-2px);
+            }
+            
+            .gradient-button, .success-gradient, .danger-gradient {
+                padding: 1rem 1.5rem !important;
+                font-size: 1rem !important;
+                font-weight: 700;
+                border-radius: 1rem !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .gradient-button:active, .success-gradient:active, .danger-gradient:active {
+                transform: translateY(1px) scale(0.98);
+            }
+            
+            .glass-button {
+                padding: 1rem 1.5rem !important;
+                font-size: 1rem !important;
+                font-weight: 600;
+                border-radius: 1rem !important;
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .glass-button:active {
+                transform: translateY(1px) scale(0.98);
+                background: rgba(255, 255, 255, 0.35);
+            }
+            
+            .icon-button {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1rem !important;
+                border-radius: 0.75rem !important;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .icon-button:active {
+                transform: scale(0.9);
+            }
+            
+            /* Mobile Card Layout for History */
+            .mobile-card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 1.5rem;
+                padding: 1.25rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                border-left: 5px solid;
+                transition: all 0.3s ease;
+            }
+            
+            .mobile-card:active {
+                transform: scale(0.98);
+            }
+            
+            .mobile-card.won {
+                border-left-color: #10b981;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            }
+            
+            .mobile-card.lost {
+                border-left-color: #ef4444;
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            }
+            
+            .mobile-card.pending {
+                border-left-color: #f59e0b;
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            }
+            
+            .mobile-actions {
+                display: flex;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                margin-top: 1rem;
+            }
+            
+            .mobile-actions button {
+                flex: 1;
+                min-width: 80px;
+                padding: 0.75rem 1rem;
+                border-radius: 0.75rem;
+                font-size: 0.875rem;
+                font-weight: 700;
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .mobile-actions button:active {
+                transform: translateY(1px) scale(0.95);
+            }
+            
+            /* Better touch targets */
+            button, .icon-button, .mobile-actions button {
+                min-height: 44px;
+                min-width: 44px;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            
+            /* Improved dropdown for mobile */
+            #platform-dropdown, #edit-platform-dropdown, #quick-platform-dropdown {
+                border-radius: 1rem !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+                border: 1px solid rgba(0, 0, 0, 0.1) !important;
+                max-height: 200px !important;
+            }
+            
+            #platform-dropdown div, #edit-platform-dropdown div, #quick-platform-dropdown div {
+                padding: 1rem !important;
+                font-size: 1rem !important;
+                border-radius: 0.5rem;
+                margin: 0.25rem;
+                transition: all 0.2s ease;
+            }
+            
+            #platform-dropdown div:hover, #edit-platform-dropdown div:hover, #quick-platform-dropdown div:hover {
+                background: rgba(102, 126, 234, 0.1) !important;
+                transform: translateX(4px);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Modern Floating Header -->
+        <div class="floating-header rounded-3xl p-8 mb-8 slide-in">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl pulse-animation">
+                        🎯
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            Bahis Takip & Kasa Yönetimi
+                        </h1>
+                        <p class="text-gray-600 text-lg mt-1">Modern ve profesyonel takip sistemi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
+            <div class="stat-card glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6 text-center">
+                <div class="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl lg:text-2xl">
+                    💰
+                </div>
+                <div class="text-xs lg:text-sm text-gray-300 mb-1 lg:mb-2 font-medium">Toplam Kasa</div>
+                <div class="text-lg lg:text-2xl font-bold text-white" id="total-balance">0 ₺</div>
+            </div>
+            <div class="stat-card glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6 text-center">
+                <div class="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 rounded-xl lg:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-xl lg:text-2xl">
+                    📈
+                </div>
+                <div class="text-xs lg:text-sm text-gray-300 mb-1 lg:mb-2 font-medium">Toplam Kar</div>
+                <div class="text-lg lg:text-2xl font-bold profit" id="total-profit">0 ₺</div>
+            </div>
+            <div class="stat-card glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6 text-center">
+                <div class="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 rounded-xl lg:rounded-2xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-xl lg:text-2xl">
+                    📉
+                </div>
+                <div class="text-xs lg:text-sm text-gray-300 mb-1 lg:mb-2 font-medium">Toplam Zarar</div>
+                <div class="text-lg lg:text-2xl font-bold loss" id="total-loss">0 ₺</div>
+            </div>
+            <div class="stat-card glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6 text-center">
+                <div class="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 rounded-xl lg:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-xl lg:text-2xl">
+                    🎲
+                </div>
+                <div class="text-xs lg:text-sm text-gray-300 mb-1 lg:mb-2 font-medium">Toplam Bahis</div>
+                <div class="text-lg lg:text-2xl font-bold text-white" id="total-bets">0</div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-4 lg:gap-8">
+            <!-- Modern Add Entry Form -->
+            <div class="lg:col-span-1 space-y-4 lg:space-y-6">
+                <div class="glass-card rounded-2xl lg:rounded-3xl p-6 lg:p-8">
+                    <div class="flex items-center space-x-3 mb-4 lg:mb-6">
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center text-lg lg:text-xl">
+                            ➕
+                        </div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-white">Yeni Kayıt</h2>
+                    </div>
+                    
+                    <form id="bet-form" class="space-y-4 lg:space-y-6">
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Platform</label>
+                            <div class="flex gap-2">
+                                <div class="flex-1 relative">
+                                    <input type="text" id="platform-search" placeholder="Platform ara veya seç..." 
+                                           class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium"
+                                           autocomplete="off" onkeyup="filterPlatforms()" onfocus="showPlatformDropdown()" onblur="hidePlatformDropdown()">
+                                    <div id="platform-dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl mt-1 max-h-60 overflow-y-auto z-50 hidden shadow-lg">
+                                        <!-- Platform options will be populated here -->
+                                    </div>
+                                </div>
+                                <button type="button" onclick="openPlatformManager()" 
+                                        class="glass-button px-4 py-3 text-white rounded-2xl font-semibold" title="Platform Yönetimi">
+                                    ⚙️
+                                </button>
+                            </div>
+                            <input type="hidden" id="selected-platform" value="">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Bahis Türü</label>
+                            <select id="bet-type" class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                                <option value="Spor Bahis">🏈 Spor Bahis</option>
+                                <option value="Canlı Bahis">⚡ Canlı Bahis</option>
+                                <option value="Slot">🎰 Slot</option>
+                                <option value="Casino">🃏 Casino</option>
+                                <option value="Sanal Spor">🎮 Sanal Spor</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Bahis Miktarı (₺)</label>
+                            <input type="number" id="bet-amount" step="0.01" min="0" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="250.00">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Durum</label>
+                            <select id="bet-status" onchange="toggleWinAmount()" class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                                <option value="pending">⏳ Bekliyor</option>
+                                <option value="won">✅ Kazandı</option>
+                                <option value="lost">❌ Kaybetti</option>
+                            </select>
+                        </div>
+
+                        <div id="win-amount-container" class="hidden">
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Kazanç Miktarı (₺)</label>
+                            <input type="number" id="win-amount" step="0.01" min="0"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="1250.00">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Maçlar</label>
+                            <input type="text" id="description" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="Gaziantep-Gençlerbirliği / Roma-Bologna">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Bahis Seçimi</label>
+                            <input type="text" id="bet-selection" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium mb-3" 
+                                   placeholder="Örn: 2.5 Üst, 1X, Karşılıklı Gol Var">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">Oran</label>
+                            <input type="number" id="odds" step="0.01" min="1" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="2.50">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs lg:text-sm font-semibold text-gray-200 mb-2 lg:mb-3">📸 Ekran Görüntüsü</label>
+                            <div class="space-y-3">
+                                <div id="drop-zone" class="w-full modern-input px-6 py-8 rounded-2xl border-2 border-dashed border-purple-300 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
+                                    <div class="text-4xl mb-2">📸</div>
+                                    <div class="text-gray-600 font-medium mb-1">Görüntüyü buraya sürükleyin</div>
+                                    <div class="text-sm text-gray-500">veya <span class="text-purple-600 font-semibold">Ctrl+V</span> ile yapıştırın</div>
+                                    <div class="text-xs text-gray-400 mt-2">PNG, JPG, GIF desteklenir</div>
+                                </div>
+                                <input type="file" id="screenshot" accept="image/*" class="hidden">
+                                <div id="screenshot-preview" class="hidden">
+                                    <img id="preview-image" class="w-full h-32 object-cover rounded-2xl border-2 border-white/20 cursor-pointer hover:opacity-80 transition-opacity" alt="Önizleme" onclick="viewScreenshot(this.src)" title="Büyütmek için tıklayın">
+                                    <div class="flex justify-between items-center mt-2">
+                                        <span class="text-xs text-gray-400">📸 Büyütmek için tıklayın</span>
+                                        <button type="button" onclick="removeScreenshot()" class="text-red-400 hover:text-red-300 text-sm">
+                                            🗑️ Görüntüyü Kaldır
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" 
+                                class="w-full gradient-button text-white py-4 rounded-2xl font-bold text-lg transform transition-all">
+                            💾 Kaydet
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Modern Quick Add -->
+                <div class="glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6">
+                    <div class="flex items-center space-x-3 mb-3 lg:mb-4">
+                        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-sm lg:text-lg">
+                            🚀
+                        </div>
+                        <h3 class="text-base lg:text-lg font-bold text-white">Hızlı Ekle</h3>
+                    </div>
+                    <button onclick="openQuickAdd()" 
+                            class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-3 rounded-2xl font-bold text-sm mb-3 transform transition-all hover:scale-105">
+                        🚀 Hızlı Bahis Ekle
+                    </button>
+                    <div class="text-xs text-gray-300 text-center">
+                        Oran • Miktar • Platform • SS
+                    </div>
+                </div>
+
+                <!-- Modern Quick Balance Update -->
+                <div class="glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-6">
+                    <div class="flex items-center space-x-3 mb-3 lg:mb-4">
+                        <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-sm lg:text-lg">
+                            ⚡
+                        </div>
+                        <h3 class="text-base lg:text-lg font-bold text-white">Hızlı Kasa Güncelleme</h3>
+                    </div>
+                    <div class="flex gap-3 mb-3">
+                        <input type="number" id="balance-update" step="0.01" 
+                               class="flex-1 modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                               placeholder="Miktar">
+                        <button onclick="updateBalance()" 
+                                class="success-gradient text-white px-6 py-3 rounded-2xl font-bold">
+                            ✅
+                        </button>
+                    </div>
+                    <button onclick="resetBalance()" 
+                            class="w-full danger-gradient text-white py-3 rounded-2xl font-bold text-sm">
+                        🔄 Kasayı Sıfırla
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modern History Table -->
+            <div class="lg:col-span-2 space-y-4 lg:space-y-6">
+                <div class="glass-card rounded-2xl lg:rounded-3xl p-4 lg:p-8">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 lg:mb-6 space-y-3 lg:space-y-0">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-lg lg:text-xl">
+                                📊
+                            </div>
+                            <h2 class="text-xl lg:text-2xl font-bold text-white">Bahis Geçmişi</h2>
+                        </div>
+                        <div class="flex gap-2 lg:gap-3">
+                            <button onclick="exportData()" 
+                                    class="glass-button px-3 lg:px-6 py-2 lg:py-3 text-white rounded-xl lg:rounded-2xl font-semibold flex items-center space-x-1 lg:space-x-2 text-sm lg:text-base">
+                                <span>📤</span>
+                                <span class="hidden sm:inline">Dışa Aktar</span>
+                            </button>
+                            <button onclick="clearAllData()" 
+                                    class="danger-gradient px-3 lg:px-6 py-2 lg:py-3 text-white rounded-xl lg:rounded-2xl font-semibold flex items-center space-x-1 lg:space-x-2 text-sm lg:text-base">
+                                <span>🗑️</span>
+                                <span class="hidden sm:inline">Temizle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modern Filter -->
+                    <div class="mb-4 lg:mb-6">
+                        <select id="filter-type" onchange="filterHistory()" 
+                                class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium text-sm lg:text-base">
+                            <option value="all">🔍 Tüm Kayıtlar</option>
+                            <option value="Spor Bahis">🏈 Spor Bahis</option>
+                            <option value="Slot">🎰 Slot</option>
+                            <option value="Casino">🃏 Casino</option>
+                            <option value="profit">📈 Sadece Karlar</option>
+                            <option value="loss">📉 Sadece Zararlar</option>
+                        </select>
+                    </div>
+
+                    <!-- Desktop Table -->
+                    <div class="hidden lg:block modern-table rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+                                    <tr>
+                                        <th class="text-left py-4 px-4 font-semibold">Tarih</th>
+                                        <th class="text-left py-4 px-4 font-semibold">Platform</th>
+                                        <th class="text-left py-4 px-4 font-semibold">Tür</th>
+                                        <th class="text-right py-4 px-4 font-semibold">Bahis</th>
+                                        <th class="text-center py-4 px-4 font-semibold">Durum</th>
+                                        <th class="text-right py-4 px-4 font-semibold">Kar/Zarar</th>
+                                        <th class="text-center py-4 px-4 font-semibold">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-12 text-gray-500">
+                                            <div class="flex flex-col items-center space-y-3">
+                                                <div class="text-6xl opacity-50">🎯</div>
+                                                <div class="text-lg font-medium">Henüz kayıt bulunmuyor</div>
+                                                <div class="text-sm">İlk bahisinizi ekleyin!</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="lg:hidden" id="mobile-history">
+                        <div class="text-center py-12 text-gray-500">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="text-6xl opacity-50">🎯</div>
+                                <div class="text-lg font-medium">Henüz kayıt bulunmuyor</div>
+                                <div class="text-sm">İlk bahisinizi ekleyin!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let bets = JSON.parse(localStorage.getItem('bets')) || [];
+        let totalBalance = parseFloat(localStorage.getItem('totalBalance')) || 0;
+        let customPlatforms = JSON.parse(localStorage.getItem('customPlatforms')) || [];
+        
+        // Complete platform list
+        const defaultPlatforms = [
+            'Artemisbet', 'Asyabahis', 'Baywin', 'Betgit', 'Betorspin', 'Betsin', 'Betsmove', 'Bets10',
+            'Bibubet', 'Bilyoner', 'Capitolbet', 'Cepbahis', 'Dumanbet', 'Gora', 'Holigan', 'İmajbet',
+            'İstanbulbahis', 'Jojobet', 'Kavbet', 'Kingroyal', 'Kralbet', 'Ligobet', 'Lunabet',
+            'Madridbet', 'Makrobet', 'Maltcasino', 'Mariobet', 'Matbet', 'Matixbet', 'Maxwin',
+            'Megabahis', 'Meritking', 'Mersobahis', 'Millibahis', 'Misli', 'Nakitbahis', 'Nesine',
+            'Odeonbet', 'Olabahis', 'Onwin', 'Padisahbet', 'Parobet', 'Pinbahis', 'Pusulabet',
+            'Risebet', 'Sekabet', 'Sonbahis', 'Starz', 'Superbet', 'Superbahis', 'Süperbahis',
+            'Tarafbet', 'Trendbet', 'Tuttur', 'Yedibahis', 'Zirvebet', 'Zlot'
+        ];
+
+        // Platform search functionality
+        function getAllPlatforms() {
+            return [...defaultPlatforms, ...customPlatforms].sort();
+        }
+        
+        function filterPlatforms() {
+            const searchTerm = document.getElementById('platform-search').value.toLowerCase();
+            const dropdown = document.getElementById('platform-dropdown');
+            const allPlatforms = getAllPlatforms();
+            
+            const filteredPlatforms = allPlatforms.filter(platform => 
+                platform.toLowerCase().includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = filteredPlatforms.map(platform => `
+                <div class="px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onmousedown="selectPlatform('${platform}')">
+                    ${platform}
+                </div>
+            `).join('');
+            
+            if (filteredPlatforms.length === 0) {
+                dropdown.innerHTML = '<div class="px-4 py-3 text-gray-500 text-center">Platform bulunamadı</div>';
+            }
+        }
+        
+        function showPlatformDropdown() {
+            const dropdown = document.getElementById('platform-dropdown');
+            dropdown.classList.remove('hidden');
+            filterPlatforms();
+        }
+        
+        function hidePlatformDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('platform-dropdown');
+                dropdown.classList.add('hidden');
+            }, 200);
+        }
+        
+        function selectPlatform(platform) {
+            document.getElementById('platform-search').value = platform;
+            document.getElementById('selected-platform').value = platform;
+            document.getElementById('platform-dropdown').classList.add('hidden');
+        }
+
+        // Form submission
+        document.getElementById('bet-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const selectedPlatform = document.getElementById('selected-platform').value || document.getElementById('platform-search').value.trim();
+            const betType = document.getElementById('bet-type').value;
+            const betAmount = parseFloat(document.getElementById('bet-amount').value) || 0;
+            const betStatus = document.getElementById('bet-status').value;
+            const winAmount = parseFloat(document.getElementById('win-amount').value) || 0;
+            const description = document.getElementById('description').value;
+            const betSelection = document.getElementById('bet-selection').value;
+            const odds = parseFloat(document.getElementById('odds').value) || 0;
+            const screenshotFile = document.getElementById('screenshot').files[0];
+            
+            if (!selectedPlatform) {
+                alert('⚠️ Lütfen bir platform seçin!');
+                return;
+            }
+            
+            // Add to custom platforms if it's a new platform
+            if (!defaultPlatforms.includes(selectedPlatform) && !customPlatforms.includes(selectedPlatform)) {
+                customPlatforms.push(selectedPlatform);
+                localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+            }
+            
+            if (betAmount <= 0) {
+                alert('⚠️ Lütfen geçerli bir bahis miktarı girin!');
+                return;
+            }
+            
+            let profitLoss = 0;
+            let finalWinAmount = 0;
+            
+            if (betStatus === 'won') {
+                finalWinAmount = winAmount > 0 ? winAmount : (betAmount * odds);
+                profitLoss = finalWinAmount - betAmount;
+            } else if (betStatus === 'lost') {
+                finalWinAmount = 0;
+                profitLoss = -betAmount;
+            }
+            
+            const bet = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('tr-TR'),
+                time: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}),
+                platform: selectedPlatform,
+                betType,
+                betAmount,
+                winAmount: finalWinAmount,
+                profitLoss,
+                description,
+                betSelection,
+                odds,
+                status: betStatus,
+                screenshot: null
+            };
+            
+            // Handle screenshot
+            if (screenshotFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    bet.screenshot = e.target.result;
+                    saveBetAndUpdate(bet);
+                };
+                reader.readAsDataURL(screenshotFile);
+            } else {
+                saveBetAndUpdate(bet);
+            }
+        });
+
+        function saveBetAndUpdate(bet) {
+            bets.unshift(bet);
+            
+            // Only update balance if bet is completed
+            if (bet.status !== 'pending') {
+                totalBalance += bet.profitLoss;
+            }
+            
+            saveBets();
+            updateStats();
+            renderHistory();
+            
+            // Reset form
+            document.getElementById('bet-form').reset();
+            document.getElementById('platform-search').value = '';
+            document.getElementById('selected-platform').value = '';
+            document.getElementById('screenshot-preview').classList.add('hidden');
+            document.getElementById('win-amount-container').classList.add('hidden');
+            dropZone.innerHTML = `
+                <div class="text-4xl mb-2">📸</div>
+                <div class="text-gray-600 font-medium mb-1">Görüntüyü buraya sürükleyin</div>
+                <div class="text-sm text-gray-500">veya <span class="text-purple-600 font-semibold">Ctrl+V</span> ile yapıştırın</div>
+                <div class="text-xs text-gray-400 mt-2">PNG, JPG, GIF desteklenir</div>
+            `;
+            
+            alert('✅ Bahis kaydı başarıyla eklendi!');
+        }
+
+        function updateBalance() {
+            const amount = parseFloat(document.getElementById('balance-update').value) || 0;
+            if (amount === 0) return;
+            
+            totalBalance += amount;
+            localStorage.setItem('totalBalance', totalBalance);
+            updateStats();
+            document.getElementById('balance-update').value = '';
+            
+            alert(`✅ Kasa ${amount > 0 ? 'artırıldı' : 'azaltıldı'}: ${amount.toFixed(2)} ₺`);
+        }
+
+        function resetBalance() {
+            if (!confirm('⚠️ Kasayı sıfırlamak istediğinizden emin misiniz? Bu işlem sadece kasa bakiyesini sıfırlar, bahis geçmişiniz korunur.')) return;
+            
+            totalBalance = 0;
+            localStorage.setItem('totalBalance', totalBalance);
+            updateStats();
+            
+            alert('✅ Kasa başarıyla sıfırlandı!');
+        }
+
+        function saveBets() {
+            localStorage.setItem('bets', JSON.stringify(bets));
+            localStorage.setItem('totalBalance', totalBalance);
+        }
+
+        // This function is no longer needed with the new search system
+        function updatePlatformOptions() {
+            // Platform options are now handled by the search dropdown
+        }
+
+        function openPlatformManager() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">⚙️ Platform Yönetimi</h3>
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Yeni Platform Ekle</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-platform-name" placeholder="Platform adı..." 
+                                       class="flex-1 modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                                <button onclick="addNewPlatform()" 
+                                        class="gradient-button text-white px-6 py-3 rounded-2xl font-bold">
+                                    ➕
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Mevcut Özel Platformlar</label>
+                            <div id="custom-platforms-list" class="space-y-2 max-h-60 overflow-y-auto">
+                                <div class="mb-4">
+                                    <h4 class="font-semibold text-gray-700 mb-2">Varsayılan Platformlar (${defaultPlatforms.length})</h4>
+                                    <div class="text-xs text-gray-500 max-h-32 overflow-y-auto bg-gray-50 p-3 rounded-xl">
+                                        ${defaultPlatforms.join(', ')}
+                                    </div>
+                                </div>
+                                ${customPlatforms.length === 0 ? 
+                                    '<div class="text-gray-500 text-center py-4">Henüz özel platform eklenmemiş</div>' :
+                                    `<div>
+                                        <h4 class="font-semibold text-gray-700 mb-2">Özel Platformlar (${customPlatforms.length})</h4>
+                                        <div class="space-y-2">
+                                            ${customPlatforms.map(platform => `
+                                                <div class="flex items-center justify-between bg-gray-100 px-4 py-3 rounded-2xl">
+                                                    <span class="font-medium">${platform}</span>
+                                                    <button onclick="removeCustomPlatform('${platform}')" 
+                                                            class="text-red-500 hover:text-red-700 font-bold">
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="w-full gradient-button text-white py-3 rounded-2xl font-bold">
+                            ✅ Tamam
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function addNewPlatform() {
+            const input = document.getElementById('new-platform-name');
+            const platformName = input.value.trim();
+            
+            if (!platformName) {
+                alert('⚠️ Lütfen platform adını girin!');
+                return;
+            }
+            
+            if (customPlatforms.includes(platformName)) {
+                alert('⚠️ Bu platform zaten mevcut!');
+                return;
+            }
+            
+            customPlatforms.push(platformName);
+            localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+            updatePlatformOptions();
+            
+            // Update the modal list
+            const listContainer = document.getElementById('custom-platforms-list');
+            listContainer.innerHTML = customPlatforms.map(platform => `
+                <div class="flex items-center justify-between bg-gray-100 px-4 py-3 rounded-2xl">
+                    <span class="font-medium">${platform}</span>
+                    <button onclick="removeCustomPlatform('${platform}')" 
+                            class="text-red-500 hover:text-red-700 font-bold">
+                        🗑️
+                    </button>
+                </div>
+            `).join('');
+            
+            input.value = '';
+            alert('✅ Platform başarıyla eklendi!');
+        }
+
+        function removeCustomPlatform(platformName) {
+            if (!confirm(`"${platformName}" platformunu silmek istediğinizden emin misiniz?`)) return;
+            
+            customPlatforms = customPlatforms.filter(p => p !== platformName);
+            localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+            updatePlatformOptions();
+            
+            // Update the modal list
+            const listContainer = document.getElementById('custom-platforms-list');
+            if (customPlatforms.length === 0) {
+                listContainer.innerHTML = '<div class="text-gray-500 text-center py-4">Henüz özel platform eklenmemiş</div>';
+            } else {
+                listContainer.innerHTML = customPlatforms.map(platform => `
+                    <div class="flex items-center justify-between bg-gray-100 px-4 py-3 rounded-2xl">
+                        <span class="font-medium">${platform}</span>
+                        <button onclick="removeCustomPlatform('${platform}')" 
+                                class="text-red-500 hover:text-red-700 font-bold">
+                            🗑️
+                        </button>
+                    </div>
+                `).join('');
+            }
+            
+            alert('✅ Platform silindi!');
+        }
+
+        // Platform selection is now handled by the search dropdown
+
+        function toggleWinAmount() {
+            const status = document.getElementById('bet-status').value;
+            const container = document.getElementById('win-amount-container');
+            
+            if (status === 'won') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function removeScreenshot() {
+            document.getElementById('screenshot').value = '';
+            document.getElementById('screenshot-preview').classList.add('hidden');
+            dropZone.innerHTML = `
+                <div class="text-4xl mb-2">📸</div>
+                <div class="text-gray-600 font-medium mb-1">Görüntüyü buraya sürükleyin</div>
+                <div class="text-sm text-gray-500">veya <span class="text-purple-600 font-semibold">Ctrl+V</span> ile yapıştırın</div>
+                <div class="text-xs text-gray-400 mt-2">PNG, JPG, GIF desteklenir</div>
+            `;
+        }
+
+        // Drag and drop functionality
+        const dropZone = document.getElementById('drop-zone');
+        const screenshotInput = document.getElementById('screenshot');
+        
+        // Click to select file
+        dropZone.addEventListener('click', () => {
+            screenshotInput.click();
+        });
+        
+        // File input change
+        screenshotInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        });
+        
+        // Drag and drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-purple-500', 'bg-purple-100');
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-purple-500', 'bg-purple-100');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-purple-500', 'bg-purple-100');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    handleImageFile(file);
+                } else {
+                    alert('⚠️ Lütfen sadece görüntü dosyası yükleyin!');
+                }
+            }
+        });
+        
+        // Paste functionality (Ctrl+V)
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    
+                    // Check if quick add modal is open
+                    const quickModal = document.querySelector('.fixed');
+                    const isQuickModal = quickModal && quickModal.innerHTML.includes('Hızlı Bahis Ekle');
+                    
+                    if (isQuickModal) {
+                        handleQuickImageFile(file);
+                    } else {
+                        handleImageFile(file);
+                    }
+                    break;
+                }
+            }
+        });
+        
+        // Mobile touch feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add touch feedback to all buttons
+            const buttons = document.querySelectorAll('button, .icon-button, .glass-button, .gradient-button, .success-gradient, .danger-gradient');
+            
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function(e) {
+                    this.style.transform = 'scale(0.95)';
+                    this.style.transition = 'transform 0.1s ease';
+                }, { passive: true });
+                
+                button.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.transition = 'all 0.3s ease';
+                    }, 100);
+                }, { passive: true });
+                
+                button.addEventListener('touchcancel', function(e) {
+                    this.style.transform = '';
+                    this.style.transition = 'all 0.3s ease';
+                }, { passive: true });
+            });
+            
+            // Prevent zoom on double tap for buttons
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    if (event.target.tagName === 'BUTTON' || event.target.closest('button')) {
+                        event.preventDefault();
+                    }
+                }
+                lastTouchEnd = now;
+            }, false);
+        });
+        
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview-image').src = e.target.result;
+                document.getElementById('screenshot-preview').classList.remove('hidden');
+                dropZone.innerHTML = `
+                    <div class="text-2xl mb-2">✅</div>
+                    <div class="text-green-600 font-medium">Görüntü yüklendi!</div>
+                    <div class="text-xs text-gray-500 mt-1">Değiştirmek için tekrar sürükleyin</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+            
+            // Update the file input
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            screenshotInput.files = dt.files;
+        }
+
+        function updateStats() {
+            const completedBets = bets.filter(bet => bet.status !== 'pending');
+            const totalProfit = completedBets.filter(bet => bet.profitLoss > 0).reduce((sum, bet) => sum + bet.profitLoss, 0);
+            const totalLoss = Math.abs(completedBets.filter(bet => bet.profitLoss < 0).reduce((sum, bet) => sum + bet.profitLoss, 0));
+            
+            document.getElementById('total-balance').textContent = `${totalBalance.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺`;
+            document.getElementById('total-profit').textContent = `${totalProfit.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺`;
+            document.getElementById('total-loss').textContent = `${totalLoss.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺`;
+            document.getElementById('total-bets').textContent = bets.length;
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('history-table');
+            const mobileHistory = document.getElementById('mobile-history');
+            
+            if (bets.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-12 text-gray-500">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="text-6xl opacity-50">🎯</div>
+                                <div class="text-lg font-medium">Henüz kayıt bulunmuyor</div>
+                                <div class="text-sm">İlk bahisinizi ekleyin!</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                mobileHistory.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="flex flex-col items-center space-y-3">
+                            <div class="text-6xl opacity-50">🎯</div>
+                            <div class="text-lg font-medium">Henüz kayıt bulunmuyor</div>
+                            <div class="text-sm">İlk bahisinizi ekleyin!</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Desktop table
+            tbody.innerHTML = bets.map(bet => {
+                const statusBadge = bet.status === 'pending' ? 
+                    '<span class="px-3 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">⏳ Bekliyor</span>' :
+                    bet.status === 'won' ? 
+                    '<span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-medium">✅ Kazandı</span>' :
+                    '<span class="px-3 py-1 bg-red-500 text-white rounded-full text-xs font-medium">❌ Kaybetti</span>';
+                
+                return `
+                <tr class="table-row border-b border-gray-100">
+                    <td class="py-4 px-4">
+                        <div class="text-sm font-medium text-gray-800">${bet.date}</div>
+                        <div class="text-xs text-gray-500">${bet.time}</div>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="font-semibold text-gray-800">${bet.platform}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-medium">${bet.betType}</span>
+                    </td>
+                    <td class="py-4 px-4 text-right font-semibold text-gray-800">${bet.betAmount.toFixed(2)} ₺</td>
+                    <td class="py-4 px-4 text-center">${statusBadge}</td>
+                    <td class="py-4 px-4 text-right font-bold ${bet.status === 'pending' ? 'text-gray-500' : bet.profitLoss >= 0 ? 'profit' : 'loss'}">
+                        ${bet.status === 'pending' ? '-' : (bet.profitLoss >= 0 ? '+' : '') + bet.profitLoss.toFixed(2) + ' ₺'}
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <div class="flex justify-center space-x-2">
+                            ${bet.status === 'pending' ? `
+                                <button onclick="updateBetStatus(${bet.id}, 'won')" 
+                                        class="icon-button bg-green-100 hover:bg-green-200 text-green-600" title="Kazandı">
+                                    ✅
+                                </button>
+                                <button onclick="updateBetStatus(${bet.id}, 'lost')" 
+                                        class="icon-button bg-red-100 hover:bg-red-200 text-red-600" title="Kaybetti">
+                                    ❌
+                                </button>
+                            ` : `
+                                <button onclick="editBet(${bet.id})" 
+                                        class="icon-button bg-orange-100 hover:bg-orange-200 text-orange-600" title="Düzenle">
+                                    ✏️
+                                </button>
+                            `}
+                            ${bet.screenshot ? `
+                                <button onclick="viewScreenshot('${bet.screenshot}')" 
+                                        class="icon-button bg-blue-100 hover:bg-blue-200 text-blue-600" title="Ekran Görüntüsü">
+                                    📸
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteBet(${bet.id})" 
+                                    class="icon-button bg-red-100 hover:bg-red-200 text-red-600" title="Sil">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                ${bet.description || bet.betSelection ? `
+                <tr class="border-b border-gray-50">
+                    <td colspan="7" class="py-2 px-4 text-sm text-gray-600 italic bg-gray-50">
+                        ${bet.betSelection ? `🎯 <strong>${bet.betSelection}</strong>` : ''}
+                        ${bet.betSelection && bet.description ? ' • ' : ''}
+                        ${bet.description ? `💬 ${bet.description}` : ''}
+                        ${bet.odds ? ` (Oran: ${bet.odds})` : ''}
+                    </td>
+                </tr>
+                ` : ''}
+                `;
+            }).join('');
+
+            // Mobile cards
+            mobileHistory.innerHTML = bets.map(bet => {
+                const statusClass = bet.status === 'pending' ? 'pending' : bet.status === 'won' ? 'won' : 'lost';
+                const statusIcon = bet.status === 'pending' ? '⏳' : bet.status === 'won' ? '✅' : '❌';
+                const statusText = bet.status === 'pending' ? 'Bekliyor' : bet.status === 'won' ? 'Kazandı' : 'Kaybetti';
+                
+                return `
+                <div class="mobile-card ${statusClass}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="font-bold text-gray-800 text-lg">${bet.platform}</div>
+                            <div class="text-sm text-gray-500">${bet.date} • ${bet.time}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${bet.status === 'pending' ? 'text-gray-500' : bet.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                ${bet.status === 'pending' ? bet.betAmount.toFixed(2) + ' ₺' : (bet.profitLoss >= 0 ? '+' : '') + bet.profitLoss.toFixed(2) + ' ₺'}
+                            </div>
+                            <div class="text-xs text-gray-500">Bahis: ${bet.betAmount.toFixed(2)} ₺</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-medium">${bet.betType}</span>
+                        <span class="px-3 py-1 ${bet.status === 'pending' ? 'bg-yellow-500' : bet.status === 'won' ? 'bg-green-500' : 'bg-red-500'} text-white rounded-full text-xs font-medium">
+                            ${statusIcon} ${statusText}
+                        </span>
+                    </div>
+                    
+                    ${bet.betSelection || bet.description ? `
+                    <div class="text-sm text-gray-600 mb-3 p-2 bg-gray-50 rounded-lg">
+                        ${bet.betSelection ? `🎯 <strong>${bet.betSelection}</strong>` : ''}
+                        ${bet.betSelection && bet.description ? '<br>' : ''}
+                        ${bet.description ? `💬 ${bet.description}` : ''}
+                        ${bet.odds ? `<br>📊 Oran: ${bet.odds}` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="mobile-actions">
+                        ${bet.status === 'pending' ? `
+                            <button onclick="updateBetStatus(${bet.id}, 'won')" 
+                                    class="bg-green-500 hover:bg-green-600 text-white">
+                                ✅ Kazandı
+                            </button>
+                            <button onclick="updateBetStatus(${bet.id}, 'lost')" 
+                                    class="bg-red-500 hover:bg-red-600 text-white">
+                                ❌ Kaybetti
+                            </button>
+                        ` : `
+                            <button onclick="editBet(${bet.id})" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white">
+                                ✏️ Düzenle
+                            </button>
+                        `}
+                        ${bet.screenshot ? `
+                            <button onclick="viewScreenshot('${bet.screenshot}')" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white">
+                                📸 Görüntü
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteBet(${bet.id})" 
+                                class="bg-red-500 hover:bg-red-600 text-white">
+                            🗑️ Sil
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function filterHistory() {
+            const filterType = document.getElementById('filter-type').value;
+            let filteredBets = bets;
+            
+            if (filterType !== 'all') {
+                if (filterType === 'profit') {
+                    filteredBets = bets.filter(bet => bet.profitLoss > 0);
+                } else if (filterType === 'loss') {
+                    filteredBets = bets.filter(bet => bet.profitLoss < 0);
+                } else {
+                    filteredBets = bets.filter(bet => bet.betType === filterType);
+                }
+            }
+            
+            const tbody = document.getElementById('history-table');
+            const mobileHistory = document.getElementById('mobile-history');
+            
+            if (filteredBets.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-12 text-gray-500">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="text-6xl opacity-50">🔍</div>
+                                <div class="text-lg font-medium">Bu filtrede kayıt bulunmuyor</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                mobileHistory.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="flex flex-col items-center space-y-3">
+                            <div class="text-6xl opacity-50">🔍</div>
+                            <div class="text-lg font-medium">Bu filtrede kayıt bulunmuyor</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Desktop table
+            tbody.innerHTML = filteredBets.map(bet => {
+                const statusBadge = bet.status === 'pending' ? 
+                    '<span class="px-3 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">⏳ Bekliyor</span>' :
+                    bet.status === 'won' ? 
+                    '<span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-medium">✅ Kazandı</span>' :
+                    '<span class="px-3 py-1 bg-red-500 text-white rounded-full text-xs font-medium">❌ Kaybetti</span>';
+                
+                return `
+                <tr class="table-row border-b border-gray-100">
+                    <td class="py-4 px-4">
+                        <div class="text-sm font-medium text-gray-800">${bet.date}</div>
+                        <div class="text-xs text-gray-500">${bet.time}</div>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="font-semibold text-gray-800">${bet.platform}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-medium">${bet.betType}</span>
+                    </td>
+                    <td class="py-4 px-4 text-right font-semibold text-gray-800">${bet.betAmount.toFixed(2)} ₺</td>
+                    <td class="py-4 px-4 text-center">${statusBadge}</td>
+                    <td class="py-4 px-4 text-right font-bold ${bet.status === 'pending' ? 'text-gray-500' : bet.profitLoss >= 0 ? 'profit' : 'loss'}">
+                        ${bet.status === 'pending' ? '-' : (bet.profitLoss >= 0 ? '+' : '') + bet.profitLoss.toFixed(2) + ' ₺'}
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <div class="flex justify-center space-x-2">
+                            ${bet.status === 'pending' ? `
+                                <button onclick="updateBetStatus(${bet.id}, 'won')" 
+                                        class="icon-button bg-green-100 hover:bg-green-200 text-green-600" title="Kazandı">
+                                    ✅
+                                </button>
+                                <button onclick="updateBetStatus(${bet.id}, 'lost')" 
+                                        class="icon-button bg-red-100 hover:bg-red-200 text-red-600" title="Kaybetti">
+                                    ❌
+                                </button>
+                            ` : `
+                                <button onclick="editBet(${bet.id})" 
+                                        class="icon-button bg-orange-100 hover:bg-orange-200 text-orange-600" title="Düzenle">
+                                    ✏️
+                                </button>
+                            `}
+                            ${bet.screenshot ? `
+                                <button onclick="viewScreenshot('${bet.screenshot}')" 
+                                        class="icon-button bg-blue-100 hover:bg-blue-200 text-blue-600" title="Ekran Görüntüsü">
+                                    📸
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteBet(${bet.id})" 
+                                    class="icon-button bg-red-100 hover:bg-red-200 text-red-600" title="Sil">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                ${bet.description || bet.betSelection ? `
+                <tr class="border-b border-gray-50">
+                    <td colspan="7" class="py-2 px-4 text-sm text-gray-600 italic bg-gray-50">
+                        ${bet.betSelection ? `🎯 <strong>${bet.betSelection}</strong>` : ''}
+                        ${bet.betSelection && bet.description ? ' • ' : ''}
+                        ${bet.description ? `💬 ${bet.description}` : ''}
+                        ${bet.odds ? ` (Oran: ${bet.odds})` : ''}
+                    </td>
+                </tr>
+                ` : ''}
+                `;
+            }).join('');
+
+            // Mobile cards
+            mobileHistory.innerHTML = filteredBets.map(bet => {
+                const statusClass = bet.status === 'pending' ? 'pending' : bet.status === 'won' ? 'won' : 'lost';
+                const statusIcon = bet.status === 'pending' ? '⏳' : bet.status === 'won' ? '✅' : '❌';
+                const statusText = bet.status === 'pending' ? 'Bekliyor' : bet.status === 'won' ? 'Kazandı' : 'Kaybetti';
+                
+                return `
+                <div class="mobile-card ${statusClass}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="font-bold text-gray-800 text-lg">${bet.platform}</div>
+                            <div class="text-sm text-gray-500">${bet.date} • ${bet.time}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${bet.status === 'pending' ? 'text-gray-500' : bet.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                ${bet.status === 'pending' ? bet.betAmount.toFixed(2) + ' ₺' : (bet.profitLoss >= 0 ? '+' : '') + bet.profitLoss.toFixed(2) + ' ₺'}
+                            </div>
+                            <div class="text-xs text-gray-500">Bahis: ${bet.betAmount.toFixed(2)} ₺</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-medium">${bet.betType}</span>
+                        <span class="px-3 py-1 ${bet.status === 'pending' ? 'bg-yellow-500' : bet.status === 'won' ? 'bg-green-500' : 'bg-red-500'} text-white rounded-full text-xs font-medium">
+                            ${statusIcon} ${statusText}
+                        </span>
+                    </div>
+                    
+                    ${bet.betSelection || bet.description ? `
+                    <div class="text-sm text-gray-600 mb-3 p-2 bg-gray-50 rounded-lg">
+                        ${bet.betSelection ? `🎯 <strong>${bet.betSelection}</strong>` : ''}
+                        ${bet.betSelection && bet.description ? '<br>' : ''}
+                        ${bet.description ? `💬 ${bet.description}` : ''}
+                        ${bet.odds ? `<br>📊 Oran: ${bet.odds}` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="mobile-actions">
+                        ${bet.status === 'pending' ? `
+                            <button onclick="updateBetStatus(${bet.id}, 'won')" 
+                                    class="bg-green-500 hover:bg-green-600 text-white">
+                                ✅ Kazandı
+                            </button>
+                            <button onclick="updateBetStatus(${bet.id}, 'lost')" 
+                                    class="bg-red-500 hover:bg-red-600 text-white">
+                                ❌ Kaybetti
+                            </button>
+                        ` : `
+                            <button onclick="editBet(${bet.id})" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white">
+                                ✏️ Düzenle
+                            </button>
+                        `}
+                        ${bet.screenshot ? `
+                            <button onclick="viewScreenshot('${bet.screenshot}')" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white">
+                                📸 Görüntü
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteBet(${bet.id})" 
+                                class="bg-red-500 hover:bg-red-600 text-white">
+                            🗑️ Sil
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function updateBetStatus(id, newStatus) {
+            const bet = bets.find(b => b.id === id);
+            if (!bet) return;
+            
+            let winAmount = 0;
+            if (newStatus === 'won') {
+                // Automatically calculate win amount: bet amount × odds
+                winAmount = bet.betAmount * (bet.odds || 1);
+            }
+            
+            // Update bet
+            bet.status = newStatus;
+            bet.winAmount = winAmount;
+            bet.profitLoss = newStatus === 'won' ? winAmount - bet.betAmount : -bet.betAmount;
+            
+            // Update balance
+            totalBalance += bet.profitLoss;
+            
+            saveBets();
+            updateStats();
+            renderHistory();
+            
+            const statusText = newStatus === 'won' ? 'kazandı' : 'kaybetti';
+            const profitText = newStatus === 'won' ? `+${bet.profitLoss.toFixed(2)} ₺ kar` : `${bet.profitLoss.toFixed(2)} ₺ zarar`;
+            alert(`✅ Bahis ${statusText} olarak işaretlendi! (${profitText})`);
+        }
+
+        function viewScreenshot(screenshot) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-full">
+                    <img src="${screenshot}" class="max-w-full max-h-full object-contain rounded-2xl">
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                        ✕
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function deleteBet(id) {
+            if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
+            
+            const bet = bets.find(b => b.id === id);
+            if (bet) {
+                // Only subtract from balance if bet was completed
+                if (bet.status !== 'pending') {
+                    totalBalance -= bet.profitLoss;
+                }
+                bets = bets.filter(b => b.id !== id);
+                
+                saveBets();
+                updateStats();
+                renderHistory();
+                alert('✅ Kayıt silindi!');
+            }
+        }
+
+        function exportData() {
+            if (bets.length === 0) {
+                alert('⚠️ Dışa aktarılacak veri bulunmuyor!');
+                return;
+            }
+            
+            const data = {
+                totalBalance,
+                bets,
+                exportDate: new Date().toLocaleString('tr-TR')
+            };
+            
+            const jsonString = JSON.stringify(data, null, 2);
+            
+            // Try to download the file
+            try {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bahis-gecmisi-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('✅ Veriler başarıyla dışa aktarıldı!');
+            } catch (error) {
+                // If download fails, open in new window
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(`
+                    <html>
+                        <head><title>Bahis Verileri - Yedek</title></head>
+                        <body style="font-family: monospace; padding: 20px;">
+                            <h2>Bahis Takip Verileri</h2>
+                            <p>Aşağıdaki metni kopyalayıp .json uzantılı dosya olarak kaydedin:</p>
+                            <textarea style="width: 100%; height: 400px; font-family: monospace;">${jsonString}</textarea>
+                            <br><br>
+                            <button onclick="navigator.clipboard.writeText(document.querySelector('textarea').value)">
+                                📋 Panoya Kopyala
+                            </button>
+                        </body>
+                    </html>
+                `);
+                alert('📋 Veriler yeni pencerede açıldı. Metni kopyalayıp dosya olarak kaydedin!');
+            }
+        }
+
+        // Edit platform search functionality
+        function filterEditPlatforms() {
+            const searchTerm = document.getElementById('edit-platform-search').value.toLowerCase();
+            const dropdown = document.getElementById('edit-platform-dropdown');
+            const allPlatforms = getAllPlatforms();
+            
+            const filteredPlatforms = allPlatforms.filter(platform => 
+                platform.toLowerCase().includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = filteredPlatforms.map(platform => `
+                <div class="px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onmousedown="selectEditPlatform('${platform}')">
+                    ${platform}
+                </div>
+            `).join('');
+            
+            if (filteredPlatforms.length === 0) {
+                dropdown.innerHTML = '<div class="px-4 py-3 text-gray-500 text-center">Platform bulunamadı</div>';
+            }
+        }
+        
+        function showEditPlatformDropdown() {
+            const dropdown = document.getElementById('edit-platform-dropdown');
+            dropdown.classList.remove('hidden');
+            filterEditPlatforms();
+        }
+        
+        function hideEditPlatformDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('edit-platform-dropdown');
+                dropdown.classList.add('hidden');
+            }, 200);
+        }
+        
+        function selectEditPlatform(platform) {
+            document.getElementById('edit-platform-search').value = platform;
+            document.getElementById('edit-selected-platform').value = platform;
+            document.getElementById('edit-platform-dropdown').classList.add('hidden');
+        }
+
+        function editBet(id) {
+            const bet = bets.find(b => b.id === id);
+            if (!bet) return;
+            
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">✏️ Bahis Düzenle</h3>
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
+                            <div class="relative">
+                                <input type="text" id="edit-platform-search" value="${bet.platform}" placeholder="Platform ara veya seç..." 
+                                       class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium"
+                                       autocomplete="off" onkeyup="filterEditPlatforms()" onfocus="showEditPlatformDropdown()" onblur="hideEditPlatformDropdown()">
+                                <div id="edit-platform-dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl mt-1 max-h-60 overflow-y-auto z-50 hidden shadow-lg">
+                                    <!-- Platform options will be populated here -->
+                                </div>
+                            </div>
+                            <input type="hidden" id="edit-selected-platform" value="${bet.platform}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bahis Türü</label>
+                            <select id="edit-bet-type" class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                                <option value="Spor Bahis" ${bet.betType === 'Spor Bahis' ? 'selected' : ''}>🏈 Spor Bahis</option>
+                                <option value="Canlı Bahis" ${bet.betType === 'Canlı Bahis' ? 'selected' : ''}>⚡ Canlı Bahis</option>
+                                <option value="Slot" ${bet.betType === 'Slot' ? 'selected' : ''}>🎰 Slot</option>
+                                <option value="Casino" ${bet.betType === 'Casino' ? 'selected' : ''}>🃏 Casino</option>
+                                <option value="Sanal Spor" ${bet.betType === 'Sanal Spor' ? 'selected' : ''}>🎮 Sanal Spor</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bahis Miktarı (₺)</label>
+                            <input type="number" id="edit-bet-amount" step="0.01" min="0" value="${bet.betAmount}"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Durum</label>
+                            <select id="edit-bet-status" onchange="toggleEditWinAmount()" class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                                <option value="pending" ${bet.status === 'pending' ? 'selected' : ''}>⏳ Bekliyor</option>
+                                <option value="won" ${bet.status === 'won' ? 'selected' : ''}>✅ Kazandı</option>
+                                <option value="lost" ${bet.status === 'lost' ? 'selected' : ''}>❌ Kaybetti</option>
+                            </select>
+                        </div>
+                        
+                        <div id="edit-win-amount-container" class="${bet.status !== 'won' ? 'hidden' : ''}">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kazanç Miktarı (₺)</label>
+                            <input type="number" id="edit-win-amount" step="0.01" min="0" value="${bet.winAmount}"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bahis Seçimi</label>
+                            <input type="text" id="edit-bet-selection" value="${bet.betSelection || ''}"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium"
+                                   placeholder="Örn: 2.5 Üst, 1X, Karşılıklı Gol Var">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Maçlar</label>
+                            <input type="text" id="edit-description" value="${bet.description || ''}"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Oran</label>
+                            <input type="number" id="edit-odds" step="0.01" min="1" value="${bet.odds || ''}"
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-2xl font-bold">
+                            İptal
+                        </button>
+                        <button onclick="saveBetEdit(${bet.id})" 
+                                class="flex-1 gradient-button text-white py-3 rounded-2xl font-bold">
+                            💾 Kaydet
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function toggleEditWinAmount() {
+            const status = document.getElementById('edit-bet-status').value;
+            const container = document.getElementById('edit-win-amount-container');
+            
+            if (status === 'won') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        
+        function saveBetEdit(id) {
+            const bet = bets.find(b => b.id === id);
+            if (!bet) return;
+            
+            // Get old values to calculate balance difference
+            const oldProfitLoss = bet.status !== 'pending' ? bet.profitLoss : 0;
+            
+            // Get new values
+            const platform = document.getElementById('edit-selected-platform').value || document.getElementById('edit-platform-search').value.trim();
+            const betType = document.getElementById('edit-bet-type').value;
+            const betAmount = parseFloat(document.getElementById('edit-bet-amount').value) || 0;
+            const betStatus = document.getElementById('edit-bet-status').value;
+            const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
+            const betSelection = document.getElementById('edit-bet-selection').value;
+            const description = document.getElementById('edit-description').value;
+            const odds = parseFloat(document.getElementById('edit-odds').value) || 0;
+            
+            if (betAmount <= 0) {
+                alert('⚠️ Lütfen geçerli bir bahis miktarı girin!');
+                return;
+            }
+            
+            // Calculate new profit/loss
+            let newProfitLoss = 0;
+            let finalWinAmount = 0;
+            
+            if (betStatus === 'won') {
+                finalWinAmount = winAmount > 0 ? winAmount : (betAmount * odds);
+                newProfitLoss = finalWinAmount - betAmount;
+            } else if (betStatus === 'lost') {
+                finalWinAmount = 0;
+                newProfitLoss = -betAmount;
+            }
+            
+            // Update bet
+            bet.platform = platform;
+            bet.betType = betType;
+            bet.betAmount = betAmount;
+            bet.status = betStatus;
+            bet.winAmount = finalWinAmount;
+            bet.profitLoss = newProfitLoss;
+            bet.betSelection = betSelection;
+            bet.description = description;
+            bet.odds = odds;
+            
+            // Update balance (remove old impact, add new impact)
+            totalBalance -= oldProfitLoss;
+            if (betStatus !== 'pending') {
+                totalBalance += newProfitLoss;
+            }
+            
+            saveBets();
+            updateStats();
+            renderHistory();
+            
+            // Close modal
+            document.querySelector('.fixed').remove();
+            
+            alert('✅ Bahis başarıyla güncellendi!');
+        }
+
+        function openQuickAdd() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-xl">
+                                🚀
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800">Hızlı Bahis Ekle</h3>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">📊 Oran</label>
+                            <input type="number" id="quick-odds" step="0.01" min="1" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="2.50">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Oynadığın Miktar (₺)</label>
+                            <input type="number" id="quick-amount" step="0.01" min="0" 
+                                   class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium" 
+                                   placeholder="250.00">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🏢 Platform</label>
+                            <div class="relative">
+                                <input type="text" id="quick-platform-search" placeholder="Platform ara veya seç..." 
+                                       class="w-full modern-input px-4 py-3 rounded-2xl focus:outline-none font-medium"
+                                       autocomplete="off" onkeyup="filterQuickPlatforms()" onfocus="showQuickPlatformDropdown()" onblur="hideQuickPlatformDropdown()">
+                                <div id="quick-platform-dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl mt-1 max-h-60 overflow-y-auto z-50 hidden shadow-lg">
+                                    <!-- Platform options will be populated here -->
+                                </div>
+                            </div>
+                            <input type="hidden" id="quick-selected-platform" value="">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">📸 Ekran Görüntüsü (İsteğe Bağlı)</label>
+                            <div class="space-y-3">
+                                <div id="quick-drop-zone" class="w-full modern-input px-6 py-6 rounded-2xl border-2 border-dashed border-pink-300 text-center cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-all">
+                                    <div class="text-3xl mb-2">📸</div>
+                                    <div class="text-gray-600 font-medium mb-1">Görüntüyü buraya sürükleyin</div>
+                                    <div class="text-sm text-gray-500">veya <span class="text-pink-600 font-semibold">Ctrl+V</span> ile yapıştırın</div>
+                                </div>
+                                <input type="file" id="quick-screenshot" accept="image/*" class="hidden">
+                                <div id="quick-screenshot-preview" class="hidden">
+                                    <img id="quick-preview-image" class="w-full h-24 object-cover rounded-2xl border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity" alt="Önizleme" onclick="viewScreenshot(this.src)" title="Büyütmek için tıklayın">
+                                    <div class="flex justify-between items-center mt-2">
+                                        <span class="text-xs text-gray-400">📸 Büyütmek için tıklayın</span>
+                                        <button type="button" onclick="removeQuickScreenshot()" class="text-red-400 hover:text-red-300 text-sm">
+                                            🗑️ Kaldır
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-2xl">
+                            <div class="text-sm text-gray-600 mb-2">
+                                <strong>💡 Hızlı Ekleme:</strong>
+                            </div>
+                            <div class="text-xs text-gray-500 space-y-1">
+                                <div>• Bahis türü: Spor Bahis olarak eklenir</div>
+                                <div>• Durum: Bekliyor olarak eklenir</div>
+                                <div>• Diğer detayları sonra düzenleyebilirsin</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-2xl font-bold">
+                            İptal
+                        </button>
+                        <button onclick="saveQuickBet()" 
+                                class="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-3 rounded-2xl font-bold">
+                            🚀 Hızlı Ekle
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Setup quick add drag and drop
+            setupQuickAddDragDrop();
+        }
+        
+        function setupQuickAddDragDrop() {
+            const quickDropZone = document.getElementById('quick-drop-zone');
+            const quickScreenshotInput = document.getElementById('quick-screenshot');
+            
+            // Click to select file
+            quickDropZone.addEventListener('click', () => {
+                quickScreenshotInput.click();
+            });
+            
+            // File input change
+            quickScreenshotInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleQuickImageFile(file);
+                }
+            });
+            
+            // Drag and drop events
+            quickDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                quickDropZone.classList.add('border-pink-500', 'bg-pink-100');
+            });
+            
+            quickDropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                quickDropZone.classList.remove('border-pink-500', 'bg-pink-100');
+            });
+            
+            quickDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                quickDropZone.classList.remove('border-pink-500', 'bg-pink-100');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        handleQuickImageFile(file);
+                    } else {
+                        alert('⚠️ Lütfen sadece görüntü dosyası yükleyin!');
+                    }
+                }
+            });
+        }
+        
+        function handleQuickImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('quick-preview-image').src = e.target.result;
+                document.getElementById('quick-screenshot-preview').classList.remove('hidden');
+                document.getElementById('quick-drop-zone').innerHTML = `
+                    <div class="text-2xl mb-2">✅</div>
+                    <div class="text-green-600 font-medium">Görüntü yüklendi!</div>
+                    <div class="text-xs text-gray-500 mt-1">Değiştirmek için tekrar sürükleyin</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+            
+            // Update the file input
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            document.getElementById('quick-screenshot').files = dt.files;
+        }
+        
+        function removeQuickScreenshot() {
+            document.getElementById('quick-screenshot').value = '';
+            document.getElementById('quick-screenshot-preview').classList.add('hidden');
+            document.getElementById('quick-drop-zone').innerHTML = `
+                <div class="text-3xl mb-2">📸</div>
+                <div class="text-gray-600 font-medium mb-1">Görüntüyü buraya sürükleyin</div>
+                <div class="text-sm text-gray-500">veya <span class="text-pink-600 font-semibold">Ctrl+V</span> ile yapıştırın</div>
+            `;
+        }
+        
+        // Quick platform search functionality
+        function filterQuickPlatforms() {
+            const searchTerm = document.getElementById('quick-platform-search').value.toLowerCase();
+            const dropdown = document.getElementById('quick-platform-dropdown');
+            const allPlatforms = getAllPlatforms();
+            
+            const filteredPlatforms = allPlatforms.filter(platform => 
+                platform.toLowerCase().includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = filteredPlatforms.map(platform => `
+                <div class="px-4 py-3 hover:bg-pink-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onmousedown="selectQuickPlatform('${platform}')">
+                    ${platform}
+                </div>
+            `).join('');
+            
+            if (filteredPlatforms.length === 0) {
+                dropdown.innerHTML = '<div class="px-4 py-3 text-gray-500 text-center">Platform bulunamadı</div>';
+            }
+        }
+        
+        function showQuickPlatformDropdown() {
+            const dropdown = document.getElementById('quick-platform-dropdown');
+            dropdown.classList.remove('hidden');
+            filterQuickPlatforms();
+        }
+        
+        function hideQuickPlatformDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('quick-platform-dropdown');
+                dropdown.classList.add('hidden');
+            }, 200);
+        }
+        
+        function selectQuickPlatform(platform) {
+            document.getElementById('quick-platform-search').value = platform;
+            document.getElementById('quick-selected-platform').value = platform;
+            document.getElementById('quick-platform-dropdown').classList.add('hidden');
+        }
+        
+        function saveQuickBet() {
+            const odds = parseFloat(document.getElementById('quick-odds').value) || 0;
+            const betAmount = parseFloat(document.getElementById('quick-amount').value) || 0;
+            const selectedPlatform = document.getElementById('quick-selected-platform').value || document.getElementById('quick-platform-search').value.trim();
+            const screenshotFile = document.getElementById('quick-screenshot').files[0];
+            
+            if (!selectedPlatform) {
+                alert('⚠️ Lütfen bir platform seçin!');
+                return;
+            }
+            
+            if (betAmount <= 0) {
+                alert('⚠️ Lütfen geçerli bir bahis miktarı girin!');
+                return;
+            }
+            
+            if (odds <= 0) {
+                alert('⚠️ Lütfen geçerli bir oran girin!');
+                return;
+            }
+            
+            // Add to custom platforms if it's a new platform
+            if (!defaultPlatforms.includes(selectedPlatform) && !customPlatforms.includes(selectedPlatform)) {
+                customPlatforms.push(selectedPlatform);
+                localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+            }
+            
+            const bet = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('tr-TR'),
+                time: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}),
+                platform: selectedPlatform,
+                betType: 'Spor Bahis', // Default to sports betting
+                betAmount,
+                winAmount: 0,
+                profitLoss: 0,
+                description: '',
+                betSelection: '',
+                odds,
+                status: 'pending', // Always pending for quick add
+                screenshot: null
+            };
+            
+            // Handle screenshot
+            if (screenshotFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    bet.screenshot = e.target.result;
+                    saveQuickBetAndUpdate(bet);
+                };
+                reader.readAsDataURL(screenshotFile);
+            } else {
+                saveQuickBetAndUpdate(bet);
+            }
+        }
+        
+        function saveQuickBetAndUpdate(bet) {
+            bets.unshift(bet);
+            
+            // Don't update balance for pending bets
+            saveBets();
+            updateStats();
+            renderHistory();
+            
+            // Close modal
+            document.querySelector('.fixed').remove();
+            
+            alert('🚀 Hızlı bahis başarıyla eklendi! Sonucu güncellemek için listeden düzenleyebilirsin.');
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ Tüm verileri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) return;
+            
+            bets = [];
+            totalBalance = 0;
+            localStorage.removeItem('bets');
+            localStorage.removeItem('totalBalance');
+            updateStats();
+            renderHistory();
+            
+            alert('✅ Tüm veriler temizlendi!');
+        }
+
+
+
+        // Initialize app on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePlatformOptions();
+            updateStats();
+            renderHistory();
+            
+            // Enhanced mobile touch feedback
+            function addTouchFeedback() {
+                const buttons = document.querySelectorAll('button, .icon-button, .glass-button, .gradient-button, .success-gradient, .danger-gradient, .mobile-actions button');
+                
+                buttons.forEach(button => {
+                    // Remove existing listeners to prevent duplicates
+                    button.removeEventListener('touchstart', handleTouchStart);
+                    button.removeEventListener('touchend', handleTouchEnd);
+                    button.removeEventListener('touchcancel', handleTouchCancel);
+                    
+                    // Add new listeners
+                    button.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    button.addEventListener('touchend', handleTouchEnd, { passive: true });
+                    button.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+                });
+            }
+            
+            function handleTouchStart(e) {
+                this.style.transform = 'scale(0.95)';
+                this.style.transition = 'transform 0.1s ease';
+                this.classList.add('touching');
+            }
+            
+            function handleTouchEnd(e) {
+                setTimeout(() => {
+                    this.style.transform = '';
+                    this.style.transition = 'all 0.3s ease';
+                    this.classList.remove('touching');
+                }, 100);
+            }
+            
+            function handleTouchCancel(e) {
+                this.style.transform = '';
+                this.style.transition = 'all 0.3s ease';
+                this.classList.remove('touching');
+            }
+            
+            // Initial setup
+            addTouchFeedback();
+            
+            // Re-add touch feedback when new elements are added
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        addTouchFeedback();
+                    }
+                });
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973cc096862b3d66',t:'MTc1NTk3NDU3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -514,6 +514,10 @@
                 <span class="sidebar-icon">📊</span>
                 <span class="sidebar-text">İstatistikler</span>
             </div>
+            <div class="sidebar-item" data-section="guide">
+                <span class="sidebar-icon">📖</span>
+                <span class="sidebar-text">Rehber</span>
+            </div>
             <div class="sidebar-item" data-section="settings">
                 <span class="sidebar-icon">⚙️</span>
                 <span class="sidebar-text">Ayarlar</span>
@@ -867,7 +871,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Toplam bahis sayısı</div>
+                        <div class="text-xs text-gray-400">Kasa işlemleri hariç toplam bahis sayısı</div>
+                        <div class="mt-2 text-xs text-blue-300" id="stats-bet-breakdown">Spor: 0 | Slot: 0 | Casino: 0</div>
                     </div>
 
                     <div class="stat-card">
@@ -882,7 +887,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Başarı yüzdesi</div>
+                        <div class="text-xs text-gray-400">Sonuçlanan bahislerdeki başarı oranı</div>
+                        <div class="mt-2 text-xs text-green-300" id="stats-win-breakdown">Kazanan: 0 | Kaybeden: 0</div>
                     </div>
 
                     <div class="stat-card">
@@ -897,7 +903,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Ortalama bahis oranı</div>
+                        <div class="text-xs text-gray-400">Spor bahislerinin ortalama oranı</div>
+                        <div class="mt-2 text-xs text-yellow-300" id="stats-odds-range">En düşük: 0.00 | En yüksek: 0.00</div>
                     </div>
 
                     <div class="stat-card">
@@ -912,7 +919,40 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Yatırım getirisi</div>
+                        <div class="text-xs text-gray-400">Yatırım getirisi (Net kar / Toplam yatırım)</div>
+                        <div class="mt-2 text-xs" id="stats-roi-breakdown">Yatırım: 0₺ | Net kar: 0₺</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-400 to-blue-500 flex items-center justify-center text-xl">
+                                    📈
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Ortalama Bahis</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-blue-400" id="stats-avg-bet">0₺</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Bahis başına ortalama yatırım miktarı</div>
+                        <div class="mt-2 text-xs text-blue-300" id="stats-bet-range">En düşük: 0₺ | En yüksek: 0₺</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-xl">
+                                    🏆
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">En İyi Platform</h3>
+                                    <p class="text-lg font-montserrat font-bold text-teal-400" id="stats-best-platform">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">En çok kar getiren platform</div>
+                        <div class="mt-2 text-xs text-teal-300" id="stats-platform-profit">Kar: 0₺</div>
                     </div>
                 </div>
 
@@ -929,6 +969,218 @@
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Dağılımı</h3>
                         <div style="height: 300px;">
                             <canvas id="platformChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div id="guide" class="page-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi</h2>
+                
+                <!-- What's New Section -->
+                <div class="glass-card rounded-2xl p-6 mb-8">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
+                            🆕
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v1.4</h3>
+                            <p class="text-gray-400 text-sm">Son eklenen özellikler</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <span class="text-green-400 text-lg">✨</span>
+                            <div>
+                                <h4 class="text-white font-medium">Gelişmiş İstatistikler</h4>
+                                <p class="text-gray-400 text-sm">ROI hesaplama, detaylı grafikler ve platform analizi</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="text-blue-400 text-lg">🎯</span>
+                            <div>
+                                <h4 class="text-white font-medium">Hızlı Bahis Ekleme</h4>
+                                <p class="text-gray-400 text-sm">Floating buton ile anında bahis ekleme</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="text-purple-400 text-lg">📱</span>
+                            <div>
+                                <h4 class="text-white font-medium">Mobil Uyumluluk</h4>
+                                <p class="text-gray-400 text-sm">Tüm cihazlarda mükemmel görünüm</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="text-yellow-400 text-lg">🎲</span>
+                            <div>
+                                <h4 class="text-white font-medium">Slot Bahis Desteği</h4>
+                                <p class="text-gray-400 text-sm">Slot oyunları için özel kayıt sistemi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start Guide -->
+                <div class="dashboard-grid">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-lg">
+                                🚀
+                            </div>
+                            <h3 class="text-lg font-montserrat font-bold gradient-text">Hızlı Başlangıç</h3>
+                        </div>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start space-x-2">
+                                <span class="text-blue-400 font-bold">1.</span>
+                                <p class="text-gray-300">İlk kasanızı "💰 Kasa Güncelleme" ile ekleyin</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-blue-400 font-bold">2.</span>
+                                <p class="text-gray-300">"➕ Yeni Kayıt" ile ilk bahisinizi ekleyin</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-blue-400 font-bold">3.</span>
+                                <p class="text-gray-300">Bahis sonuçlarını "✅ Kazandı" veya "❌ Kaybetti" ile işaretleyin</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-blue-400 font-bold">4.</span>
+                                <p class="text-gray-300">"📊 İstatistikler" ile performansınızı takip edin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-lg">
+                                💡
+                            </div>
+                            <h3 class="text-lg font-montserrat font-bold gradient-text">Pro İpuçları</h3>
+                        </div>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start space-x-2">
+                                <span class="text-green-400">💰</span>
+                                <p class="text-gray-300">Kasanızı düzenli olarak güncelleyin</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-green-400">📸</span>
+                                <p class="text-gray-300">Kupon resimlerini Ctrl+V ile hızlıca yapıştırın</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-green-400">🎯</span>
+                                <p class="text-gray-300">Floating butonu kullanarak hızlı bahis ekleyin</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="text-green-400">📊</span>
+                                <p class="text-gray-300">ROI'nizi takip ederek stratejinizi geliştirin</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Explanations -->
+                <div class="space-y-6">
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏠 Ana Panel Özellikleri</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="space-y-2">
+                                <h4 class="text-white font-medium">📊 İstatistik Kartları</h4>
+                                <p class="text-gray-400">Toplam kasa, kar, zarar ve bahis sayınızı görün</p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="text-white font-medium">⚡ Hızlı İşlemler</h4>
+                                <p class="text-gray-400">Anında bahis ekleme ve kasa güncelleme</p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="text-white font-medium">📋 Son Bahisler</h4>
+                                <p class="text-gray-400">En son eklediğiniz 5 bahisi görüntüleyin</p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="text-white font-medium">📈 Özet İstatistik</h4>
+                                <p class="text-gray-400">Kazanma oranı ve aylık kar/zarar bilgisi</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">➕ Bahis Ekleme Rehberi</h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <h4 class="text-white font-medium mb-2">🎯 Spor Bahisleri</h4>
+                                <p class="text-gray-400 mb-2">Platform, açıklama, miktar, oran ve tarih bilgilerini girin</p>
+                                <div class="bg-gray-800 bg-opacity-30 rounded p-2 text-xs">
+                                    <strong>Örnek:</strong> Galatasaray - Fenerbahçe (1) | 100₺ | 2.50 oran
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium mb-2">🎲 Slot Oyunları</h4>
+                                <p class="text-gray-400 mb-2">Slot türü, oyun adı, spin sayısı ve spin başına bahis miktarını girin</p>
+                                <div class="bg-gray-800 bg-opacity-30 rounded p-2 text-xs">
+                                    <strong>Örnek:</strong> Sweet Bonanza | 100 spin | 1₺/spin = 100₺ toplam
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium mb-2">📸 Kupon Resimleri</h4>
+                                <p class="text-gray-400">Kupon resimlerini sürükle-bırak veya Ctrl+V ile ekleyin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📊 İstatistik Açıklamaları</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="text-white font-medium">💰 Toplam Kasa</h4>
+                                    <p class="text-gray-400">Mevcut bakiyeniz (kar - zarar)</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-medium">📈 Kazanma Oranı</h4>
+                                    <p class="text-gray-400">Kazanan bahis / Toplam bahis × 100</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-medium">💹 ROI (Yatırım Getirisi)</h4>
+                                    <p class="text-gray-400">Net kar / Toplam yatırım × 100</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="text-white font-medium">📊 Ortalama Oran</h4>
+                                    <p class="text-gray-400">Tüm bahislerin ortalama oranı</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-medium">📈 Kar/Zarar Trendi</h4>
+                                    <p class="text-gray-400">Zaman içindeki performans grafiği</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-medium">🏢 Platform Dağılımı</h4>
+                                    <p class="text-gray-400">Hangi platformda kaç bahis oynadığınız</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">⚙️ Gelişmiş Özellikler</h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <h4 class="text-white font-medium mb-2">🏢 Platform Yönetimi</h4>
+                                <p class="text-gray-400">Kendi platformlarınızı ekleyin ve yönetin</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium mb-2">📤📥 Veri Yedekleme</h4>
+                                <p class="text-gray-400">Verilerinizi JSON formatında dışa/içe aktarın</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium mb-2">🔍 Filtreleme</h4>
+                                <p class="text-gray-400">Bahisleri duruma göre filtreleyin (Bekleyen, Kazanan, Kaybeden)</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium mb-2">📱 Mobil Uyumluluk</h4>
+                                <p class="text-gray-400">Tüm cihazlarda sorunsuz çalışır</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2173,26 +2425,98 @@
             const totalBets = bets.filter(bet => bet.betType !== 'Kasa İşlemi').length;
             const finishedBets = bets.filter(bet => bet.status !== 'pending' && bet.betType !== 'Kasa İşlemi');
             const wonBets = finishedBets.filter(bet => bet.status === 'won');
+            const lostBets = finishedBets.filter(bet => bet.status === 'lost');
             const winRate = finishedBets.length > 0 ? (wonBets.length / finishedBets.length * 100) : 0;
             
-            const sportBets = bets.filter(bet => bet.betType !== 'Kasa İşlemi' && bet.betType !== 'Slot');
-            const avgOdds = sportBets.length > 0 ? (sportBets.reduce((sum, bet) => sum + bet.odds, 0) / sportBets.length) : 0;
+            // Bet type breakdown
+            const sportBets = bets.filter(bet => bet.betType === 'Spor Bahis' || bet.betType === 'Canlı Bahis');
+            const slotBets = bets.filter(bet => bet.betType === 'Slot');
+            const casinoBets = bets.filter(bet => bet.betType === 'Casino');
             
+            // Odds calculations
+            const sportBetsWithOdds = sportBets.filter(bet => bet.odds > 1);
+            const avgOdds = sportBetsWithOdds.length > 0 ? (sportBetsWithOdds.reduce((sum, bet) => sum + bet.odds, 0) / sportBetsWithOdds.length) : 0;
+            const minOdds = sportBetsWithOdds.length > 0 ? Math.min(...sportBetsWithOdds.map(bet => bet.odds)) : 0;
+            const maxOdds = sportBetsWithOdds.length > 0 ? Math.max(...sportBetsWithOdds.map(bet => bet.odds)) : 0;
+            
+            // Financial calculations
             const totalBankroll = bets.reduce((sum, bet) => sum + bet.profitLoss, 0);
             const totalInvested = bets.filter(bet => bet.betType !== 'Kasa İşlemi').reduce((sum, bet) => sum + bet.betAmount, 0);
             const roi = totalInvested > 0 ? (totalBankroll / totalInvested * 100) : 0;
+            
+            // Average bet calculations
+            const realBets = bets.filter(bet => bet.betType !== 'Kasa İşlemi');
+            const avgBet = realBets.length > 0 ? (realBets.reduce((sum, bet) => sum + bet.betAmount, 0) / realBets.length) : 0;
+            const minBet = realBets.length > 0 ? Math.min(...realBets.map(bet => bet.betAmount)) : 0;
+            const maxBet = realBets.length > 0 ? Math.max(...realBets.map(bet => bet.betAmount)) : 0;
+            
+            // Platform analysis
+            const platformProfits = {};
+            bets.forEach(bet => {
+                if (bet.betType !== 'Kasa İşlemi') {
+                    if (!platformProfits[bet.platform]) {
+                        platformProfits[bet.platform] = 0;
+                    }
+                    platformProfits[bet.platform] += bet.profitLoss;
+                }
+            });
+            
+            const bestPlatform = Object.keys(platformProfits).length > 0 
+                ? Object.keys(platformProfits).reduce((a, b) => platformProfits[a] > platformProfits[b] ? a : b)
+                : '-';
+            const bestPlatformProfit = bestPlatform !== '-' ? platformProfits[bestPlatform] : 0;
 
+            // Update main statistics
             const statsTotalBetsEl = document.getElementById('stats-total-bets');
             const statsWinRateEl = document.getElementById('stats-win-rate');
             const statsAvgOddsEl = document.getElementById('stats-avg-odds');
             const statsRoiEl = document.getElementById('stats-roi');
+            const statsAvgBetEl = document.getElementById('stats-avg-bet');
+            const statsBestPlatformEl = document.getElementById('stats-best-platform');
 
             if (statsTotalBetsEl) statsTotalBetsEl.textContent = totalBets;
             if (statsWinRateEl) statsWinRateEl.textContent = `${winRate.toFixed(1)}%`;
             if (statsAvgOddsEl) statsAvgOddsEl.textContent = avgOdds.toFixed(2);
+            if (statsAvgBetEl) statsAvgBetEl.textContent = `${avgBet.toFixed(0)}₺`;
+            if (statsBestPlatformEl) statsBestPlatformEl.textContent = bestPlatform.length > 12 ? bestPlatform.substring(0, 12) + '...' : bestPlatform;
+            
             if (statsRoiEl) {
                 statsRoiEl.textContent = `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%`;
                 statsRoiEl.className = roi >= 0 ? 'text-2xl font-montserrat font-bold text-green-400' : 'text-2xl font-montserrat font-bold text-red-400';
+            }
+
+            // Update breakdown information
+            const statsBetBreakdownEl = document.getElementById('stats-bet-breakdown');
+            const statsWinBreakdownEl = document.getElementById('stats-win-breakdown');
+            const statsOddsRangeEl = document.getElementById('stats-odds-range');
+            const statsRoiBreakdownEl = document.getElementById('stats-roi-breakdown');
+            const statsBetRangeEl = document.getElementById('stats-bet-range');
+            const statsPlatformProfitEl = document.getElementById('stats-platform-profit');
+
+            if (statsBetBreakdownEl) {
+                statsBetBreakdownEl.textContent = `Spor: ${sportBets.length} | Slot: ${slotBets.length} | Casino: ${casinoBets.length}`;
+            }
+            
+            if (statsWinBreakdownEl) {
+                statsWinBreakdownEl.textContent = `Kazanan: ${wonBets.length} | Kaybeden: ${lostBets.length}`;
+            }
+            
+            if (statsOddsRangeEl) {
+                statsOddsRangeEl.textContent = `En düşük: ${minOdds.toFixed(2)} | En yüksek: ${maxOdds.toFixed(2)}`;
+            }
+            
+            if (statsRoiBreakdownEl) {
+                statsRoiBreakdownEl.textContent = `Yatırım: ${totalInvested.toFixed(0)}₺ | Net kar: ${totalBankroll >= 0 ? '+' : ''}${totalBankroll.toFixed(0)}₺`;
+                statsRoiBreakdownEl.className = totalBankroll >= 0 ? 'mt-2 text-xs text-green-300' : 'mt-2 text-xs text-red-300';
+            }
+            
+            if (statsBetRangeEl) {
+                statsBetRangeEl.textContent = `En düşük: ${minBet.toFixed(0)}₺ | En yüksek: ${maxBet.toFixed(0)}₺`;
+            }
+            
+            if (statsPlatformProfitEl) {
+                statsPlatformProfitEl.textContent = `Kar: ${bestPlatformProfit >= 0 ? '+' : ''}${bestPlatformProfit.toFixed(0)}₺`;
+                statsPlatformProfitEl.className = bestPlatformProfit >= 0 ? 'mt-2 text-xs text-teal-300' : 'mt-2 text-xs text-red-300';
             }
         }
 
@@ -2676,5 +3000,5 @@
         window.showImageModal = showImageModal;
         window.removeCustomPlatform = removeCustomPlatform;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9755ad43737d1ece',t:'MTc1NjIzNTkyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9755e135a298dc33',t:'MTc1NjIzODA1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

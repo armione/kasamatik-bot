@@ -2215,9 +2215,8 @@
 
                 try {
                     const base64Data = currentImageData.split(',')[1];
-                    const prompt = "Bu bahis kuponu resmini analiz et. JSON formatında 'description' (takımlar veya ana bahis), 'betAmount' (sayı olarak toplam bahis miktarı) ve 'odds' (sayı olarak toplam oran) bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.";
                     
-                    const result = await callGeminiApi(prompt, base64Data);
+                    const result = await callGeminiApi(base64Data);
                     
                     if (result && result.description) {
                         document.getElementById('description').value = result.description;
@@ -2242,38 +2241,13 @@
             }
 
             /**
-             * Calls the Gemini API with a prompt and a base64 image.
-             * Includes exponential backoff for retries.
+             * Calls the local serverless function to analyze the image via Gemini API.
              */
-            async function callGeminiApi(prompt, base64ImageData) {
-                const apiKey = "AIzaSyCzd5Nt74m9QqbyC2eOdXHitbDuurcpqhg"; // API Anahtarı buraya eklendi
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
+            async function callGeminiApi(base64ImageData) {
+                const localApiUrl = '/api/analyze'; // Vercel'deki kendi fonksiyonumuza istek atıyoruz.
+
                 const payload = {
-                    contents: [
-                        {
-                            parts: [
-                                { text: prompt },
-                                {
-                                    inlineData: {
-                                        mimeType: "image/jpeg",
-                                        data: base64ImageData
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                "description": { "type": "STRING" },
-                                "betAmount": { "type": "NUMBER" },
-                                "odds": { "type": "NUMBER" }
-                            }
-                        }
-                    }
+                    base64ImageData: base64ImageData
                 };
 
                 let response;
@@ -2282,18 +2256,17 @@
 
                 while (retries > 0) {
                     try {
-                        response = await fetch(apiUrl, {
+                        response = await fetch(localApiUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
 
                         if (response.ok) {
-                            const result = await response.json();
-                            const jsonText = result.candidates[0].content.parts[0].text;
-                            return JSON.parse(jsonText);
+                            // Sunucu fonksiyonumuzdan gelen temiz JSON'u doğrudan kullanıyoruz.
+                            return await response.json();
                         } else {
-                            throw new Error(`API request failed with status ${response.status}`);
+                            throw new Error(`API isteği başarısız oldu: ${response.status}`);
                         }
                     } catch (error) {
                         console.error(`Attempt failed: ${error.message}`);
@@ -2311,3 +2284,4 @@
     </script>
 </body>
 </html>
+

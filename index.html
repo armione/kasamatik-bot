@@ -491,6 +491,19 @@
         .sport-fields {
             display: block;
         }
+         
+        /* For Gemini Analysis Box */
+        #gemini-analysis-result ul {
+            list-style-position: inside;
+            padding-left: 0;
+        }
+        #gemini-analysis-result li {
+            margin-bottom: 0.75rem;
+        }
+        #gemini-analysis-result strong {
+            color: var(--primary-blue);
+        }
+
     </style>
 </head>
 <body class="text-white">
@@ -524,7 +537,11 @@
             </div>
             <div class="sidebar-item" data-section="history">
                 <span class="sidebar-icon">📋</span>
-                <span class="sidebar-text">Geçmiş</span>
+                <span class="sidebar-text">Bahis Geçmişi</span>
+            </div>
+            <div class="sidebar-item" data-section="transactions">
+                <span class="sidebar-icon">💸</span>
+                <span class="sidebar-text">Kasa Hareketleri</span>
             </div>
             <div class="sidebar-item" data-section="statistics">
                 <span class="sidebar-icon">📊</span>
@@ -546,7 +563,7 @@
                 <span class="sidebar-text">Daralt</span>
             </button>
             <div class="text-center mt-2">
-                <p class="text-xs text-gray-500 sidebar-text">v1.4</p>
+                <p class="text-xs text-gray-500 sidebar-text">v1.5</p>
             </div>
         </div>
     </div>
@@ -572,7 +589,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400">Mevcut bakiye</div>
+                    <div class="text-xs text-gray-400">Mevcut nakit bakiye</div>
                 </div>
 
                 <div class="stat-card">
@@ -582,12 +599,12 @@
                                 📈
                             </div>
                             <div>
-                                <h3 class="text-gray-300 font-medium text-sm">Toplam Kar</h3>
+                                <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis Karı</h3>
                                 <p class="text-2xl font-montserrat font-bold text-green-400" id="total-profit">0 ₺</p>
                             </div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400">Kazanılan miktar</div>
+                    <div class="text-xs text-gray-400">Sadece bahislerden gelen net kar</div>
                 </div>
 
                 <div class="stat-card">
@@ -597,12 +614,12 @@
                                 📉
                             </div>
                             <div>
-                                <h3 class="text-gray-300 font-medium text-sm">Toplam Zarar</h3>
+                                <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis Zararı</h3>
                                 <p class="text-2xl font-montserrat font-bold text-red-400" id="total-loss">0 ₺</p>
                             </div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400">Kaybedilen miktar</div>
+                    <div class="text-xs text-gray-400">Sadece bahislerden gelen net zarar</div>
                 </div>
 
                 <div class="stat-card">
@@ -612,12 +629,12 @@
                                 🎲
                             </div>
                             <div>
-                                <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis</h3>
+                                <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis Sayısı</h3>
                                 <p class="text-2xl font-montserrat font-bold text-white" id="total-bets">0</p>
                             </div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400">Bahis sayısı</div>
+                    <div class="text-xs text-gray-400">Oynanan toplam kupon</div>
                 </div>
             </div>
 
@@ -630,10 +647,10 @@
                             🚀 Hızlı Bahis Ekle
                         </button>
                         <div class="flex space-x-2">
-                            <input type="number" id="bankroll-update" placeholder="Miktar (₺)" step="0.01"
+                            <input type="number" id="bankroll-update" placeholder="Nakit Ekle/Çek (₺)" step="0.01"
                                    class="input-glass flex-1 p-3 rounded-lg text-gray-800">
                             <button id="bankroll-update-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
-                                💰
+                                💸
                             </button>
                         </div>
                     </div>
@@ -651,7 +668,7 @@
                             <span class="text-yellow-400 font-bold" id="pending-bets">0</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-300 text-sm">Bu Ay Kar/Zarar:</span>
+                            <span class="text-gray-300 text-sm">Bu Ayki Bahis Karı:</span>
                             <span class="text-blue-400 font-bold" id="monthly-profit">0 ₺</span>
                         </div>
                     </div>
@@ -873,12 +890,47 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Transactions Section -->
+        <div id="transactions" class="page-section">
+             <div class="glass-card rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-montserrat font-bold gradient-text">💸 Kasa Hareketleri</h2>
+                    <p class="text-gray-400 text-sm">Tüm nakit giriş ve çıkışlarınız</p>
+                </div>
+                <div id="transaction-history" class="space-y-3">
+                     <!-- Transaction history will be rendered here -->
+                </div>
+            </div>
+        </div>
 
         <!-- Statistics Section -->
         <div id="statistics" class="page-section">
             <div class="mb-8">
                 <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
                 
+                <!-- Gemini Analysis Section -->
+                <div class="glass-card rounded-2xl p-6 mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                             <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center text-xl">
+                                ✨
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-montserrat font-bold gradient-text">Akıllı Analiz</h3>
+                                <p class="text-gray-400 text-sm">Gemini ile performansını değerlendir</p>
+                            </div>
+                        </div>
+                        <button id="gemini-get-analysis-btn" class="gradient-button px-4 py-2 rounded-lg text-white flex items-center gap-x-2">
+                           <span id="gemini-analysis-button-icon">🧠</span>
+                           <span id="gemini-analysis-button-text">Analiz Et</span>
+                        </button>
+                    </div>
+                    <div id="gemini-analysis-result" class="text-gray-300 space-y-2 hidden p-4 bg-gray-800 bg-opacity-30 rounded-lg">
+                        <!-- Gemini analysis will appear here -->
+                    </div>
+                </div>
+
                 <!-- Stats Grid -->
                 <div class="stats-grid mb-8">
                     <div class="stat-card">
@@ -1456,6 +1508,7 @@
                 updateStats();
                 renderHistory();
                 renderRecentBets();
+                renderTransactions();
             }
 
             function showWelcomeNotification() {
@@ -1731,6 +1784,7 @@
 
                 const bet = {
                     id: Date.now(),
+                    type: 'bet', // Differentiate as a bet
                     platform: document.getElementById('platform').value,
                     betType,
                     status: 'pending',
@@ -1751,6 +1805,7 @@
                 e.preventDefault();
                 bets.push({
                     id: Date.now(),
+                    type: 'bet', // Differentiate as a bet
                     platform: document.getElementById('quick-platform').value,
                     betType: 'Spor Bahis',
                     description: 'Hızlı bahis',
@@ -1776,7 +1831,6 @@
             }
             
             function setupKeyboardShortcuts() {
-                // Global paste listener for images
                 document.addEventListener('paste', handleGlobalPaste);
             }
 
@@ -1856,41 +1910,41 @@
                 const amount = parseFloat(input.value);
                 if (isNaN(amount) || amount === 0) return;
                 
-                bets.push({
+                const transaction = {
                     id: Date.now(),
-                    platform: 'Kasa İşlemi',
-                    betType: 'Kasa İşlemi',
-                    description: amount > 0 ? 'Para Ekleme' : 'Para Çıkarma',
-                    betAmount: Math.abs(amount),
-                    odds: 1,
+                    type: 'transaction', // Differentiate as a transaction
+                    description: amount > 0 ? 'Nakit Girişi' : 'Nakit Çıkışı',
                     date: new Date().toLocaleDateString('tr-TR'),
-                    status: 'won',
-                    winAmount: amount,
-                    profitLoss: amount,
-                });
+                    profitLoss: amount, // Only affect bankroll, not profit/loss stats
+                    betAmount: 0, // Not a bet
+                    odds: 0, // Not a bet
+                    status: 'completed', // Not a bet
+                    betType: 'Kasa Hareketi'
+                };
 
+                bets.push(transaction);
                 saveData();
                 updateAllStatsAndRenders();
                 input.value = '';
-                showNotification(`💰 Kasa güncellendi: ${amount.toFixed(2)} ₺`, 'success');
+                showNotification(`💸 Kasa hareketi eklendi: ${amount.toFixed(2)} ₺`, 'success');
             }
             
             function resetBankroll() {
                 if (confirm('Tüm kasa bakiyesini sıfırlamak istediğinizden emin misiniz?')) {
-                    const currentBankroll = bets.reduce((sum, bet) => sum + bet.profitLoss, 0);
+                    const currentBankroll = bets.reduce((sum, record) => sum + (record.profitLoss || 0), 0);
                     if (currentBankroll !== 0) {
-                        bets.push({
+                        const transaction = {
                             id: Date.now(),
-                            platform: 'Kasa Sıfırlama',
-                            betType: 'Kasa İşlemi',
-                            description: 'Bakiye Sıfırlandı',
-                            betAmount: Math.abs(currentBankroll),
-                            odds: 1,
+                            type: 'transaction',
+                            description: 'Kasa Sıfırlama',
                             date: new Date().toLocaleDateString('tr-TR'),
-                            status: 'lost',
-                            winAmount: 0,
                             profitLoss: -currentBankroll,
-                        });
+                            betAmount: 0,
+                            odds: 0,
+                            status: 'completed',
+                            betType: 'Kasa Hareketi'
+                        };
+                        bets.push(transaction);
                         saveData();
                         updateAllStatsAndRenders();
                         showNotification('🔄 Kasa sıfırlandı!', 'warning');
@@ -1899,7 +1953,7 @@
             }
 
             function markAsWon(id) {
-                const bet = bets.find(b => b.id === id);
+                const bet = bets.find(b => b.id === id && b.type === 'bet');
                 if (!bet) return;
                 
                 bet.status = 'won';
@@ -1912,7 +1966,7 @@
             }
 
             function markAsLost(id) {
-                const bet = bets.find(b => b.id === id);
+                const bet = bets.find(b => b.id === id && b.type === 'bet');
                 if (!bet) return;
 
                 bet.status = 'lost';
@@ -1925,16 +1979,16 @@
             }
 
             function deleteBet(id) {
-                if (confirm('Bu bahisi silmek istediğinizden emin misiniz?')) {
+                if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
                     bets = bets.filter(bet => bet.id !== id);
                     saveData();
                     updateAllStatsAndRenders();
-                    showNotification('🗑️ Bahis silindi.', 'error');
+                    showNotification('🗑️ Kayıt silindi.', 'error');
                 }
             }
             
             function saveEdit() {
-                const bet = bets.find(b => b.id === editingBetId);
+                const bet = bets.find(b => b.id === editingBetId && b.type === 'bet');
                 if (!bet) return;
 
                 const status = document.getElementById('edit-status').value;
@@ -2029,25 +2083,51 @@
             }
             
             function updateStats() {
-                const totalProfit = bets.reduce((sum, bet) => sum + (bet.profitLoss > 0 ? bet.profitLoss : 0), 0);
-                const totalLoss = Math.abs(bets.reduce((sum, bet) => sum + (bet.profitLoss < 0 ? bet.profitLoss : 0), 0));
-                const totalBankroll = bets.reduce((sum, bet) => sum + bet.profitLoss, 0);
+                const allBetsOnly = bets.filter(record => record.type === 'bet');
+                const totalProfit = allBetsOnly.reduce((sum, bet) => sum + (bet.profitLoss > 0 ? bet.profitLoss : 0), 0);
+                const totalLoss = Math.abs(allBetsOnly.reduce((sum, bet) => sum + (bet.profitLoss < 0 ? bet.profitLoss : 0), 0));
+                const totalBankroll = bets.reduce((sum, record) => sum + (record.profitLoss || 0), 0);
 
-                document.getElementById('total-bets').textContent = bets.filter(b => b.betType !== 'Kasa İşlemi').length;
+                document.getElementById('total-bets').textContent = allBetsOnly.length;
                 document.getElementById('total-profit').textContent = `+${totalProfit.toFixed(2)} ₺`;
                 document.getElementById('total-loss').textContent = `-${totalLoss.toFixed(2)} ₺`;
                 const bankrollEl = document.getElementById('total-bankroll');
-                bankrollEl.textContent = `${totalBankroll >= 0 ? '+' : ''}${totalBankroll.toFixed(2)} ₺`;
+                bankrollEl.textContent = `${totalBankroll >= 0 ? '' : '-'}${Math.abs(totalBankroll).toFixed(2)} ₺`;
                 bankrollEl.className = `text-2xl font-montserrat font-bold ${totalBankroll >= 0 ? 'text-green-400' : 'text-red-400'}`;
+
+                // Update summary stats
+                const finishedBets = allBetsOnly.filter(bet => bet.status !== 'pending');
+                const wonBets = finishedBets.filter(bet => bet.status === 'won');
+                const winRate = finishedBets.length > 0 ? (wonBets.length / finishedBets.length * 100) : 0;
+                const pendingBetsCount = allBetsOnly.filter(bet => bet.status === 'pending').length;
+                
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                const monthlyProfit = allBetsOnly
+                    .filter(bet => {
+                        const betDate = new Date(bet.date.split('.').reverse().join('-'));
+                        return betDate.getMonth() === currentMonth && betDate.getFullYear() === currentYear;
+                    })
+                    .reduce((sum, bet) => sum + (bet.profitLoss || 0), 0);
+
+                document.getElementById('win-rate').textContent = `${winRate.toFixed(1)}%`;
+                document.getElementById('pending-bets').textContent = pendingBetsCount;
+                const monthlyProfitEl = document.getElementById('monthly-profit');
+                monthlyProfitEl.textContent = `${monthlyProfit >= 0 ? '+' : ''}${monthlyProfit.toFixed(2)} ₺`;
+                monthlyProfitEl.className = `font-bold ${monthlyProfit >= 0 ? 'text-green-400' : 'text-red-400'}`;
             }
 
             function updateCharts() {
-                // Chart implementations would go here
+                // Future implementation
             }
-
+            
             function renderHistory() {
                 const statusFilter = document.getElementById('status-filter').value;
-                let filteredBets = bets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
+                let filteredBets = bets.filter(bet => bet.type === 'bet'); // Only show bets
+                
+                if (statusFilter !== 'all') {
+                    filteredBets = filteredBets.filter(bet => bet.status === statusFilter);
+                }
 
                 updateHistoryStats(filteredBets);
 
@@ -2057,7 +2137,8 @@
                     document.getElementById('pagination-container').innerHTML = '';
                     return;
                 }
-
+                
+                // Continue with rendering logic...
                 const sortedBets = filteredBets.sort((a, b) => b.id - a.id);
                 const totalPages = Math.ceil(sortedBets.length / itemsPerPage);
                 const paginatedBets = sortedBets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -2066,7 +2147,7 @@
                     const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
                     const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
                     const profitColor = bet.profitLoss > 0 ? 'text-green-400' : bet.profitLoss < 0 ? 'text-red-400' : 'text-gray-400';
-                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲', 'Kasa İşlemi': '💰' };
+                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲' };
                     
                     let actionButtons = '';
                     if (bet.status === 'pending') {
@@ -2120,50 +2201,76 @@
                     img.onclick = () => showImageModal(img.src);
                 });
 
-                renderPagination(totalPages);
+                renderPagination(totalPages, 'history');
+            }
+
+            function renderTransactions() {
+                const container = document.getElementById('transaction-history');
+                if (!container) return;
+
+                const transactions = bets.filter(record => record.type === 'transaction').sort((a,b) => b.id - a.id);
+
+                if (transactions.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa hareketi yok.</p></div>`;
+                    return;
+                }
+
+                container.innerHTML = transactions.map(t => {
+                    const amountColor = t.profitLoss > 0 ? 'text-green-400' : 'text-red-400';
+                    const icon = t.profitLoss > 0 ? '📥' : '📤';
+                    return `
+                        <div class="bet-item">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-2xl">${icon}</span>
+                                    <div>
+                                        <p class="font-medium text-white">${t.description}</p>
+                                        <p class="text-xs text-gray-400">${t.date}</p>
+                                    </div>
+                                </div>
+                                <p class="font-bold text-lg ${amountColor}">
+                                    ${t.profitLoss > 0 ? '+' : ''}${t.profitLoss.toFixed(2)} ₺
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
             
             function updateHistoryStats(filteredBets) {
-                const historyTotalBetsEl = document.getElementById('history-total-bets');
-                const historyWonBetsEl = document.getElementById('history-won-bets');
-                const historyLostBetsEl = document.getElementById('history-lost-bets');
-                const historyPendingBetsEl = document.getElementById('history-pending-bets');
-
-                if(historyTotalBetsEl) historyTotalBetsEl.textContent = filteredBets.length;
-                if(historyWonBetsEl) historyWonBetsEl.textContent = filteredBets.filter(b => b.status === 'won').length;
-                if(historyLostBetsEl) historyLostBetsEl.textContent = filteredBets.filter(b => b.status === 'lost').length;
-                if(historyPendingBetsEl) historyPendingBetsEl.textContent = filteredBets.filter(b => b.status === 'pending').length;
+                document.getElementById('history-total-bets').textContent = filteredBets.length;
+                document.getElementById('history-won-bets').textContent = filteredBets.filter(b => b.status === 'won').length;
+                document.getElementById('history-lost-bets').textContent = filteredBets.filter(b => b.status === 'lost').length;
+                document.getElementById('history-pending-bets').textContent = filteredBets.filter(b => b.status === 'pending').length;
             }
 
-            function renderPagination(totalPages) {
+            function renderPagination(totalPages, type) {
                 const container = document.getElementById('pagination-container');
                 if (!container || totalPages <= 1) {
                     if (container) container.innerHTML = '';
                     return;
                 }
-                let html = `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">←</button>`;
+                let html = `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1}, '${type}')">←</button>`;
                 for (let i = 1; i <= totalPages; i++) {
-                    html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}, '${type}')">${i}</button>`;
                 }
-                html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">→</button>`;
+                html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1}, '${type}')">→</button>`;
                 container.innerHTML = html;
-
-                container.querySelectorAll('button[data-page]').forEach(button => {
-                    button.addEventListener('click', () => changePage(parseInt(button.dataset.page, 10)));
-                });
             }
 
-            function changePage(page) {
+            window.changePage = function(page, type) {
                 currentPage = page;
-                renderHistory();
-                document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
+                if (type === 'history') {
+                    renderHistory();
+                }
+                // Add logic for other paginated sections if needed
             }
 
             function renderRecentBets() {
                 const container = document.getElementById('recent-bets');
                 if (!container) return;
                 
-                const recentBets = bets.slice().sort((a,b) => b.id - a.id).slice(0, 5);
+                const recentBets = bets.filter(r => r.type === 'bet').slice().sort((a,b) => b.id - a.id).slice(0, 5);
                 
                 if(recentBets.length === 0) {
                     container.innerHTML = `<div class="text-center py-8 text-gray-400">📝 Henüz bahis yok.</div>`;
@@ -2194,88 +2301,37 @@
             }
             
             // --- GEMINI API FUNCTIONS ---
-
-            /**
-             * Handles the click event for the "Analyze Slip" button.
-             */
             async function analyzeBetSlip() {
-                if (!currentImageData) {
-                    showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
-                    return;
-                }
-
-                const geminiButton = document.getElementById('gemini-analyze-btn');
-                const buttonText = document.getElementById('gemini-button-text');
-                const buttonIcon = document.getElementById('gemini-button-icon');
-
-                // Set loading state
-                geminiButton.disabled = true;
-                buttonText.textContent = 'Okunuyor...';
-                buttonIcon.innerHTML = '🧠'; // Thinking emoji
+                if (!currentImageData) return showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
+                
+                const btn = document.getElementById('gemini-analyze-btn');
+                btn.disabled = true;
+                btn.innerHTML = `<span class="animate-spin">🧠</span> Okunuyor...`;
 
                 try {
                     const base64Data = currentImageData.split(',')[1];
-                    
                     const result = await callGeminiApi(base64Data);
                     
-                    if (result && result.description) {
-                        document.getElementById('description').value = result.description;
-                    }
-                    if (result && result.betAmount) {
-                        document.getElementById('bet-amount').value = result.betAmount;
-                    }
-                    if (result && result.odds) {
-                        document.getElementById('odds').value = result.odds;
-                    }
+                    if (result.description) document.getElementById('description').value = result.description;
+                    if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
+                    if (result.odds) document.getElementById('odds').value = result.odds;
                     showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
-
                 } catch (error) {
-                    console.error('Gemini API Error:', error);
                     showNotification('Kupon okunurken bir hata oluştu.', 'error');
                 } finally {
-                    // Reset button state
-                    geminiButton.disabled = false;
-                    buttonText.textContent = 'Kuponu Oku';
-                    buttonIcon.innerHTML = '✨';
+                    btn.disabled = false;
+                    btn.innerHTML = `✨ Kuponu Oku`;
                 }
             }
 
-            /**
-             * Calls the local serverless function to analyze the image via Gemini API.
-             */
             async function callGeminiApi(base64ImageData) {
-                const localApiUrl = '/api/analyze'; // Vercel'deki kendi fonksiyonumuza istek atıyoruz.
-
-                const payload = {
-                    base64ImageData: base64ImageData
-                };
-
-                let response;
-                let retries = 3;
-                let delay = 1000;
-
-                while (retries > 0) {
-                    try {
-                        response = await fetch(localApiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (response.ok) {
-                            // Sunucu fonksiyonumuzdan gelen temiz JSON'u doğrudan kullanıyoruz.
-                            return await response.json();
-                        } else {
-                            throw new Error(`API isteği başarısız oldu: ${response.status}`);
-                        }
-                    } catch (error) {
-                        console.error(`Attempt failed: ${error.message}`);
-                        retries--;
-                        if (retries === 0) throw error;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2; // Exponential backoff
-                    }
-                }
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ base64ImageData })
+                });
+                if (!response.ok) throw new Error(`API isteği başarısız oldu: ${response.status}`);
+                return response.json();
             }
 
             // Start the application
@@ -2284,3 +2340,4 @@
     </script>
 </body>
 </html>
+

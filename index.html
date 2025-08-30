@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Vercel Speed Insights Script -->
     <script>
       window.si = window.si || function () { (window.si.q = window.si.q || []).push(arguments); };
     </script>
@@ -494,12 +493,10 @@
     </style>
 </head>
 <body class="text-white">
-    <!-- Mobile Menu Toggle -->
     <button id="mobile-menu-toggle" class="mobile-menu-toggle">
         <span class="text-xl">☰</span>
     </button>
 
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="p-6 border-b border-white border-opacity-10">
             <div class="flex items-center space-x-3">
@@ -524,7 +521,11 @@
             </div>
             <div class="sidebar-item" data-section="history">
                 <span class="sidebar-icon">📋</span>
-                <span class="sidebar-text">Geçmiş</span>
+                <span class="sidebar-text">Bahis Geçmişi</span>
+            </div>
+            <div class="sidebar-item" data-section="cash-history">
+                <span class="sidebar-icon">💰</span>
+                <span class="sidebar-text">Kasa Geçmişi</span>
             </div>
             <div class="sidebar-item" data-section="statistics">
                 <span class="sidebar-icon">📊</span>
@@ -546,19 +547,15 @@
                 <span class="sidebar-text">Daralt</span>
             </button>
             <div class="text-center mt-2">
-                <p class="text-xs text-gray-500 sidebar-text">v1.4</p>
+                <p class="text-xs text-gray-500 sidebar-text">v1.6</p>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content" id="main-content">
-        <!-- Notification Area -->
         <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-        <!-- Dashboard Section -->
         <div id="dashboard" class="page-section active">
-            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-4">
@@ -621,7 +618,6 @@
                 </div>
             </div>
 
-            <!-- Quick Actions Grid -->
             <div class="dashboard-grid">
                 <div class="glass-card rounded-2xl p-6">
                     <h3 class="text-lg font-montserrat font-bold gradient-text mb-4">⚡ Hızlı İşlemler</h3>
@@ -629,13 +625,9 @@
                         <button id="quick-add-btn" class="gradient-button w-full py-3 rounded-lg text-white font-medium">
                             🚀 Hızlı Bahis Ekle
                         </button>
-                        <div class="flex space-x-2">
-                            <input type="number" id="bankroll-update" placeholder="Miktar (₺)" step="0.01"
-                                   class="input-glass flex-1 p-3 rounded-lg text-gray-800">
-                            <button id="bankroll-update-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
-                                💰
-                            </button>
-                        </div>
+                        <button id="cash-transaction-btn" class="gradient-button w-full py-3 rounded-lg text-white font-medium">
+                            💸 Para Yatır / Çek
+                        </button>
                     </div>
                 </div>
 
@@ -658,7 +650,6 @@
                 </div>
             </div>
 
-            <!-- Recent Bets -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-montserrat font-bold gradient-text">📋 Son Bahisler</h3>
@@ -667,12 +658,10 @@
                     </button>
                 </div>
                 <div id="recent-bets" class="space-y-3">
-                    <!-- Recent bets will be rendered here -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- New Bet Section -->
         <div id="new-bet" class="page-section">
             <div class="form-card">
                 <h2 class="text-2xl font-montserrat font-bold gradient-text mb-6">
@@ -705,7 +694,6 @@
                         </div>
                     </div>
 
-                    <!-- Sport Betting Fields -->
                     <div id="sport-fields" class="sport-fields space-y-6">
                         <div>
                             <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Açıklaması</label>
@@ -734,7 +722,6 @@
                         </div>
                     </div>
 
-                    <!-- Slot Betting Fields -->
                     <div id="slot-fields" class="slot-fields space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -786,7 +773,6 @@
                         </div>
                     </div>
 
-                    <!-- Image Upload Area -->
                     <div class="image-upload-area rounded-lg p-6 text-center" id="image-upload-area">
                         <div id="upload-area" class="space-y-3">
                             <div class="text-4xl">📸</div>
@@ -822,7 +808,6 @@
             </div>
         </div>
 
-        <!-- History Section -->
         <div id="history" class="page-section">
             <div class="mb-8">
                 <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
@@ -843,7 +828,6 @@
                     </div>
                 </div>
                 
-                <!-- Stats Summary for History -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div class="glass-card rounded-xl p-4 text-center">
                         <div class="text-2xl mb-1" id="history-total-bets">0</div>
@@ -864,22 +848,54 @@
                 </div>
                 
                 <div id="bet-history">
-                    <!-- Bet history cards will be rendered here -->
-                </div>
+                    </div>
                 
-                <!-- Pagination -->
                 <div id="pagination-container" class="pagination">
-                    <!-- Pagination buttons will be rendered here -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- Statistics Section -->
+        <div id="cash-history" class="page-section">
+            <div class="mb-8">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
+                    <div>
+                        <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">💰 Kasa Geçmişi</h2>
+                        <p class="text-gray-400 text-sm">Tüm para yatırma ve çekme işlemleriniz</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-1 text-green-400" id="cash-history-deposit">0 ₺</div>
+                        <div class="text-xs text-gray-400">Toplam Yatırım</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-1 text-red-400" id="cash-history-withdrawal">0 ₺</div>
+                        <div class="text-xs text-gray-400">Toplam Çekim</div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-1" id="cash-history-net">0 ₺</div>
+                        <div class="text-xs text-gray-400">Net Bakiye</div>
+                    </div>
+                     <div class="glass-card rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-1" id="cash-history-count">0</div>
+                        <div class="text-xs text-gray-400">Toplam İşlem</div>
+                    </div>
+                </div>
+                
+                <div id="cash-history-list">
+                    </div>
+                
+                <div id="cash-pagination-container" class="pagination">
+                    </div>
+            </div>
+        </div>
+
+
         <div id="statistics" class="page-section">
             <div class="mb-8">
                 <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
                 
-                <!-- Stats Grid -->
                 <div class="stats-grid mb-8">
                     <div class="stat-card">
                         <div class="flex items-center justify-between mb-4">
@@ -978,7 +994,6 @@
                     </div>
                 </div>
 
-                <!-- Charts -->
                 <div class="dashboard-grid">
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📈 Kar/Zarar Trendi</h3>
@@ -997,48 +1012,45 @@
             </div>
         </div>
 
-        <!-- Guide Section -->
         <div id="guide" class="page-section">
             <div class="mb-8">
                 <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi</h2>
                 
-                <!-- What's New Section -->
                 <div class="glass-card rounded-2xl p-6 mb-8">
                     <div class="flex items-center space-x-3 mb-4">
                         <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
                             🆕
                         </div>
                         <div>
-                            <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v1.4</h3>
+                            <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v1.6</h3>
                             <p class="text-gray-400 text-sm">Son eklenen özellikler</p>
                         </div>
                     </div>
                     <div class="space-y-3">
                         <div class="flex items-start space-x-3">
-                            <span class="text-green-400 text-lg">✨</span>
+                            <span class="text-green-400 text-lg">📊</span>
                             <div>
-                                <h4 class="text-white font-medium">✨ Gemini AI Kupon Okuma</h4>
-                                <p class="text-gray-400 text-sm">Kupon resimlerinizi yükleyip "Kuponu Oku" butonuna basarak bilgileri otomatik doldurun.</p>
+                                <h4 class="text-white font-medium">Aktif Grafikler</h4>
+                                <p class="text-gray-400 text-sm">İstatistikler sayfasındaki Kar/Zarar ve Platform Dağılımı grafikleri artık çalışıyor.</p>
+                            </div>
+                        </div>
+                         <div class="flex items-start space-x-3">
+                            <span class="text-blue-400 text-lg">💸</span>
+                            <div>
+                                <h4 class="text-white font-medium">Gelişmiş Kasa İşlemleri</h4>
+                                <p class="text-gray-400 text-sm">Ana panelden "Para Yatır / Çek" butonu ile işlemleri daha kolay yapabilirsiniz.</p>
                             </div>
                         </div>
                         <div class="flex items-start space-x-3">
-                            <span class="text-blue-400 text-lg">🎯</span>
+                            <span class="text-purple-400 text-lg">💰</span>
                             <div>
-                                <h4 class="text-white font-medium">Hızlı Bahis Ekleme</h4>
-                                <p class="text-gray-400 text-sm">Sağ alttaki "+" butonu ile anında bahis ekleme.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-purple-400 text-lg">📱</span>
-                            <div>
-                                <h4 class="text-white font-medium">Gelişmiş Mobil Uyumluluk</h4>
-                                <p class="text-gray-400 text-sm">Tüm cihazlarda daha iyi bir kullanım deneyimi.</p>
+                                <h4 class="text-white font-medium">Ayrı Kasa Geçmişi Paneli</h4>
+                                <p class="text-gray-400 text-sm">Tüm para yatırma ve çekme işlemleriniz artık özel bir panelde tutuluyor.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Start Guide -->
                 <div class="dashboard-grid">
                     <div class="glass-card rounded-2xl p-6">
                         <div class="flex items-center space-x-3 mb-4">
@@ -1050,19 +1062,19 @@
                         <div class="space-y-3 text-sm">
                             <div class="flex items-start space-x-2">
                                 <span class="text-blue-400 font-bold">1.</span>
-                                <p class="text-gray-300">İlk kasanızı "💰 Kasa Güncelleme" ile ekleyin</p>
+                                <p class="text-gray-300">"💸 Para Yatır / Çek" butonu ile ilk bakiyenizi ekleyin.</p>
                             </div>
                             <div class="flex items-start space-x-2">
                                 <span class="text-blue-400 font-bold">2.</span>
-                                <p class="text-gray-300">"➕ Yeni Kayıt" ile ilk bahisinizi ekleyin</p>
+                                <p class="text-gray-300">"➕ Yeni Kayıt" ile ilk bahisinizi ekleyin.</p>
                             </div>
                             <div class="flex items-start space-x-2">
                                 <span class="text-blue-400 font-bold">3.</span>
-                                <p class="text-gray-300">Bahis sonuçlarını "✅ Kazandı" veya "❌ Kaybetti" ile işaretleyin</p>
+                                <p class="text-gray-300">Bahis sonuçlarını "✅ Kazandı" veya "❌ Kaybetti" ile işaretleyin.</p>
                             </div>
                             <div class="flex items-start space-x-2">
                                 <span class="text-blue-400 font-bold">4.</span>
-                                <p class="text-gray-300">"📊 İstatistikler" ile performansınızı takip edin</p>
+                                <p class="text-gray-300">"💰 Kasa Geçmişi" ve "📊 İstatistikler" ile performansınızı takip edin.</p>
                             </div>
                         </div>
                     </div>
@@ -1076,20 +1088,20 @@
                         </div>
                         <div class="space-y-3 text-sm">
                              <div class="flex items-start space-x-2">
+                                <span class="text-green-400">📊</span>
+                                <p class="text-gray-300">Grafikler sayesinde performansınızı görsel olarak analiz edin.</p>
+                            </div>
+                             <div class="flex items-start space-x-2">
                                 <span class="text-green-400">✨</span>
                                 <p class="text-gray-300">Kupon resmini yükledikten sonra "Kuponu Oku" ile zaman kazanın.</p>
                             </div>
                             <div class="flex items-start space-x-2">
                                 <span class="text-green-400">📸</span>
-                                <p class="text-gray-300">Kupon resimlerini Ctrl+V ile hızlıca yapıştırın</p>
+                                <p class="text-gray-300">Kupon resimlerini Ctrl+V ile hızlıca yapıştırın.</p>
                             </div>
                             <div class="flex items-start space-x-2">
                                 <span class="text-green-400">🎯</span>
                                 <p class="text-gray-300">Sağ alttaki '+' butonu ile hızlı bahis ekleyin.</p>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <span class="text-green-400">📊</span>
-                                <p class="text-gray-300">ROI'nizi takip ederek stratejinizi geliştirin</p>
                             </div>
                         </div>
                     </div>
@@ -1097,7 +1109,6 @@
             </div>
         </div>
 
-        <!-- Settings Section -->
         <div id="settings" class="page-section">
             <div class="dashboard-grid">
                 <div class="glass-card rounded-2xl p-6">
@@ -1111,8 +1122,7 @@
                             </button>
                         </div>
                         <div id="custom-platforms-list" class="space-y-2 max-h-48 overflow-y-auto">
-                            <!-- Custom platforms will be listed here -->
-                        </div>
+                            </div>
                     </div>
                 </div>
 
@@ -1144,13 +1154,10 @@
         </div>
     </div>
 
-    <!-- Floating Action Button -->
     <div class="floating-action" id="floating-add-btn">
         ➕
     </div>
 
-    <!-- Modals -->
-    <!-- Platform Manager Modal -->
     <div id="platform-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Platform Yönetimi</h3>
@@ -1170,8 +1177,7 @@
                 <div>
                     <label class="block text-gray-300 text-sm font-medium mb-2">Özel Platformlar</label>
                     <div id="custom-platforms-list-modal" class="space-y-2 max-h-32 overflow-y-auto">
-                        <!-- Custom platforms will be listed here -->
-                    </div>
+                        </div>
                 </div>
             </div>
 
@@ -1183,7 +1189,30 @@
         </div>
     </div>
 
-    <!-- Quick Add Modal -->
+    <div id="cash-transaction-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">💸 Kasa İşlemi</h3>
+            <div class="space-y-4">
+                 <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
+                    <input type="number" id="cash-amount" required min="0" step="0.01" placeholder="1000"
+                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" id="cash-transaction-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        İptal
+                    </button>
+                    <button type="button" id="cash-withdrawal-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        Para Çek
+                    </button>
+                    <button type="button" id="cash-deposit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
+                        Para Yatır
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="quick-add-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Hızlı Bahis Ekle</h3>
@@ -1239,7 +1268,6 @@
         </div>
     </div>
 
-    <!-- Import Modal -->
     <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Veri İçe Aktarma</h3>
@@ -1276,7 +1304,6 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Güncelle</h3>
@@ -1309,7 +1336,6 @@
         </div>
     </div>
 
-    <!-- Image Modal -->
     <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="max-w-4xl max-h-full">
             <img id="modal-image" class="max-w-full max-h-full rounded-lg">
@@ -1328,6 +1354,7 @@
             let profitChart, platformChart;
             let currentSection = 'dashboard';
             let currentPage = 1;
+            let cashCurrentPage = 1;
             const itemsPerPage = 10;
 
             // Default data
@@ -1394,8 +1421,12 @@
 
                 // Dashboard Buttons
                 document.getElementById('quick-add-btn').addEventListener('click', openQuickAddModal);
-                document.getElementById('bankroll-update-btn').addEventListener('click', updateBankroll);
+                document.getElementById('cash-transaction-btn').addEventListener('click', openCashTransactionModal);
+
                 document.getElementById('show-history-btn').addEventListener('click', () => showSection('history', document.querySelector('[data-section="history"]')));
+
+                // Floating Action Button
+                document.getElementById('floating-add-btn').addEventListener('click', openQuickAddModal);
 
                 // New Bet Form
                 document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmit);
@@ -1422,10 +1453,21 @@
                 // Modals
                 document.getElementById('close-platform-manager-btn').addEventListener('click', closePlatformManager);
                 document.getElementById('add-platform-modal-btn').addEventListener('click', addCustomPlatformFromModal);
+                
+                // Cash Transaction Modal
+                document.getElementById('cash-transaction-close-btn').addEventListener('click', closeCashTransactionModal);
+                document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransaction('deposit'));
+                document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransaction('withdrawal'));
+
+                // Quick Add Modal
                 document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmit);
                 document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
+                
+                // Import Modal
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
+
+                // Edit Modal
                 document.getElementById('edit-status').addEventListener('change', toggleWinAmountSection);
                 document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
                 document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
@@ -1454,8 +1496,13 @@
              */
             function updateAllStatsAndRenders() {
                 updateStats();
+                updateStatisticsPage();
                 renderHistory();
                 renderRecentBets();
+                renderCashHistory();
+                 if (currentSection === 'statistics') {
+                    updateCharts();
+                }
             }
 
             function showWelcomeNotification() {
@@ -1504,7 +1551,8 @@
                 document.getElementById('sidebar').classList.remove('mobile-open');
                 
                 if (sectionName === 'statistics') {
-                    setTimeout(updateCharts, 100);
+                    updateStatisticsPage();
+                    setTimeout(updateCharts, 50); // Give chart canvas time to be visible
                 }
             }
 
@@ -1609,14 +1657,25 @@
             }
 
             function openPlatformManager() {
-                const modal = document.getElementById('platform-manager-modal');
-                modal?.classList.remove('hidden');
-                modal?.classList.add('flex');
+                document.getElementById('platform-manager-modal')?.classList.remove('hidden');
+                document.getElementById('platform-manager-modal')?.classList.add('flex');
                 renderCustomPlatformsModal();
             }
 
             function closePlatformManager() {
                 document.getElementById('platform-manager-modal')?.classList.add('hidden');
+            }
+            
+             function openCashTransactionModal() {
+                document.getElementById('cash-transaction-modal')?.classList.remove('hidden');
+                document.getElementById('cash-transaction-modal')?.classList.add('flex');
+            }
+
+            function closeCashTransactionModal() {
+                const modal = document.getElementById('cash-transaction-modal');
+                modal?.classList.add('hidden');
+                modal?.classList.remove('flex');
+                document.getElementById('cash-amount').value = '';
             }
 
             function openQuickAddModal() {
@@ -1851,28 +1910,42 @@
                 handleImageFile(file, type);
             }
 
-            function updateBankroll() {
-                const input = document.getElementById('bankroll-update');
-                const amount = parseFloat(input.value);
-                if (isNaN(amount) || amount === 0) return;
+             function handleCashTransaction(type) {
+                const input = document.getElementById('cash-amount');
+                let amount = parseFloat(input.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showNotification('Lütfen geçerli bir miktar girin.', 'error');
+                    return;
+                }
+
+                if (type === 'withdrawal') {
+                    amount = -amount;
+                }
+
+                addCashTransaction(amount);
+                closeCashTransactionModal();
+            }
+
+            function addCashTransaction(amount) {
+                 if (isNaN(amount) || amount === 0) return;
                 
                 bets.push({
                     id: Date.now(),
                     platform: 'Kasa İşlemi',
                     betType: 'Kasa İşlemi',
-                    description: amount > 0 ? 'Para Ekleme' : 'Para Çıkarma',
+                    description: amount > 0 ? 'Para Ekleme' : 'Para Çekme',
                     betAmount: Math.abs(amount),
                     odds: 1,
                     date: new Date().toLocaleDateString('tr-TR'),
-                    status: 'won',
+                    status: amount > 0 ? 'won' : 'lost',
                     winAmount: amount,
                     profitLoss: amount,
                 });
 
                 saveData();
                 updateAllStatsAndRenders();
-                input.value = '';
-                showNotification(`💰 Kasa güncellendi: ${amount.toFixed(2)} ₺`, 'success');
+                showNotification(`💸 Kasa işlemi kaydedildi: ${amount.toFixed(2)} ₺`, 'success');
             }
             
             function resetBankroll() {
@@ -1925,11 +1998,11 @@
             }
 
             function deleteBet(id) {
-                if (confirm('Bu bahisi silmek istediğinizden emin misiniz?')) {
+                if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
                     bets = bets.filter(bet => bet.id !== id);
                     saveData();
                     updateAllStatsAndRenders();
-                    showNotification('🗑️ Bahis silindi.', 'error');
+                    showNotification('🗑️ Kayıt silindi.', 'error');
                 }
             }
             
@@ -2029,25 +2102,140 @@
             }
             
             function updateStats() {
-                const totalProfit = bets.reduce((sum, bet) => sum + (bet.profitLoss > 0 ? bet.profitLoss : 0), 0);
-                const totalLoss = Math.abs(bets.reduce((sum, bet) => sum + (bet.profitLoss < 0 ? bet.profitLoss : 0), 0));
+                // Kar ve zarar hesaplamadan önce Kasa İşlemlerini filtrele
+                const actualBets = bets.filter(b => b.betType !== 'Kasa İşlemi');
+
+                const totalProfit = actualBets.reduce((sum, bet) => sum + (bet.profitLoss > 0 ? bet.profitLoss : 0), 0);
+                const totalLoss = Math.abs(actualBets.reduce((sum, bet) => sum + (bet.profitLoss < 0 ? bet.profitLoss : 0), 0));
+
+                // Toplam kasa, tüm işlemleri (kasa ekleme dahil) içermelidir
                 const totalBankroll = bets.reduce((sum, bet) => sum + bet.profitLoss, 0);
 
-                document.getElementById('total-bets').textContent = bets.filter(b => b.betType !== 'Kasa İşlemi').length;
+                document.getElementById('total-bets').textContent = actualBets.length;
                 document.getElementById('total-profit').textContent = `+${totalProfit.toFixed(2)} ₺`;
                 document.getElementById('total-loss').textContent = `-${totalLoss.toFixed(2)} ₺`;
                 const bankrollEl = document.getElementById('total-bankroll');
-                bankrollEl.textContent = `${totalBankroll >= 0 ? '+' : ''}${totalBankroll.toFixed(2)} ₺`;
+                bankrollEl.textContent = `${totalBankroll.toFixed(2)} ₺`;
                 bankrollEl.className = `text-2xl font-montserrat font-bold ${totalBankroll >= 0 ? 'text-green-400' : 'text-red-400'}`;
             }
+            
+            function updateStatisticsPage() {
+                const actualBets = bets.filter(b => b.betType !== 'Kasa İşlemi');
+                const settledBets = actualBets.filter(b => b.status !== 'pending');
+                const wonBets = settledBets.filter(b => b.status === 'won');
+                
+                document.getElementById('stats-total-bets').textContent = actualBets.length;
+                const sportsBetsCount = actualBets.filter(b => b.betType === 'Spor Bahis' || b.betType === 'Canlı Bahis').length;
+                const slotBetsCount = actualBets.filter(b => b.betType === 'Slot').length;
+                const casinoBetsCount = actualBets.filter(b => b.betType === 'Casino').length;
+                document.getElementById('stats-bet-breakdown').textContent = `Spor: ${sportsBetsCount} | Slot: ${slotBetsCount} | Casino: ${casinoBetsCount}`;
+
+                const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
+                document.getElementById('stats-win-rate').textContent = `${winRate.toFixed(1)}%`;
+                document.getElementById('stats-win-breakdown').textContent = `Kazanan: ${wonBets.length} | Kaybeden: ${settledBets.length - wonBets.length}`;
+
+                const sportsBets = actualBets.filter(b => (b.betType === 'Spor Bahis' || b.betType === 'Canlı Bahis') && b.odds > 0);
+                const avgOdds = sportsBets.length > 0 ? sportsBets.reduce((sum, b) => sum + b.odds, 0) / sportsBets.length : 0;
+                document.getElementById('stats-avg-odds').textContent = avgOdds.toFixed(2);
+                const odds = sportsBets.map(b => b.odds);
+                document.getElementById('stats-odds-range').textContent = `En düşük: ${odds.length ? Math.min(...odds).toFixed(2) : '0.00'} | En yüksek: ${odds.length ? Math.max(...odds).toFixed(2) : '0.00'}`;
+
+                const totalInvested = actualBets.reduce((sum, b) => sum + b.betAmount, 0);
+                const netProfit = actualBets.reduce((sum, b) => sum + b.profitLoss, 0);
+                const roi = totalInvested > 0 ? (netProfit / totalInvested) * 100 : 0;
+                document.getElementById('stats-roi').textContent = `${roi.toFixed(1)}%`;
+                document.getElementById('stats-roi-breakdown').textContent = `Yatırım: ${totalInvested.toFixed(2)}₺ | Net kar: ${netProfit.toFixed(2)}₺`;
+                document.getElementById('stats-roi').style.color = roi >= 0 ? 'var(--success-green)' : 'var(--danger-red)';
+
+                const avgBet = actualBets.length > 0 ? totalInvested / actualBets.length : 0;
+                document.getElementById('stats-avg-bet').textContent = `${avgBet.toFixed(2)}₺`;
+                const amounts = actualBets.map(b => b.betAmount);
+                document.getElementById('stats-bet-range').textContent = `En düşük: ${amounts.length ? Math.min(...amounts).toFixed(2) : '0.00'}₺ | En yüksek: ${amounts.length ? Math.max(...amounts).toFixed(2) : '0.00'}₺`;
+                
+                const platformProfits = {};
+                actualBets.forEach(bet => {
+                    if (!platformProfits[bet.platform]) platformProfits[bet.platform] = 0;
+                    platformProfits[bet.platform] += bet.profitLoss;
+                });
+                const bestPlatform = Object.entries(platformProfits).sort((a, b) => b[1] - a[1])[0];
+                if(bestPlatform && bestPlatform[1] > 0) {
+                    document.getElementById('stats-best-platform').textContent = bestPlatform[0];
+                    document.getElementById('stats-platform-profit').textContent = `Kar: +${bestPlatform[1].toFixed(2)}₺`;
+                } else {
+                    document.getElementById('stats-best-platform').textContent = '-';
+                    document.getElementById('stats-platform-profit').textContent = `Kar: 0.00₺`;
+                }
+            }
+
 
             function updateCharts() {
-                // Chart implementations would go here
+                const actualBets = bets.filter(b => b.betType !== 'Kasa İşlemi');
+
+                // Kar/Zarar Trendi Grafiği (Line Chart)
+                const profitCtx = document.getElementById('profitChart').getContext('2d');
+                let cumulativeProfit = 0;
+                const profitData = actualBets.sort((a,b) => a.id - b.id).map(bet => {
+                    cumulativeProfit += bet.profitLoss;
+                    return cumulativeProfit;
+                });
+
+                if (window.profitChart instanceof Chart) {
+                    window.profitChart.destroy();
+                }
+                window.profitChart = new Chart(profitCtx, {
+                    type: 'line',
+                    data: {
+                        labels: actualBets.map((b, i) => `Bahis ${i + 1}`),
+                        datasets: [{
+                            label: 'Kümülatif Kar/Zarar',
+                            data: profitData,
+                            borderColor: 'rgba(139, 179, 240, 0.8)',
+                            backgroundColor: 'rgba(139, 179, 240, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { ticks: { color: 'rgba(255,255,255,0.7)' } }, x: { ticks: { color: 'rgba(255,255,255,0.7)' } } }
+                    }
+                });
+                
+                // Platform Dağılımı Grafiği (Doughnut Chart)
+                const platformCtx = document.getElementById('platformChart').getContext('2d');
+                const platformCounts = actualBets.reduce((acc, bet) => {
+                    acc[bet.platform] = (acc[bet.platform] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                if (window.platformChart instanceof Chart) {
+                    window.platformChart.destroy();
+                }
+                window.platformChart = new Chart(platformCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(platformCounts),
+                        datasets: [{
+                            label: 'Platformlara Göre Bahis Sayısı',
+                            data: Object.values(platformCounts),
+                            backgroundColor: ['#8db3f0', '#6366f1', '#10b981', '#ef4444', '#f59e0b', '#a855f7'],
+                            borderColor: 'rgba(0,0,0,0.2)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
             }
 
             function renderHistory() {
+                const actualBets = bets.filter(bet => bet.betType !== 'Kasa İşlemi');
+
                 const statusFilter = document.getElementById('status-filter').value;
-                let filteredBets = bets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
+                let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
 
                 updateHistoryStats(filteredBets);
 
@@ -2066,7 +2254,7 @@
                     const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
                     const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
                     const profitColor = bet.profitLoss > 0 ? 'text-green-400' : bet.profitLoss < 0 ? 'text-red-400' : 'text-gray-400';
-                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲', 'Kasa İşlemi': '💰' };
+                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲' };
                     
                     let actionButtons = '';
                     if (bet.status === 'pending') {
@@ -2095,7 +2283,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${bet.date}</div></div>
                                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.betAmount.toFixed(2)} ₺</div></div>
-                                    ${bet.betType !== 'Slot' && bet.betType !== 'Kasa İşlemi' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
+                                    ${bet.betType !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
                                     ${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profitLoss >= 0 ? '+' : ''}${bet.profitLoss.toFixed(2)} ₺</div></div>` : ''}
                                 </div>
                                 ${bet.image ? `<div class="flex justify-center"><img src="${bet.image}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" data-action="show-image"></div>` : ''}
@@ -2120,7 +2308,7 @@
                     img.onclick = () => showImageModal(img.src);
                 });
 
-                renderPagination(totalPages);
+                renderPagination('bets', totalPages, currentPage, changePage);
             }
             
             function updateHistoryStats(filteredBets) {
@@ -2135,21 +2323,81 @@
                 if(historyPendingBetsEl) historyPendingBetsEl.textContent = filteredBets.filter(b => b.status === 'pending').length;
             }
 
-            function renderPagination(totalPages) {
-                const container = document.getElementById('pagination-container');
+            function renderCashHistory() {
+                const cashTransactions = bets.filter(bet => bet.betType === 'Kasa İşlemi');
+                updateCashHistoryStats(cashTransactions);
+
+                const container = document.getElementById('cash-history-list');
+                if (cashTransactions.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`;
+                    document.getElementById('cash-pagination-container').innerHTML = '';
+                    return;
+                }
+
+                const sortedTxs = cashTransactions.sort((a, b) => b.id - a.id);
+                const totalPages = Math.ceil(sortedTxs.length / itemsPerPage);
+                const paginatedTxs = sortedTxs.slice((cashCurrentPage - 1) * itemsPerPage, cashCurrentPage * itemsPerPage);
+
+                container.innerHTML = paginatedTxs.map(tx => {
+                    const isDeposit = tx.profitLoss > 0;
+                    const amountColor = isDeposit ? 'text-green-400' : 'text-red-400';
+                    const icon = isDeposit ? '📥' : '📤';
+
+                    return `
+                        <div class="bet-card">
+                             <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-3xl">${icon}</div>
+                                    <div>
+                                        <h3 class="font-bold text-white">${tx.description}</h3>
+                                        <p class="text-sm text-gray-400">${tx.date}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <p class="text-lg font-bold ${amountColor}">${tx.profitLoss > 0 ? '+' : ''}${tx.profitLoss.toFixed(2)} ₺</p>
+                                    <button data-id="${tx.id}" data-action="delete" class="px-3 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.querySelectorAll('button[data-action="delete"]').forEach(button => {
+                    button.onclick = () => deleteBet(parseInt(button.dataset.id, 10));
+                });
+
+                renderPagination('cash', totalPages, cashCurrentPage, changeCashPage);
+            }
+
+            function updateCashHistoryStats(transactions) {
+                const totalDeposit = transactions.reduce((sum, tx) => sum + (tx.profitLoss > 0 ? tx.profitLoss : 0), 0);
+                const totalWithdrawal = Math.abs(transactions.reduce((sum, tx) => sum + (tx.profitLoss < 0 ? tx.profitLoss : 0), 0));
+
+                document.getElementById('cash-history-deposit').textContent = `+${totalDeposit.toFixed(2)} ₺`;
+                document.getElementById('cash-history-withdrawal').textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
+                document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
+                document.getElementById('cash-history-count').textContent = transactions.length;
+            }
+
+
+            function renderPagination(type, totalPages, current, changeFn) {
+                const containerId = type === 'bets' ? 'pagination-container' : 'cash-pagination-container';
+                const container = document.getElementById(containerId);
+
                 if (!container || totalPages <= 1) {
                     if (container) container.innerHTML = '';
                     return;
                 }
-                let html = `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">←</button>`;
+
+                let html = `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} data-page="${current - 1}">←</button>`;
                 for (let i = 1; i <= totalPages; i++) {
-                    html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    html += `<button class="pagination-btn ${i === current ? 'active' : ''}" data-page="${i}">${i}</button>`;
                 }
-                html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">→</button>`;
+                html += `<button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} data-page="${current + 1}">→</button>`;
                 container.innerHTML = html;
 
                 container.querySelectorAll('button[data-page]').forEach(button => {
-                    button.addEventListener('click', () => changePage(parseInt(button.dataset.page, 10)));
+                    button.addEventListener('click', () => changeFn(parseInt(button.dataset.page, 10)));
                 });
             }
 
@@ -2159,11 +2407,17 @@
                 document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
             }
 
+            function changeCashPage(page) {
+                cashCurrentPage = page;
+                renderCashHistory();
+                document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
+            }
+
             function renderRecentBets() {
                 const container = document.getElementById('recent-bets');
                 if (!container) return;
                 
-                const recentBets = bets.slice().sort((a,b) => b.id - a.id).slice(0, 5);
+                const recentBets = bets.filter(b => b.betType !== 'Kasa İşlemi').slice().sort((a,b) => b.id - a.id).slice(0, 5);
                 
                 if(recentBets.length === 0) {
                     container.innerHTML = `<div class="text-center py-8 text-gray-400">📝 Henüz bahis yok.</div>`;

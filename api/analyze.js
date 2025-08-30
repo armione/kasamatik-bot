@@ -21,7 +21,8 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    // GÜNCELLENDİ: Model versiyonu "gemini-1.5-flash-latest" olarak değiştirildi.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const prompt = "Bu bahis kuponu resmini analiz et. JSON formatında 'description' (takımlar veya ana bahis), 'betAmount' (sayı olarak toplam bahis miktarı) ve 'odds' (sayı olarak toplam oran) bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.";
 
@@ -69,4 +70,3 @@ export default async function handler(request, response) {
     response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
-

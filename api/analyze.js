@@ -24,8 +24,19 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // GÜVENLİ VE SADELEŞTİRİLMİŞ TALİMAT: Tüm kurallar tek satırda birleştirildi.
-    const prompt = "Sen, bahis kuponlarındaki verileri çıkaran uzman bir botsun. Görevin, kupon resmini analiz edip şu kurallara uyarak bir JSON nesnesi döndürmektir: 1. JSON Alanları: 'description' (maçlar/bahis tanımı), 'betAmount' (sayı olarak bahis miktarı), 'odds' (sayı olarak toplam oran), 'analysis' (kısa risk analizi). 2. Veri Çıkarma Kuralları: 'betAmount' için SADECE 'Miktar', 'Tutar', 'Yatırım' gibi etiketlere sahip ve para birimi (₺, $, €) içeren sayıları ara; 'Çekim Limiti', 'Bonus', 'x KATI' gibi promosyonel metinleri KESİNLİKLE 'betAmount' olarak alma; net bir bahis miktarı yoksa değeri null yap. 'odds' için ÖNCELİKLE 'Toplam Oran' etiketini ara; etiket yoksa ve 100'den büyük bir sayı varsa onu 'odds' olarak al. 'analysis' için kupona bakarak 2-3 maddelik kısa bir risk analizi yap. Sonucu tek bir JSON objesi olarak döndür.";
+    // GÜNCELLENMİŞ "UZUN TALİMAT": Kullanıcının istediği spesifik formatta analiz yapacak.
+    const prompt = `
+      Sen, veriye dayalı analizler yapan profesyonel bir bahis yorumcususun. Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
+
+      1.  **Kupon Bilgileri:** Resimden 'description', 'betAmount' ve 'odds' bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.
+      
+      2.  **Detaylı Risk Analizi ('analysis'):**
+          * İlk olarak kupon hakkında "Dürüst olayım: ..." gibi genel bir giriş yap.
+          * Ardından "🔎 Kısa analiz:" başlığı altında, kupondaki HER BİR maçı OK İŞARETİ (→) kullanarak ayrı ayrı değerlendir.
+          * Her maç için, kendi bilgine dayanarak TAHMİNİ BİR KAZANMA YÜZDESİ (%xx ihtimal) belirt.
+          * Yüzdenin yanına "çok güvenilir", "en riskli parçalardan biri", "çiftlerde sürpriz çok olur" gibi kısa, net ve cesur yorumlar ekle.
+          * Tüm metni tek bir string olarak 'analysis' alanına ekle.
+    `;
 
     const payload = {
       contents: [{
@@ -36,6 +47,7 @@ export default async function handler(request, response) {
       }],
       generationConfig: {
         responseMimeType: "application/json",
+        // JSON ŞEMASI: 'analysis' alanı dahil.
         responseSchema: {
           type: "OBJECT",
           properties: {

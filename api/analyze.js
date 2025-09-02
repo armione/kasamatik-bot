@@ -24,23 +24,8 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // GÜNCELLENMİŞ "KURŞUN GEÇİRMEZ" TALİMAT:
-    const prompt = `
-      Sen, bahis kuponlarındaki verileri çıkarmak için eğitilmiş uzman bir veri çıkarma botusun. Görevin, sağlanan kupon resmini analiz etmek ve aşağıdaki kurallara harfiyen uyarak bir JSON nesnesi döndürmektir:
-
-      1.  **Kupon Bilgileri (JSON Alanları):**
-          * `description`: Kupondaki tüm maçları veya ana bahis tanımını içeren metin.
-          * `betAmount`: Sayı olarak bahis miktarı.
-          * `odds`: Sayı olarak toplam oran.
-          * `analysis`: Kupon için kısa bir risk analizi.
-
-      2.  **Veri Çıkarma Kuralları (ÇOK ÖNEMLİ):**
-          * **'betAmount' (Bahis Miktarı) için:** SADECE "Miktar", "Tutar", "Yatırım", "Bahis Tutarı" gibi etiketlere sahip ve para birimi (₺, $, €) içeren sayıları ara. "Çekim Limiti", "Bonus", "x KATI" gibi metinleri ve promosyonel rakamları KESİNLİKLE 'betAmount' olarak alma. Eğer bu etiketlere sahip net bir bahis miktarı yoksa, değeri KESİNLİKLE null olarak ayarla.
-          * **'odds' (Oran) için:** ÖNCELİKLE "Oran" veya "Toplam Oran" etiketli sayıları ara. Eğer etiket yoksa ve 100'den büyük bir sayı (örneğin 1000, 2500.00 gibi) varsa, bu sayıyı 'odds' olarak kabul et.
-          * **'analysis' (Analiz):** Kupondaki takımlara/oyunculara bakarak 2-3 maddelik kısa ve net bir risk analizi yap.
-
-      Bu kurallara göre resmi analiz et ve sonucu tek bir JSON objesi olarak döndür.
-    `;
+    // GÜVENLİ VE SADELEŞTİRİLMİŞ TALİMAT: Tüm kurallar tek satırda birleştirildi.
+    const prompt = "Sen, bahis kuponlarındaki verileri çıkaran uzman bir botsun. Görevin, kupon resmini analiz edip şu kurallara uyarak bir JSON nesnesi döndürmektir: 1. JSON Alanları: 'description' (maçlar/bahis tanımı), 'betAmount' (sayı olarak bahis miktarı), 'odds' (sayı olarak toplam oran), 'analysis' (kısa risk analizi). 2. Veri Çıkarma Kuralları: 'betAmount' için SADECE 'Miktar', 'Tutar', 'Yatırım' gibi etiketlere sahip ve para birimi (₺, $, €) içeren sayıları ara; 'Çekim Limiti', 'Bonus', 'x KATI' gibi promosyonel metinleri KESİNLİKLE 'betAmount' olarak alma; net bir bahis miktarı yoksa değeri null yap. 'odds' için ÖNCELİKLE 'Toplam Oran' etiketini ara; etiket yoksa ve 100'den büyük bir sayı varsa onu 'odds' olarak al. 'analysis' için kupona bakarak 2-3 maddelik kısa bir risk analizi yap. Sonucu tek bir JSON objesi olarak döndür.";
 
     const payload = {
       contents: [{

@@ -21,10 +21,15 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    // GÜNCELLENDİ: Model versiyonu "gemini-1.5-flash-latest" olarak değiştirildi.
+    // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    const prompt = "Bu bahis kuponu resmini analiz et. JSON formatında 'description' (takımlar veya ana bahis), 'betAmount' (sayı olarak toplam bahis miktarı) ve 'odds' (sayı olarak toplam oran) bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.";
+    // YENİ "UZUN TALİMAT": Hem veri çıkarma hem de analiz istiyoruz.
+    const prompt = `
+      Bu bahis kuponu resmini analiz et ve iki görev gerçekleştirerek tek bir JSON objesi döndür:
+      1. Kupon bilgisi: 'description' (takımlar veya ana bahis), 'betAmount' (sayı olarak toplam bahis miktarı) ve 'odds' (sayı olarak toplam oran) bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.
+      2. Risk analizi: Kupondaki takımların/oyuncuların genel durumlarına göre 2-3 maddelik kısa bir risk analizi yap ve bu metni 'analysis' alanına ekle. Analiz metni kısa, anlaşılır ve bir bahis severe hitap etsin.
+    `;
 
     const payload = {
       contents: [{
@@ -35,12 +40,14 @@ export default async function handler(request, response) {
       }],
       generationConfig: {
         responseMimeType: "application/json",
+        // YENİ JSON ŞEMASI: 'analysis' alanı eklendi.
         responseSchema: {
           type: "OBJECT",
           properties: {
             "description": { "type": "STRING" },
             "betAmount": { "type": "NUMBER" },
-            "odds": { "type": "NUMBER" }
+            "odds": { "type": "NUMBER" },
+            "analysis": { "type": "STRING" }
           }
         }
       }

@@ -24,11 +24,18 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // YENİ "UZUN TALİMAT": Hem veri çıkarma hem de analiz istiyoruz.
+    // GÜNCELLENMİŞ "UZUN TALİMAT": Kullanıcının istediği spesifik formatta analiz yapacak.
     const prompt = `
-      Bu bahis kuponu resmini analiz et ve iki görev gerçekleştirerek tek bir JSON objesi döndür:
-      1. Kupon bilgisi: 'description' (takımlar veya ana bahis), 'betAmount' (sayı olarak toplam bahis miktarı) ve 'odds' (sayı olarak toplam oran) bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.
-      2. Risk analizi: Kupondaki takımların/oyuncuların genel durumlarına göre 2-3 maddelik kısa bir risk analizi yap ve bu metni 'analysis' alanına ekle. Analiz metni kısa, anlaşılır ve bir bahis severe hitap etsin.
+      Sen, veriye dayalı analizler yapan profesyonel bir bahis yorumcususun. Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
+
+      1.  **Kupon Bilgileri:** Resimden 'description', 'betAmount' ve 'odds' bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.
+      
+      2.  **Detaylı Risk Analizi ('analysis'):**
+          * İlk olarak kupon hakkında "Dürüst olayım: ..." gibi genel bir giriş yap.
+          * Ardından "🔎 Kısa analiz:" başlığı altında, kupondaki HER BİR maçı OK İŞARETİ (→) kullanarak ayrı ayrı değerlendir.
+          * Her maç için, kendi bilgine dayanarak TAHMİNİ BİR KAZANMA YÜZDESİ (%xx ihtimal) belirt.
+          * Yüzdenin yanına "çok güvenilir", "en riskli parçalardan biri", "çiftlerde sürpriz çok olur" gibi kısa, net ve cesur yorumlar ekle.
+          * Tüm metni tek bir string olarak 'analysis' alanına ekle.
     `;
 
     const payload = {
@@ -40,7 +47,7 @@ export default async function handler(request, response) {
       }],
       generationConfig: {
         responseMimeType: "application/json",
-        // YENİ JSON ŞEMASI: 'analysis' alanı eklendi.
+        // JSON ŞEMASI: 'analysis' alanı dahil.
         responseSchema: {
           type: "OBJECT",
           properties: {

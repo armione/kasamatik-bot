@@ -502,7 +502,7 @@
     </style>
 </head>
 <body class="text-white">
-    
+
     <div id="auth-container" class="hidden">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
             <div class="text-center mb-8">
@@ -539,7 +539,7 @@
                     </div>
                     <div class="sidebar-text">
                         <h2 class="font-montserrat font-bold text-lg gradient-text">Kasamatik</h2>
-                        <p class="text-xs text-gray-400" id="user-email-display">kullanici@mail.com</p>
+                        <p class="text-xs text-gray-400" id="user-email-display"></p>
                     </div>
                 </div>
             </div>
@@ -952,12 +952,14 @@
                     <div class="stats-grid mb-8">
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-xl">
-                                    🎯
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="stats-total-bets">0</p>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+                                        🎯
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis</h3>
+                                        <p class="text-2xl font-montserrat font-bold text-white" id="stats-total-bets">0</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-xs text-gray-400">Kasa işlemleri hariç toplam bahis sayısı</div>
@@ -1367,25 +1369,24 @@
             const itemsPerPage = 10;
             const defaultPlatforms = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
 
-            // HATA DÜZELTMESİ: Event listener'lar ikiye ayrıldı.
-            // Bu fonksiyon, sadece Auth (Giriş/Kayıt) butonlarını aktif eder ve sayfa yüklenir yüklenmez çağrılır.
             function setupAuthEventListeners() {
                 loginBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    loginBtn.disabled = true;
                     const email = authForm.email.value;
                     const password = authForm.password.value;
-                    handleLogin(email, password);
+                    handleLogin(email, password).finally(() => { loginBtn.disabled = false; });
                 });
                 
                 signupBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    signupBtn.disabled = true;
                     const email = authForm.email.value;
                     const password = authForm.password.value;
-                    handleSignUp(email, password);
+                    handleSignUp(email, password).finally(() => { signupBtn.disabled = false; });
                 });
             }
 
-            // Bu fonksiyon, uygulamanın geri kalanındaki tüm butonları aktif eder ve SADECE giriş yapıldıktan sonra çağrılır.
             function setupAppEventListeners() {
                 logoutBtn.addEventListener('click', handleLogout);
                 document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
@@ -1395,7 +1396,7 @@
                 document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
                 document.getElementById('quick-add-btn').addEventListener('click', openQuickAddModal);
                 document.getElementById('cash-transaction-btn').addEventListener('click', openCashTransactionModal);
-                document.getElementById('show-history-btn').addEventListener('click', () => showSection('history', document.querySelector('[data-section="history"]')));
+                document.getElementById('show-history-btn').addEventListener('click', () => showSection('history', document.querySelector('.sidebar-item[data-section="history"]')));
                 document.getElementById('floating-add-btn').addEventListener('click', openQuickAddModal);
                 document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmit);
                 document.getElementById('reset-form-btn').addEventListener('click', resetForm);
@@ -1408,13 +1409,13 @@
                     renderHistory();
                 });
                 document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
-                document.getElementById('add-platform-btn').addEventListener('click', addCustomPlatform);
+                document.getElementById('add-platform-btn').addEventListener('click', () => addCustomPlatform(false));
                 document.getElementById('import-btn').addEventListener('click', openImportModal);
                 document.getElementById('export-btn').addEventListener('click', exportData);
                 document.getElementById('clear-all-settings-btn').addEventListener('click', clearAllData);
                 document.getElementById('reset-bankroll-btn').addEventListener('click', resetBankroll);
                 document.getElementById('close-platform-manager-btn').addEventListener('click', closePlatformManager);
-                document.getElementById('add-platform-modal-btn').addEventListener('click', addCustomPlatformFromModal);
+                document.getElementById('add-platform-modal-btn').addEventListener('click', () => addCustomPlatform(true));
                 document.getElementById('cash-transaction-close-btn').addEventListener('click', closeCashTransactionModal);
                 document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransaction('deposit'));
                 document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransaction('withdrawal'));
@@ -1478,13 +1479,12 @@
                     appContainer.classList.add('hidden');
                     bets = [];
                     customPlatforms = [];
-                    // Burada event listener'ları kaldırmaya gerek yok, çünkü appContainer gizli olacak.
                 }
             };
 
             async function initApp() {
+                setupAppEventListeners();
                 await loadData();
-                setupAppEventListeners(); // HATA DÜZELTMESİ: Sadece uygulama listener'ları burada çağrılıyor.
                 initializeUI();
                 showWelcomeNotification();
             }
@@ -1592,10 +1592,6 @@
                     }
                 }
             }
-            
-            function addCustomPlatformFromModal() {
-                addCustomPlatform(true);
-            }
 
             async function removeCustomPlatform(platform) {
                 if (confirm(`'${platform}' platformunu silmek istediğinizden emin misiniz?`)) {
@@ -1637,7 +1633,7 @@
                     showNotification('Bahis eklenirken hata oluştu.', 'error');
                     console.error(error);
                 } else {
-                    await loadData(); // Veriyi yeniden çek ve arayüzü güncelle
+                    await loadData();
                     resetForm();
                     showNotification('🎯 Yeni bahis başarıyla eklendi!', 'success');
                 }

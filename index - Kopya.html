@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasamatik - Gemini & Supabase Destekli Bahis Takibi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+      window.si = window.si || function () { (window.si.q = window.si.q || []).push(arguments); };
+    </script>
+    <script src="/_vercel/speed-insights/script.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #8db3f0;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+        }
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #292c30 0%, #000000 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(139, 179, 240, 0.3);
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+        
+        .sidebar.collapsed .sidebar-item {
+            justify-content: center;
+            padding: 16px 8px;
+            margin: 8px 4px;
+        }
+        
+        .sidebar.collapsed .sidebar-icon {
+            margin-right: 0;
+            font-size: 22px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            margin: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar-item.active {
+            background: linear-gradient(135deg, var(--primary-blue), #6366f1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 179, 240, 0.4);
+        }
+        
+        .sidebar-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            margin-right: 12px;
+            pointer-events: none; /* Prevents icon from capturing click */
+        }
+        
+        .sidebar-text {
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+            pointer-events: none; /* Prevents text from capturing click */
+        }
+        
+        .sidebar.collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 24px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), #6366f1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #6366f1 100%);
+            box-shadow: 0 4px 15px rgba(139, 179, 240, 0.4);
+            transition: all 0.3s ease;
+            border: none;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .gradient-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 179, 240, 0.6);
+        }
+
+        .gradient-button:disabled {
+            background: #5a5e63;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .input-glass {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        
+        .input-glass:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(139, 179, 240, 0.3);
+            outline: none;
+        }
+        
+        .form-card {
+            grid-column: span 2;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+        }
+        
+        .history-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .bet-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .bet-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+        
+        .status-won {
+            background: linear-gradient(135deg, var(--success-green), #059669);
+            color: white;
+        }
+        
+        .status-lost {
+            background: linear-gradient(135deg, var(--danger-red), #dc2626);
+            color: white;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .floating-action {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(139, 179, 240, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+        
+        .floating-action:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(139, 179, 240, 0.6);
+        }
+        
+        .page-section {
+            display: none;
+        }
+        
+        .page-section.active {
+            display: block;
+        }
+        
+        .image-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .image-upload-area.dragover {
+            border-color: var(--primary-blue);
+            background: rgba(139, 179, 240, 0.1);
+        }
+
+        #auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.expanded {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+            }
+            
+            .form-card {
+                grid-column: span 1;
+                padding: 20px;
+            }
+            
+            .floating-action {
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+        }
+        
+        .notification {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            min-width: 44px;
+            text-align: center;
+        }
+        
+        .pagination-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .pagination-btn.active {
+            background: linear-gradient(135deg, var(--primary-blue), #6366f1);
+            color: white;
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(139, 179, 240, 0.4);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .pagination-btn:disabled:hover {
+            background: var(--glass-bg);
+            color: rgba(255, 255, 255, 0.7);
+            transform: none;
+        }
+        
+        .bet-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bet-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .bet-card.won::before {
+            background: linear-gradient(90deg, var(--success-green), #059669);
+            opacity: 1;
+        }
+        
+        .bet-card.lost::before {
+            background: linear-gradient(90deg, var(--danger-red), #dc2626);
+            opacity: 1;
+        }
+        
+        .bet-card.pending::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            opacity: 1;
+        }
+        
+        .bet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(139, 179, 240, 0.3);
+        }
+        
+        .slot-fields {
+            display: none;
+        }
+        
+        .sport-fields {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div id="auth-container" class="hidden">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
+            <div class="text-center mb-8">
+                <h1 class="font-montserrat font-bold text-3xl gradient-text">Kasamatik</h1>
+                <p class="text-gray-400">Akıllı Bahis Takibi</p>
+            </div>
+            <form id="auth-form" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-gray-300 text-sm font-medium mb-2">E-posta</label>
+                    <input type="email" id="email" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="ornek@mail.com">
+                </div>
+                <div>
+                    <label for="password" class="block text-gray-300 text-sm font-medium mb-2">Şifre</label>
+                    <input type="password" id="password" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="••••••••">
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-2">
+                    <button type="button" id="login-btn" class="gradient-button w-full py-3 rounded-lg">Giriş Yap</button>
+                    <button type="button" id="signup-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">Kayıt Ol</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle">
+            <span class="text-xl">☰</span>
+        </button>
+
+        <div class="sidebar" id="sidebar">
+            <div class="p-6 border-b border-white border-opacity-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl">
+                        🎯
+                    </div>
+                    <div class="sidebar-text">
+                        <h2 class="font-montserrat font-bold text-lg gradient-text">Kasamatik</h2>
+                        <p class="text-xs text-gray-400" id="user-email-display"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="mt-6">
+                <div class="sidebar-item active" data-section="dashboard">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-text">Ana Panel</span>
+                </div>
+                <div class="sidebar-item" data-section="new-bet">
+                    <span class="sidebar-icon">➕</span>
+                    <span class="sidebar-text">Yeni Kayıt</span>
+                </div>
+                <div class="sidebar-item" data-section="history">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-text">Bahis Geçmişi</span>
+                </div>
+                <div class="sidebar-item" data-section="cash-history">
+                    <span class="sidebar-icon">💰</span>
+                    <span class="sidebar-text">Kasa Geçmişi</span>
+                </div>
+                <div class="sidebar-item" data-section="statistics">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-text">İstatistikler</span>
+                </div>
+                <div class="sidebar-item" data-section="guide">
+                    <span class="sidebar-icon">📖</span>
+                    <span class="sidebar-text">Rehber</span>
+                </div>
+                <div class="sidebar-item" data-section="settings">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-text">Ayarlar</span>
+                </div>
+            </nav>
+            
+            <div class="absolute bottom-6 left-6 right-6">
+                 <button id="logout-btn" class="w-full sidebar-item justify-center mb-2 bg-red-800/80 hover:bg-red-700/80">
+                    <span class="sidebar-icon">🚪</span>
+                    <span class="sidebar-text">Çıkış Yap</span>
+                </button>
+                <button id="sidebar-toggle" class="w-full sidebar-item justify-center">
+                    <span class="sidebar-icon">↔️</span>
+                    <span class="sidebar-text">Daralt</span>
+                </button>
+                <div class="text-center mt-2">
+                    <p class="text-xs text-gray-500 sidebar-text">v2.0-supabase</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content" id="main-content">
+            <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+            <div id="dashboard" class="page-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-xl">
+                                    💰
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Kasa</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-white" id="total-bankroll">0 ₺</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Mevcut bakiye</div>
+                    </div>
+    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
+                                    📈
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Kar</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-green-400" id="total-profit">0 ₺</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Kazanılan miktar</div>
+                    </div>
+    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-red-400 to-red-600 flex items-center justify-center text-xl">
+                                    📉
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Zarar</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-red-400" id="total-loss">0 ₺</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Kaybedilen miktar</div>
+                    </div>
+    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+                                    🎲
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-white" id="total-bets">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Bahis sayısı</div>
+                    </div>
+                </div>
+    
+                <div class="dashboard-grid">
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-montserrat font-bold gradient-text mb-4">⚡ Hızlı İşlemler</h3>
+                        <div class="space-y-3">
+                            <button id="quick-add-btn" class="gradient-button w-full py-3 rounded-lg text-white font-medium">
+                                🚀 Hızlı Bahis Ekle
+                            </button>
+                            <button id="cash-transaction-btn" class="gradient-button w-full py-3 rounded-lg text-white font-medium">
+                                💸 Para Yatır / Çek
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-montserrat font-bold gradient-text mb-4">🚀 Hızlı Başlangıç</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl">1️⃣</span>
+                                <p class="text-gray-300">"💸 Para Yatır / Çek" ile kasanı oluştur.</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl">2️⃣</span>
+                                <p class="text-gray-300">"➕ Yeni Kayıt" ile ilk bahsini ekle.</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl">3️⃣</span>
+                                <p class="text-gray-300">"📊 İstatistikler" ile performansını izle.</p>
+                            </div>
+                             <div class="flex items-center space-x-3">
+                                <span class="text-2xl">4️⃣</span>
+                                <p class="text-gray-300">"⚙️ Ayarlar" menüsünden platformlarını ekle.</p>
+                            </div>
+                        </div>
+                    </div>
+    
+                </div>
+    
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text">📋 Son Bahisler</h3>
+                        <button id="show-history-btn" class="text-blue-400 hover:text-blue-300 text-sm">
+                            Tümünü Gör →
+                        </button>
+                    </div>
+                    <div id="recent-bets" class="space-y-3">
+                        </div>
+                </div>
+            </div>
+    
+            <div id="new-bet" class="page-section">
+                <div class="form-card">
+                    <h2 class="text-2xl font-montserrat font-bold gradient-text mb-6">
+                        ➕ Yeni Bahis Kaydı
+                    </h2>
+                    
+                    <form id="bet-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
+                                <div class="flex space-x-2">
+                                    <select id="platform" required class="input-glass flex-1 p-3 rounded-lg text-gray-800">
+                                        <option value="">Platform Seçin</option>
+                                    </select>
+                                    <button type="button" id="platform-manager-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
+                                        ⚙️
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Türü</label>
+                                <select id="bet-type" required class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                    <option value="">Tür Seçin</option>
+                                    <option value="Spor Bahis">Spor Bahis</option>
+                                    <option value="Canlı Bahis">Canlı Bahis</option>
+                                    <option value="Casino">Casino</option>
+                                    <option value="Slot">Slot</option>
+                                </select>
+                            </div>
+                        </div>
+    
+                        <div id="sport-fields" class="sport-fields space-y-6">
+                            <div>
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Açıklaması</label>
+                                <input type="text" id="description" placeholder="Örn: Galatasaray - Fenerbahçe (1)" 
+                                       class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+    
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Miktarı (₺)</label>
+                                    <input type="number" id="bet-amount" min="0" step="0.01" placeholder="100"
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Oran</label>
+                                    <input type="number" id="odds" min="1" step="0.01" placeholder="2.50"
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Tarih</label>
+                                    <input type="date" id="bet-date" 
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div id="slot-fields" class="slot-fields space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Slot Türü</label>
+                                    <select id="slot-type" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                        <option value="Normal Slot">Normal Slot</option>
+                                        <option value="Freespin">Freespin</option>
+                                        <option value="Happy Hour">Happy Hour</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Slot Oyunu</label>
+                                    <input type="text" id="slot-game" placeholder="Örn: Sweet Bonanza" 
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                            </div>
+    
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Spin Sayısı</label>
+                                    <input type="number" id="spin-count" min="1" placeholder="100"
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Spin Başına Bahis (₺)</label>
+                                    <input type="number" id="spin-bet" min="0" step="0.01" placeholder="1.00"
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-300 text-sm font-medium mb-2">Tarih</label>
+                                    <input type="date" id="slot-date" 
+                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                </div>
+                            </div>
+    
+                            <div id="freespin-details" class="hidden">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Freespin Detayı</label>
+                                <input type="text" id="freespin-detail" placeholder="Örn: 100 freespin x20 çarpan" 
+                                       class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+    
+                            <div id="happy-hour-details" class="hidden">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Happy Hour Bonus Detayı</label>
+                                <input type="text" id="happy-hour-detail" placeholder="Örn: %50 bonus + 50 freespin" 
+                                       class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+                        </div>
+    
+                        <div class="image-upload-area rounded-lg p-6 text-center" id="image-upload-area">
+                            <div id="upload-area" class="space-y-3">
+                                <div class="text-4xl">📸</div>
+                                <p class="text-gray-300">Bahis kuponu resmini buraya sürükleyin veya Ctrl+V ile yapıştırın</p>
+                                <input type="file" id="image-input" accept="image/*" class="hidden">
+                                <button type="button" id="image-select-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
+                                    📁 Dosya Seç
+                                </button>
+                            </div>
+                            <div id="image-preview" class="hidden mt-4">
+                                <img id="preview-img" class="max-w-full max-h-48 mx-auto rounded-lg">
+                                <div class="mt-3 flex justify-center items-center gap-x-4">
+                                    <button type="button" id="remove-image-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                                        🗑️ Resmi Kaldır
+                                    </button>
+                                    <button type="button" id="gemini-analyze-btn" class="gradient-button px-4 py-2 rounded-lg text-white flex items-center gap-x-2" disabled>
+                                        <span id="gemini-button-icon">✨</span>
+                                        <span id="gemini-button-text">Kuponu Oku ve Analiz Et</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="ai-analysis-container" class="hidden mt-4">
+                            <div class="glass-card rounded-2xl p-4">
+                                 <h3 class="text-md font-montserrat font-bold gradient-text mb-2">🤖 AI Risk Analizi</h3>
+                                 <div id="ai-analysis-content" class="text-sm text-gray-300 space-y-2">
+                                    </div>
+                                 <p class="text-xs text-gray-500 mt-3 text-center">Bu analiz yapay zeka tarafından oluşturulmuştur ve sadece bilgilendirme amaçlıdır.</p>
+                            </div>
+                        </div>
+    
+    
+                        <div class="flex justify-end space-x-4 pt-6">
+                            <button type="button" id="reset-form-btn" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                Temizle
+                            </button>
+                            <button type="submit" class="gradient-button px-8 py-3 rounded-lg text-white font-medium">
+                                Bahis Ekle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    
+            <div id="history" class="page-section">
+                <div class="mb-8">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
+                        <div>
+                            <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">📋 Bahis Geçmişi</h2>
+                            <p class="text-gray-400 text-sm">Tüm bahis kayıtlarınızı görüntüleyin ve yönetin</p>
+                        </div>
+                        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
+                            <select id="status-filter" class="input-glass px-4 py-3 rounded-lg text-gray-800">
+                                <option value="all">🔍 Tümü</option>
+                                <option value="pending">⏳ Bekleyen</option>
+                                <option value="won">✅ Kazanan</option>
+                                <option value="lost">❌ Kaybeden</option>
+                            </select>
+                            <button id="clear-all-btn" class="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                🗑️ Tüm Verileri Temizle
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1" id="history-total-bets">0</div>
+                            <div class="text-xs text-gray-400">Toplam Bahis</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-green-400" id="history-won-bets">0</div>
+                            <div class="text-xs text-gray-400">Kazanan</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-red-400" id="history-lost-bets">0</div>
+                            <div class="text-xs text-gray-400">Kaybeden</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-yellow-400" id="history-pending-bets">0</div>
+                            <div class="text-xs text-gray-400">Bekleyen</div>
+                        </div>
+                    </div>
+                    
+                    <div id="bet-history">
+                        </div>
+                    
+                    <div id="pagination-container" class="pagination">
+                        </div>
+                </div>
+            </div>
+    
+            <div id="cash-history" class="page-section">
+                <div class="mb-8">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
+                        <div>
+                            <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">💰 Kasa Geçmişi</h2>
+                            <p class="text-gray-400 text-sm">Tüm para yatırma ve çekme işlemleriniz</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-green-400" id="cash-history-deposit">0 ₺</div>
+                            <div class="text-xs text-gray-400">Toplam Yatırım</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-red-400" id="cash-history-withdrawal">0 ₺</div>
+                            <div class="text-xs text-gray-400">Toplam Çekim</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1" id="cash-history-net">0 ₺</div>
+                            <div class="text-xs text-gray-400">Net Bakiye</div>
+                        </div>
+                         <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1" id="cash-history-count">0</div>
+                            <div class="text-xs text-gray-400">Toplam İşlem</div>
+                        </div>
+                    </div>
+                    
+                    <div id="cash-history-list">
+                        </div>
+                    
+                    <div id="cash-pagination-container" class="pagination">
+                        </div>
+                </div>
+            </div>
+    
+    
+            <div id="statistics" class="page-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
+                    
+                    <div class="stats-grid mb-8">
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+                                        🎯
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis</h3>
+                                        <p class="text-2xl font-montserrat font-bold text-white" id="stats-total-bets">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">Kasa işlemleri hariç toplam bahis sayısı</div>
+                            <div class="mt-2 text-xs text-blue-300" id="stats-bet-breakdown">Spor: 0 | Slot: 0 | Casino: 0</div>
+                        </div>
+    
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
+                                        ✅
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">Kazanma Oranı</h3>
+                                        <p class="text-2xl font-montserrat font-bold text-green-400" id="stats-win-rate">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">Sonuçlanan bahislerdeki başarı oranı</div>
+                            <div class="mt-2 text-xs text-green-300" id="stats-win-breakdown">Kazanan: 0 | Kaybeden: 0</div>
+                        </div>
+    
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-xl">
+                                        📊
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">Ortalama Oran</h3>
+                                        <p class="text-2xl font-montserrat font-bold text-yellow-400" id="stats-avg-odds">0.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">Spor bahislerinin ortalama oranı</div>
+                            <div class="mt-2 text-xs text-yellow-300" id="stats-odds-range">En düşük: 0.00 | En yüksek: 0.00</div>
+                        </div>
+    
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-xl">
+                                        💹
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">ROI</h3>
+                                        <p class="text-2xl font-montserrat font-bold" id="stats-roi">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">Yatırım getirisi (Net kar / Toplam yatırım)</div>
+                            <div class="mt-2 text-xs" id="stats-roi-breakdown">Yatırım: 0₺ | Net kar: 0₺</div>
+                        </div>
+    
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-400 to-blue-500 flex items-center justify-center text-xl">
+                                        📈
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">Ortalama Bahis</h3>
+                                        <p class="text-2xl font-montserrat font-bold text-blue-400" id="stats-avg-bet">0₺</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">Bahis başına ortalama yatırım miktarı</div>
+                            <div class="mt-2 text-xs text-blue-300" id="stats-bet-range">En düşük: 0₺ | En yüksek: 0₺</div>
+                        </div>
+    
+                        <div class="stat-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-xl">
+                                        🏆
+                                    </div>
+                                    <div>
+                                        <h3 class="text-gray-300 font-medium text-sm">En İyi Platform</h3>
+                                        <p class="text-lg font-montserrat font-bold text-teal-400" id="stats-best-platform">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400">En çok kar getiren platform</div>
+                            <div class="mt-2 text-xs text-teal-300" id="stats-platform-profit">Kar: 0₺</div>
+                        </div>
+                    </div>
+    
+                    <div class="dashboard-grid">
+                        <div class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📈 Kar/Zarar Trendi</h3>
+                            <div style="height: 300px;">
+                                <canvas id="profitChart"></canvas>
+                            </div>
+                        </div>
+    
+                        <div class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Dağılımı</h3>
+                            <div style="height: 300px;">
+                                <canvas id="platformChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div id="guide" class="page-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi</h2>
+                    
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
+                                🆕
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v2.0</h3>
+                                <p class="text-gray-400 text-sm">Supabase Entegrasyonu ve Kullanıcı Hesapları</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3">
+                                <span class="text-green-400 text-lg">☁️</span>
+                                <div>
+                                    <h4 class="text-white font-medium">Bulut Veritabanı</h4>
+                                    <p class="text-gray-400 text-sm">Tüm verileriniz artık güvenli Supabase veritabanında saklanıyor.</p>
+                                </div>
+                            </div>
+                             <div class="flex items-start space-x-3">
+                                <span class="text-blue-400 text-lg">👤</span>
+                                <div>
+                                    <h4 class="text-white font-medium">Kullanıcı Hesapları</h4>
+                                    <p class="text-gray-400 text-sm">Artık kayıt olup giriş yapabilir, verilerinize her yerden ulaşabilirsiniz.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <span class="text-purple-400 text-lg">🔐</span>
+                                <div>
+                                    <h4 class="text-white font-medium">Güvenlik</h4>
+                                    <p class="text-gray-400 text-sm">Her kullanıcı sadece kendi verilerini görebilir ve yönetebilir.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div id="settings" class="page-section">
+                <div class="dashboard-grid">
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Yönetimi</h3>
+                        <div class="space-y-4">
+                            <div class="flex space-x-2">
+                                <input type="text" id="new-platform-name" placeholder="Platform adı" 
+                                       class="input-glass flex-1 p-3 rounded-lg text-gray-800">
+                                <button id="add-platform-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
+                                    ➕
+                                </button>
+                            </div>
+                            <div id="custom-platforms-list" class="space-y-2 max-h-48 overflow-y-auto">
+                                </div>
+                        </div>
+                    </div>
+    
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📊 Veri Yönetimi</h3>
+                        <div class="space-y-3">
+                            <button id="import-btn" class="gradient-button w-full py-3 rounded-lg text-white">
+                                📥 İçe Aktar
+                            </button>
+                            <button id="export-btn" class="gradient-button w-full py-3 rounded-lg text-white">
+                                📤 Dışa Aktar
+                            </button>
+                            <button id="clear-all-settings-btn" class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                🗑️ Tüm Verileri Temizle
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">💰 Kasa Yönetimi</h3>
+                        <div class="space-y-3">
+                            <button id="reset-bankroll-btn" class="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                🔄 Kasayı Sıfırla
+                            </button>
+                            <p class="text-xs text-gray-400">Bu işlem mevcut bakiyeyi sıfırlar ve geri alınamaz.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="floating-action" id="floating-add-btn">
+            ➕
+        </div>
+    
+        <div id="platform-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Platform Yönetimi</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Yeni Platform Ekle</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="new-platform-name-modal" placeholder="Platform adı" 
+                                   class="input-glass flex-1 p-3 rounded-lg text-gray-800">
+                            <button id="add-platform-modal-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
+                                ➕
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Özel Platformlar</label>
+                        <div id="custom-platforms-list-modal" class="space-y-2 max-h-32 overflow-y-auto">
+                            </div>
+                    </div>
+                </div>
+    
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="close-platform-manager-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        Kapat
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+        <div id="cash-transaction-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">💸 Kasa İşlemi</h3>
+                <div class="space-y-4">
+                     <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
+                        <input type="number" id="cash-amount" required min="0" step="0.01" placeholder="1000"
+                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" id="cash-transaction-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            İptal
+                        </button>
+                        <button type="button" id="cash-withdrawal-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            Para Çek
+                        </button>
+                        <button type="button" id="cash-deposit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
+                            Para Yatır
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div id="quick-add-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Hızlı Bahis Ekle</h3>
+                
+                <form id="quick-add-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
+                        <select id="quick-platform" required class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <option value="">Platform Seçin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
+                            <input type="number" id="quick-amount" required min="0" step="0.01" placeholder="100"
+                                   class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 text-sm font-medium mb-2">Oran</label>
+                            <input type="number" id="quick-odds" required min="1" step="0.01" placeholder="2.50"
+                                   class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
+                    </div>
+    
+                    <div class="image-upload-area rounded-lg p-4 text-center" id="quick-image-upload-area">
+                        <div id="quick-upload-area" class="space-y-2">
+                            <div class="text-2xl">📸</div>
+                            <p class="text-gray-300 text-sm">Kupon resmi sürükleyin veya Ctrl+V ile yapıştırın</p>
+                            <input type="file" id="quick-image-input" accept="image/*" class="hidden">
+                            <button type="button" id="quick-image-select-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
+                                📁 Seç
+                            </button>
+                        </div>
+                        <div id="quick-image-preview" class="hidden mt-3">
+                            <img id="quick-preview-img" class="max-w-full max-h-32 mx-auto rounded-lg">
+                            <button type="button" id="quick-remove-image-btn" class="mt-2 px-2 py-1 bg-red-600 text-white rounded text-xs">
+                                🗑️ Kaldır
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="close-quick-add-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            İptal
+                        </button>
+                        <button type="submit" class="gradient-button px-4 py-2 rounded-lg text-white">
+                            Ekle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    
+        <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Veri İçe Aktarma</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">JSON Dosyası Seç</label>
+                        <input type="file" id="import-file" accept=".json" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Veya JSON Metni Yapıştır</label>
+                        <textarea id="import-text" placeholder="JSON verisini buraya yapıştırın..." 
+                                  class="input-glass w-full p-3 rounded-lg text-gray-800 h-32 resize-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">İçe Aktarma Modu</label>
+                        <select id="import-mode" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <option value="merge">Birleştir (mevcut veriler korunur)</option>
+                            <option value="replace">Değiştir (mevcut veriler silinir)</option>
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="close-import-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        İptal
+                    </button>
+                    <button id="import-data-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
+                        İçe Aktar
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+        <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Güncelle</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                        <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <option value="pending">Bekleyen</option>
+                            <option value="won">Kazandı</option>
+                            <option value="lost">Kaybetti</option>
+                        </select>
+                    </div>
+                    
+                    <div id="win-amount-section" class="hidden">
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Kazanç Miktarı (₺)</label>
+                        <input type="number" id="edit-win-amount" min="0" step="0.01" 
+                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
+                </div>
+    
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="close-edit-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        İptal
+                    </button>
+                    <button id="save-edit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+        <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+            <div class="max-w-4xl max-h-full">
+                <img id="modal-image" class="max-w-full max-h-full rounded-lg">
+            </div>
+        </div>
+    
+    <script>
+        (function() {
+            // ============== SUPABASE SETUP ==============
+            const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co'; // <-- KENDİ SUPABASE URL'NİZİ GİRİN
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg'; // <-- KENDİ SUPABASE ANON KEY'İNİZİ GİRİN
+            const { createClient } = supabase;
+            const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // ============== DOM ELEMENTS ==============
+            const authContainer = document.getElementById('auth-container');
+            const appContainer = document.getElementById('app-container');
+            const authForm = document.getElementById('auth-form');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userEmailDisplay = document.getElementById('user-email-display');
+
+            // ============== APPLICATION STATE ==============
+            let currentUser = null;
+            let bets = [];
+            let customPlatforms = [];
+            let editingBetId = null;
+            let currentImageData = null;
+            let quickImageData = null;
+            let profitChart, platformChart;
+            let currentSection = 'dashboard';
+            let currentPage = 1;
+            let cashCurrentPage = 1;
+            const itemsPerPage = 10;
+            const defaultPlatforms = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
+
+            // ============== AUTHENTICATION ==============
+            async function setupAuthEventListeners() {
+                loginBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = "Giriş yapılıyor...";
+                    await handleLogin(authForm.email.value, authForm.password.value);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = "Giriş Yap";
+                });
+                
+                signupBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    signupBtn.disabled = true;
+                    signupBtn.textContent = "Kayıt olunuyor...";
+                    await handleSignUp(authForm.email.value, authForm.password.value);
+                    signupBtn.disabled = false;
+                    signupBtn.textContent = "Kayıt Ol";
+                });
+            }
+
+            const handleSignUp = async (email, password) => {
+                const { data, error } = await _supabase.auth.signUp({ email, password });
+                if (error) {
+                    showNotification(`Kayıt hatası: ${error.message}`, 'error');
+                } else {
+                    showNotification('Kayıt başarılı! Lütfen e-postanızı doğrulayın.', 'success');
+                }
+            };
+
+            const handleLogin = async (email, password) => {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    showNotification(`Giriş hatası: ${error.message}`, 'error');
+                }
+                // onAuthStateChange tetiklenecek ve uygulamayı başlatacak
+            };
+            
+            const handleLogout = async () => {
+                const { error } = await _supabase.auth.signOut();
+                if (error) {
+                    showNotification(`Çıkış hatası: ${error.message}`, 'error');
+                }
+                 // onAuthStateChange tetiklenecek ve arayüzü güncelleyecek
+            };
+            
+            // ============== APP INITIALIZATION ==============
+            
+            _supabase.auth.onAuthStateChange((event, session) => {
+                if (session && session.user) {
+                    currentUser = session.user;
+                    authContainer.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    initApp();
+                } else {
+                    currentUser = null;
+                    authContainer.classList.remove('hidden');
+                    appContainer.classList.add('hidden');
+                    bets = [];
+                    customPlatforms = [];
+                }
+            });
+
+            async function initApp() {
+                if (!currentUser) return;
+                
+                userEmailDisplay.textContent = currentUser.email;
+                setupEventListeners();
+                await loadData();
+                initializeUI();
+                showWelcomeNotification();
+            }
+
+            async function loadData() {
+                if (!currentUser) return;
+                
+                const { data: betsData, error: betsError } = await _supabase
+                    .from('bets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (betsError) {
+                    console.error('Bahisler yüklenemedi:', betsError);
+                    showNotification('Bahis verileri yüklenemedi.', 'error');
+                } else {
+                    bets = betsData;
+                }
+
+                const { data: platformsData, error: platformsError } = await _supabase
+                    .from('platforms')
+                    .select('id, name');
+                
+                if(platformsError) {
+                    console.error('Platformlar yüklenemedi:', platformsError);
+                    showNotification('Platform verileri yüklenemedi.', 'error');
+                } else {
+                    customPlatforms = platformsData;
+                }
+            }
+
+            function initializeUI() {
+                setDefaultDates();
+                populatePlatformOptions();
+                renderCustomPlatforms();
+                updateAllStatsAndRenders();
+            }
+            
+            function updateAllStatsAndRenders() {
+                updateStats();
+                updateStatisticsPage();
+                renderHistory();
+                renderRecentBets();
+                renderCashHistory();
+                 if (currentSection === 'statistics' && document.getElementById('profitChart').offsetParent !== null) {
+                    updateCharts();
+                }
+            }
+            
+            function setupEventListeners() {
+                // Logout
+                logoutBtn.addEventListener('click', handleLogout);
+
+                // Sidebar Navigation
+                document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
+                    item.addEventListener('click', () => showSection(item.dataset.section, item));
+                });
+
+                // Toggles
+                document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+                document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
+
+                // Dashboard Buttons
+                document.getElementById('quick-add-btn').addEventListener('click', openQuickAddModal);
+                document.getElementById('cash-transaction-btn').addEventListener('click', openCashTransactionModal);
+                document.getElementById('show-history-btn').addEventListener('click', () => showSection('history', document.querySelector('[data-section="history"]')));
+
+                // Floating Action Button
+                document.getElementById('floating-add-btn').addEventListener('click', openQuickAddModal);
+
+                // New Bet Form
+                document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmit);
+                document.getElementById('reset-form-btn').addEventListener('click', resetForm);
+                document.getElementById('platform-manager-btn').addEventListener('click', openPlatformManager);
+                document.getElementById('bet-type').addEventListener('change', toggleBetTypeFields);
+                document.getElementById('slot-type').addEventListener('change', toggleSlotDetails);
+                document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlip);
+
+                // History Page
+                document.getElementById('status-filter').addEventListener('change', () => {
+                    currentPage = 1;
+                    renderHistory();
+                });
+                document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
+                
+                // Settings Page
+                document.getElementById('add-platform-btn').addEventListener('click', () => addCustomPlatform(false));
+                document.getElementById('import-btn').addEventListener('click', openImportModal);
+                document.getElementById('export-btn').addEventListener('click', exportData);
+                document.getElementById('clear-all-settings-btn').addEventListener('click', clearAllData);
+                document.getElementById('reset-bankroll-btn').addEventListener('click', resetBankroll);
+
+                // Modals
+                document.getElementById('close-platform-manager-btn').addEventListener('click', closePlatformManager);
+                document.getElementById('add-platform-modal-btn').addEventListener('click', () => addCustomPlatform(true));
+                document.getElementById('cash-transaction-close-btn').addEventListener('click', closeCashTransactionModal);
+                document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransaction('deposit'));
+                document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransaction('withdrawal'));
+                document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmit);
+                document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
+                document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
+                document.getElementById('import-data-btn').addEventListener('click', importData);
+                document.getElementById('edit-status').addEventListener('change', toggleWinAmountSection);
+                document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
+                document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
+                document.getElementById('image-modal').addEventListener('click', closeImageModal);
+
+                setupImageUpload('main');
+                setupImageUpload('quick');
+                setupKeyboardShortcuts();
+            }
+
+            // ============== DATA MANIPULATION (CRUD) ==============
+            
+            async function addCustomPlatform(fromModal = false) {
+                const inputId = fromModal ? 'new-platform-name-modal' : 'new-platform-name';
+                const input = document.getElementById(inputId);
+                const name = input.value.trim();
+                const allPlatforms = [...defaultPlatforms, ...customPlatforms.map(p => p.name)];
+
+                if (name && !allPlatforms.includes(name)) {
+                    const { data, error } = await _supabase.from('platforms').insert({ name: name, user_id: currentUser.id }).select();
+                    if(error){
+                        showNotification('Platform eklenemedi.', 'error');
+                        console.error(error);
+                    } else {
+                        customPlatforms.push(data[0]);
+                        input.value = '';
+                        if (fromModal) {
+                            renderCustomPlatformsModal();
+                        } else {
+                            renderCustomPlatforms();
+                        }
+                        populatePlatformOptions();
+                        showNotification(`✅ ${name} platformu eklendi!`, 'success');
+                    }
+                } else if (!name) {
+                    showNotification('Platform adı boş olamaz.', 'warning');
+                } else {
+                    showNotification('Bu platform zaten mevcut.', 'warning');
+                }
+            }
+
+            async function removeCustomPlatform(platformId, platformName) {
+                if (confirm(`'${platformName}' platformunu silmek istediğinizden emin misiniz?`)) {
+                    const { error } = await _supabase.from('platforms').delete().eq('id', platformId);
+                    if(error){
+                        showNotification('Platform silinemedi.', 'error');
+                    } else {
+                        customPlatforms = customPlatforms.filter(p => p.id !== platformId);
+                        renderCustomPlatforms();
+                        renderCustomPlatformsModal();
+                        populatePlatformOptions();
+                        showNotification(`🗑️ ${platformName} platformu silindi`, 'error');
+                    }
+                }
+            }
+
+            async function handleBetFormSubmit(e) {
+                e.preventDefault();
+                const betType = document.getElementById('bet-type').value;
+                let newBetData;
+
+                if (betType === 'Slot' || betType === 'Casino') {
+                     showNotification('Bu bahis türü henüz desteklenmiyor.', 'warning');
+                     return;
+                } else {
+                    newBetData = {
+                        user_id: currentUser.id,
+                        platform: document.getElementById('platform').value,
+                        bet_type: betType,
+                        description: document.getElementById('description').value || 'Açıklama yok',
+                        bet_amount: parseFloat(document.getElementById('bet-amount').value),
+                        odds: parseFloat(document.getElementById('odds').value),
+                        date: document.getElementById('bet-date').value,
+                        status: 'pending',
+                        win_amount: 0,
+                        profit_loss: 0
+                    };
+                }
+                
+                // TODO: Image upload to Supabase Storage
+                // if(currentImageData) { ... }
+
+                const { data, error } = await _supabase.from('bets').insert(newBetData).select();
+
+                if(error) {
+                    showNotification('Bahis eklenirken hata oluştu: ' + error.message, 'error');
+                    console.error(error);
+                } else {
+                    bets.unshift(data[0]); // Add to the beginning of the local array
+                    updateAllStatsAndRenders();
+                    resetForm();
+                    showNotification('🎯 Yeni bahis başarıyla eklendi!', 'success');
+                }
+            }
+
+            async function handleQuickAddSubmit(e) {
+                e.preventDefault();
+                const newBetData = {
+                    user_id: currentUser.id,
+                    platform: document.getElementById('quick-platform').value,
+                    bet_type: 'Spor Bahis',
+                    description: 'Hızlı bahis',
+                    bet_amount: parseFloat(document.getElementById('quick-amount').value),
+                    odds: parseFloat(document.getElementById('quick-odds').value),
+                    date: new Date().toISOString().split('T')[0],
+                    status: 'pending',
+                    win_amount: 0,
+                    profit_loss: 0
+                };
+                
+                 // TODO: Image upload to Supabase Storage
+                 // if(quickImageData) { ... }
+
+                const { data, error } = await _supabase.from('bets').insert(newBetData).select();
+                 if(error) {
+                    showNotification('Hızlı bahis eklenemedi.', 'error');
+                } else {
+                    bets.unshift(data[0]);
+                    updateAllStatsAndRenders();
+                    closeQuickAddModal();
+                    showNotification('🚀 Hızlı bahis eklendi!', 'success');
+                }
+            }
+            
+            async function saveEdit() {
+                const bet = bets.find(b => b.id === editingBetId);
+                if (!bet) return;
+
+                const status = document.getElementById('edit-status').value;
+                const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
+                
+                let updateData = { status: status };
+                if (status === 'won') {
+                    updateData.win_amount = winAmount;
+                    updateData.profit_loss = winAmount - bet.bet_amount;
+                } else if (status === 'lost') {
+                    updateData.win_amount = 0;
+                    updateData.profit_loss = -bet.bet_amount;
+                } else { // pending
+                    updateData.win_amount = 0;
+                    updateData.profit_loss = 0;
+                }
+
+                const { data, error } = await _supabase
+                    .from('bets')
+                    .update(updateData)
+                    .eq('id', editingBetId)
+                    .select();
+
+                if(error){
+                     showNotification('Bahis güncellenemedi.', 'error');
+                } else {
+                    const index = bets.findIndex(b => b.id === editingBetId);
+                    if (index !== -1) bets[index] = data[0];
+                    updateAllStatsAndRenders();
+                    closeEditModal();
+                    showNotification('✔️ Bahis güncellendi!', 'info');
+                }
+            }
+
+            async function deleteBet(id) {
+                if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
+                    const { error } = await _supabase.from('bets').delete().eq('id', id);
+                    if(error){
+                        showNotification('Kayıt silinemedi.', 'error');
+                    } else {
+                        bets = bets.filter(b => b.id !== id);
+                        updateAllStatsAndRenders();
+                        showNotification('🗑️ Kayıt silindi.', 'error');
+                    }
+                }
+            }
+
+            async function handleCashTransaction(type) {
+                const input = document.getElementById('cash-amount');
+                let amount = parseFloat(input.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showNotification('Lütfen geçerli bir miktar girin.', 'error');
+                    return;
+                }
+
+                const isDeposit = type === 'deposit';
+                const profitLoss = isDeposit ? amount : -amount;
+
+                const cashTransaction = {
+                    user_id: currentUser.id,
+                    platform: 'Kasa İşlemi',
+                    bet_type: 'Kasa İşlemi',
+                    description: isDeposit ? 'Para Ekleme' : 'Para Çekme',
+                    bet_amount: Math.abs(amount),
+                    odds: 1,
+                    date: new Date().toISOString().split('T')[0],
+                    status: isDeposit ? 'won' : 'lost',
+                    win_amount: isDeposit ? amount : 0,
+                    profit_loss: profitLoss,
+                };
+                
+                const { data, error } = await _supabase.from('bets').insert(cashTransaction).select();
+                if(error){
+                    showNotification('Kasa işlemi kaydedilemedi.', 'error');
+                } else {
+                    bets.unshift(data[0]);
+                    updateAllStatsAndRenders();
+                    closeCashTransactionModal();
+                    showNotification(`💸 Kasa işlemi kaydedildi: ${profitLoss.toFixed(2)} ₺`, 'success');
+                }
+            }
+
+            async function resetBankroll() {
+                if (confirm('Tüm kasa bakiyesini sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+                    const currentBankroll = bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
+                    if (currentBankroll !== 0) {
+                        const resetTransaction = {
+                            user_id: currentUser.id,
+                            platform: 'Kasa Sıfırlama',
+                            bet_type: 'Kasa İşlemi',
+                            description: 'Bakiye Sıfırlandı',
+                            bet_amount: Math.abs(currentBankroll),
+                            odds: 1,
+                            date: new Date().toISOString().split('T')[0],
+                            status: 'lost',
+                            win_amount: 0,
+                            profit_loss: -currentBankroll,
+                        };
+                         const { data, error } = await _supabase.from('bets').insert(resetTransaction).select();
+                         if(error){
+                             showNotification('Kasa sıfırlanamadı.', 'error');
+                         } else {
+                             bets.unshift(data[0]);
+                             updateAllStatsAndRenders();
+                             showNotification('🔄 Kasa sıfırlandı!', 'warning');
+                         }
+                    }
+                }
+            }
+            
+            async function clearAllData() {
+                 if (confirm('TÜM BAHİS VE PLATFORM VERİLERİNİ SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem geri alınamaz!')) {
+                    const { error: betsError } = await _supabase.from('bets').delete().eq('user_id', currentUser.id);
+                    const { error: platformsError } = await _supabase.from('platforms').delete().eq('user_id', currentUser.id);
+
+                    if(betsError || platformsError) {
+                        showNotification('Veriler silinirken bir hata oluştu.', 'error');
+                    } else {
+                        bets = [];
+                        customPlatforms = [];
+                        updateAllStatsAndRenders();
+                        populatePlatformOptions();
+                        renderCustomPlatforms();
+                        showNotification('🗑️ Tüm veriler silindi!', 'error');
+                    }
+                }
+            }
+
+             // ============== UI & HELPERS ==============
+            
+            function showWelcomeNotification() {
+                 setTimeout(() => {
+                    showNotification(`🚀 Hoş geldin ${currentUser.email}!`, 'success');
+                }, 1000);
+            }
+            
+            function showNotification(message, type = 'info', duration = 4000) {
+                const notificationsContainer = document.getElementById('notifications');
+                const notification = document.createElement('div');
+                const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-red-600', warning: 'from-yellow-500 to-orange-600', info: 'from-blue-500 to-blue-600' };
+                notification.className = `notification bg-gradient-to-r ${colors[type]} text-white px-6 py-4 rounded-xl shadow-lg max-w-sm glass-card`;
+                notification.innerHTML = `<div class="flex items-center justify-between"><span class="font-medium">${message}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200 text-xl">×</button></div>`;
+                notificationsContainer.appendChild(notification);
+                setTimeout(() => notification.remove(), duration);
+            }
+            
+            function showSection(sectionName, clickedElement) {
+                document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
+                document.getElementById(sectionName)?.classList.add('active');
+                document.querySelectorAll('.sidebar-item[data-section]').forEach(item => item.classList.remove('active'));
+                clickedElement?.classList.add('active');
+                currentSection = sectionName;
+                document.getElementById('sidebar').classList.remove('mobile-open');
+                if (sectionName === 'statistics' && document.getElementById('profitChart').offsetParent !== null) {
+                    updateCharts();
+                }
+            }
+            
+            function toggleSidebar() {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+                document.getElementById('main-content').classList.toggle('expanded');
+            }
+
+            function toggleMobileSidebar() {
+                document.getElementById('sidebar').classList.toggle('mobile-open');
+            }
+
+            function populatePlatformOptions() {
+                const allPlatforms = [...defaultPlatforms, ...customPlatforms.map(p => p.name)].sort();
+                const platformSelects = [document.getElementById('platform'), document.getElementById('quick-platform')];
+                platformSelects.forEach(select => {
+                    if (select) {
+                        select.innerHTML = '<option value="">Platform Seçin</option>';
+                        allPlatforms.forEach(platform => {
+                            const option = document.createElement('option');
+                            option.value = platform;
+                            option.textContent = platform;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+            }
+
+            function renderCustomPlatforms() {
+                const container = document.getElementById('custom-platforms-list');
+                if (!container) return;
+                if (customPlatforms.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>';
+                    return;
+                }
+                container.innerHTML = customPlatforms.map(p => `
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
+                        <span class="text-white text-sm">${p.name}</span>
+                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded">🗑️</button>
+                    </div>
+                `).join('');
+                container.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
+                });
+            }
+
+            function renderCustomPlatformsModal() {
+                const container = document.getElementById('custom-platforms-list-modal');
+                if (!container) return;
+                if (customPlatforms.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>';
+                    return;
+                }
+                container.innerHTML = customPlatforms.map(p => `
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-2 rounded">
+                        <span class="text-white text-sm">${p.name}</span>
+                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                    </div>
+                `).join('');
+                 container.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
+                });
+            }
+
+            function openPlatformManager() {
+                document.getElementById('platform-manager-modal')?.classList.remove('hidden');
+                document.getElementById('platform-manager-modal')?.classList.add('flex');
+                renderCustomPlatformsModal();
+            }
+
+            function closePlatformManager() { document.getElementById('platform-manager-modal')?.classList.add('hidden'); }
+            function openCashTransactionModal() { document.getElementById('cash-transaction-modal')?.classList.remove('hidden'); document.getElementById('cash-transaction-modal')?.classList.add('flex'); }
+            function closeCashTransactionModal() { const modal = document.getElementById('cash-transaction-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('cash-amount').value = ''; }
+            function openQuickAddModal() { document.getElementById('quick-add-modal')?.classList.remove('hidden'); document.getElementById('quick-add-modal')?.classList.add('flex'); }
+            function closeQuickAddModal() { const modal = document.getElementById('quick-add-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('quick-add-form')?.reset(); removeImage('quick'); }
+            function openImportModal() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
+            function exportData() {
+                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; // Sadece isimleri export et
+                const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `kasamatik-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('📤 Veriler başarıyla dışa aktarıldı!', 'success');
+            }
+            function importData() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
+            function closeImportModal() { document.getElementById('import-modal')?.classList.add('hidden'); document.getElementById('import-file').value = ''; document.getElementById('import-text').value = ''; }
+            
+            function openEditModal(id) {
+                editingBetId = id;
+                const bet = bets.find(b => b.id === id);
+                if (!bet) return;
+                document.getElementById('edit-status').value = bet.status;
+                document.getElementById('edit-win-amount').value = bet.win_amount;
+                toggleWinAmountSection();
+                document.getElementById('edit-modal')?.classList.remove('hidden');
+                document.getElementById('edit-modal')?.classList.add('flex');
+            }
+
+            function closeEditModal() { document.getElementById('edit-modal')?.classList.add('hidden'); editingBetId = null; }
+            function showImageModal(imageSrc) { const modal = document.getElementById('image-modal'); document.getElementById('modal-image').src = imageSrc; modal?.classList.remove('hidden'); modal?.classList.add('flex'); }
+            function closeImageModal() { document.getElementById('image-modal')?.classList.add('hidden'); }
+            function setDefaultDates() { const today = new Date().toISOString().split('T')[0]; document.getElementById('bet-date').value = today; document.getElementById('slot-date').value = today; }
+            function toggleBetTypeFields() { const betType = document.getElementById('bet-type').value; const isSlot = betType === 'Slot'; document.getElementById('sport-fields').style.display = isSlot ? 'none' : 'block'; document.getElementById('slot-fields').style.display = isSlot ? 'block' : 'none';['description', 'bet-amount', 'odds', 'bet-date'].forEach(id => document.getElementById(id).required = !isSlot);['slot-game', 'spin-count', 'spin-bet', 'slot-date'].forEach(id => document.getElementById(id).required = isSlot); }
+            function toggleSlotDetails() { const slotType = document.getElementById('slot-type').value; document.getElementById('freespin-details').classList.toggle('hidden', slotType !== 'Freespin'); document.getElementById('happy-hour-details').classList.toggle('hidden', slotType !== 'Happy Hour'); }
+            function toggleWinAmountSection() { document.getElementById('win-amount-section').classList.toggle('hidden', document.getElementById('edit-status').value !== 'won'); }
+            function resetForm() { document.getElementById('bet-form').reset(); setDefaultDates(); removeImage('main'); toggleBetTypeFields(); document.getElementById('ai-analysis-container').classList.add('hidden'); document.getElementById('ai-analysis-content').innerHTML = ''; }
+            function setupKeyboardShortcuts() { document.addEventListener('paste', handleGlobalPaste); }
+            
+            function setupImageUpload(type) {
+                const prefix = type === 'main' ? '' : 'quick-';
+                const imageInput = document.getElementById(`${prefix}image-input`);
+                const selectBtn = document.getElementById(`${prefix}image-select-btn`);
+                const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
+                const uploadArea = document.getElementById(`${prefix}image-upload-area`);
+                selectBtn?.addEventListener('click', () => imageInput.click());
+                imageInput?.addEventListener('change', (e) => handleImageFile(e.target.files[0], type));
+                removeBtn?.addEventListener('click', () => removeImage(type));
+                ['dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadArea?.addEventListener(eventName, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadArea.classList.toggle('dragover', eventName === 'dragover');
+                        if (eventName === 'drop') {
+                            handleImageFile(e.dataTransfer.files[0], type);
+                        }
+                    });
+                });
+            }
+
+            function handleImageFile(file, type) {
+                if (!file || !file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const imageData = e.target.result;
+                    const prefix = type === 'main' ? '' : 'quick-';
+                    if (type === 'main') {
+                        currentImageData = imageData;
+                        document.getElementById('gemini-analyze-btn').disabled = false;
+                    } else {
+                        quickImageData = imageData;
+                    }
+                    document.getElementById(`${prefix}preview-img`).src = imageData;
+                    document.getElementById(`${prefix}upload-area`).classList.add('hidden');
+                    document.getElementById(`${prefix}image-preview`).classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function removeImage(type) {
+                const prefix = type === 'main' ? '' : 'quick-';
+                if (type === 'main') {
+                    currentImageData = null;
+                    document.getElementById('gemini-analyze-btn').disabled = true;
+                } else {
+                    quickImageData = null;
+                }
+                document.getElementById(`${prefix}upload-area`).classList.remove('hidden');
+                document.getElementById(`${prefix}image-preview`).classList.add('hidden');
+                document.getElementById(`${prefix}image-input`).value = '';
+                if (type === 'main') {
+                    document.getElementById('ai-analysis-container').classList.add('hidden');
+                    document.getElementById('ai-analysis-content').innerHTML = '';
+                }
+            }
+            
+            function handleGlobalPaste(e) {
+                const file = Array.from(e.clipboardData.items).find(item => item.type.startsWith('image/'))?.getAsFile();
+                if (!file) return;
+                const quickModalOpen = !document.getElementById('quick-add-modal').classList.contains('hidden');
+                const type = quickModalOpen ? 'quick' : 'main';
+                if (type === 'main' && currentSection !== 'new-bet') {
+                    return;
+                }
+                handleImageFile(file, type);
+            }
+
+            // ============== STATS & RENDERING ==============
+            
+            function updateStats() {
+                const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+                const totalProfit = actualBets.reduce((sum, bet) => sum + (bet.profit_loss > 0 ? bet.profit_loss : 0), 0);
+                const totalLoss = Math.abs(actualBets.reduce((sum, bet) => sum + (bet.profit_loss < 0 ? bet.profit_loss : 0), 0));
+                const totalBankroll = bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
+                document.getElementById('total-bets').textContent = actualBets.length;
+                document.getElementById('total-profit').textContent = `+${totalProfit.toFixed(2)} ₺`;
+                document.getElementById('total-loss').textContent = `-${totalLoss.toFixed(2)} ₺`;
+                const bankrollEl = document.getElementById('total-bankroll');
+                bankrollEl.textContent = `${totalBankroll.toFixed(2)} ₺`;
+                bankrollEl.className = `text-2xl font-montserrat font-bold ${totalBankroll >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            }
+            
+            function updateStatisticsPage() {
+                const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+                const settledBets = actualBets.filter(b => b.status !== 'pending');
+                const wonBets = settledBets.filter(b => b.status === 'won');
+                document.getElementById('stats-total-bets').textContent = actualBets.length;
+                const sportsBetsCount = actualBets.filter(b => b.bet_type === 'Spor Bahis' || b.bet_type === 'Canlı Bahis').length;
+                const slotBetsCount = actualBets.filter(b => b.bet_type === 'Slot').length;
+                const casinoBetsCount = actualBets.filter(b => b.bet_type === 'Casino').length;
+                document.getElementById('stats-bet-breakdown').textContent = `Spor: ${sportsBetsCount} | Slot: ${slotBetsCount} | Casino: ${casinoBetsCount}`;
+                const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
+                document.getElementById('stats-win-rate').textContent = `${winRate.toFixed(1)}%`;
+                document.getElementById('stats-win-breakdown').textContent = `Kazanan: ${wonBets.length} | Kaybeden: ${settledBets.length - wonBets.length}`;
+                const sportsBets = actualBets.filter(b => (b.bet_type === 'Spor Bahis' || b.bet_type === 'Canlı Bahis') && b.odds > 0);
+                const avgOdds = sportsBets.length > 0 ? sportsBets.reduce((sum, b) => sum + b.odds, 0) / sportsBets.length : 0;
+                document.getElementById('stats-avg-odds').textContent = avgOdds.toFixed(2);
+                const odds = sportsBets.map(b => b.odds);
+                document.getElementById('stats-odds-range').textContent = `En düşük: ${odds.length ? Math.min(...odds).toFixed(2) : '0.00'} | En yüksek: ${odds.length ? Math.max(...odds).toFixed(2) : '0.00'}`;
+                const totalInvested = actualBets.reduce((sum, b) => sum + b.bet_amount, 0);
+                const netProfit = actualBets.reduce((sum, b) => sum + b.profit_loss, 0);
+                const roi = totalInvested > 0 ? (netProfit / totalInvested) * 100 : 0;
+                document.getElementById('stats-roi').textContent = `${roi.toFixed(1)}%`;
+                document.getElementById('stats-roi-breakdown').textContent = `Yatırım: ${totalInvested.toFixed(2)}₺ | Net kar: ${netProfit.toFixed(2)}₺`;
+                document.getElementById('stats-roi').style.color = roi >= 0 ? 'var(--success-green)' : 'var(--danger-red)';
+                const avgBet = actualBets.length > 0 ? totalInvested / actualBets.length : 0;
+                document.getElementById('stats-avg-bet').textContent = `${avgBet.toFixed(2)}₺`;
+                const amounts = actualBets.map(b => b.bet_amount);
+                document.getElementById('stats-bet-range').textContent = `En düşük: ${amounts.length ? Math.min(...amounts).toFixed(2) : '0.00'}₺ | En yüksek: ${amounts.length ? Math.max(...amounts).toFixed(2) : '0.00'}₺`;
+                const platformProfits = {};
+                actualBets.forEach(bet => { if (!platformProfits[bet.platform]) platformProfits[bet.platform] = 0; platformProfits[bet.platform] += bet.profit_loss; });
+                const bestPlatform = Object.entries(platformProfits).sort((a, b) => b[1] - a[1])[0];
+                if(bestPlatform && bestPlatform[1] > 0) {
+                    document.getElementById('stats-best-platform').textContent = bestPlatform[0];
+                    document.getElementById('stats-platform-profit').textContent = `Kar: +${bestPlatform[1].toFixed(2)}₺`;
+                } else {
+                    document.getElementById('stats-best-platform').textContent = '-';
+                    document.getElementById('stats-platform-profit').textContent = `Kar: 0.00₺`;
+                }
+            }
+
+            function updateCharts() {
+                const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+                const profitCtx = document.getElementById('profitChart').getContext('2d');
+                let cumulativeProfit = 0;
+                const profitData = [...actualBets].reverse().map(bet => { cumulativeProfit += bet.profit_loss; return cumulativeProfit; });
+                if (window.profitChart instanceof Chart) { window.profitChart.destroy(); }
+                window.profitChart = new Chart(profitCtx, { type: 'line', data: { labels: actualBets.map((b, i) => `Bahis ${i + 1}`), datasets: [{ label: 'Kümülatif Kar/Zarar', data: profitData, borderColor: 'rgba(139, 179, 240, 0.8)', backgroundColor: 'rgba(139, 179, 240, 0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: 'rgba(255,255,255,0.7)' } }, x: { ticks: { color: 'rgba(255,255,255,0.7)' } } } } });
+                const platformCtx = document.getElementById('platformChart').getContext('2d');
+                const platformCounts = actualBets.reduce((acc, bet) => { acc[bet.platform] = (acc[bet.platform] || 0) + 1; return acc; }, {});
+                if (window.platformChart instanceof Chart) { window.platformChart.destroy(); }
+                window.platformChart = new Chart(platformCtx, { type: 'doughnut', data: { labels: Object.keys(platformCounts), datasets: [{ label: 'Platformlara Göre Bahis Sayısı', data: Object.values(platformCounts), backgroundColor: ['#8db3f0', '#6366f1', '#10b981', '#ef4444', '#f59e0b', '#a855f7'], borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            }
+            
+            function renderHistory() {
+                const actualBets = bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
+                const statusFilter = document.getElementById('status-filter').value;
+                let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
+                updateHistoryStats(filteredBets);
+                const historyContainer = document.getElementById('bet-history');
+                if (filteredBets.length === 0) {
+                    historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu filtrede bahis bulunmuyor.</p></div>`;
+                    document.getElementById('pagination-container').innerHTML = '';
+                    return;
+                }
+                const totalPages = Math.ceil(filteredBets.length / itemsPerPage);
+                const paginatedBets = filteredBets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                historyContainer.innerHTML = paginatedBets.map(bet => {
+                    const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
+                    const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
+                    const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
+                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲' };
+                    let actionButtons = (bet.status === 'pending')
+                        ? `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
+                        : `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
+
+                    return `<div class="bet-card ${statusClass[bet.status]}"><div class="flex flex-col space-y-4"><div class="flex justify-between items-start"><div class="flex items-center space-x-3"><div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg">${betTypeIcon[bet.bet_type] || '🎯'}</div><div><h3 class="font-bold text-white text-lg">${bet.platform}</h3><p class="text-gray-400 text-sm">${bet.bet_type}</p></div></div><span class="px-4 py-2 rounded-full text-sm font-medium ${statusClass[bet.status]}">${statusText[bet.status]}</span></div><div class="bg-gray-800 bg-opacity-30 rounded-lg p-3"><p>${bet.description}</p></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4"><div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date + 'T00:00:00').toLocaleDateString('tr-TR')}</div></div><div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>${bet.bet_type !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div></div>` : ''}</div>${bet.image_url ? `<div class="flex justify-center"><img src="${bet.image_url}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" onclick="showImageModal('${bet.image_url}')"></div>` : ''}<div class="flex gap-3 pt-4 border-t border-gray-600">${actionButtons}<button onclick="deleteBet(${bet.id})" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button></div></div></div>`;
+                }).join('');
+                renderPagination('bets', totalPages, currentPage, changePage);
+            }
+            
+            function updateHistoryStats(filteredBets) {
+                const els = {
+                    total: document.getElementById('history-total-bets'),
+                    won: document.getElementById('history-won-bets'),
+                    lost: document.getElementById('history-lost-bets'),
+                    pending: document.getElementById('history-pending-bets')
+                };
+                if(els.total) els.total.textContent = filteredBets.length;
+                if(els.won) els.won.textContent = filteredBets.filter(b => b.status === 'won').length;
+                if(els.lost) els.lost.textContent = filteredBets.filter(b => b.status === 'lost').length;
+                if(els.pending) els.pending.textContent = filteredBets.filter(b => b.status === 'pending').length;
+            }
+
+            function renderCashHistory() {
+                const cashTransactions = bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
+                updateCashHistoryStats(cashTransactions);
+                const container = document.getElementById('cash-history-list');
+                if (cashTransactions.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`;
+                    document.getElementById('cash-pagination-container').innerHTML = '';
+                    return;
+                }
+                const totalPages = Math.ceil(cashTransactions.length / itemsPerPage);
+                const paginatedTxs = cashTransactions.slice((cashCurrentPage - 1) * itemsPerPage, cashCurrentPage * itemsPerPage);
+                container.innerHTML = paginatedTxs.map(tx => {
+                    const isDeposit = tx.profit_loss > 0;
+                    const amountColor = isDeposit ? 'text-green-400' : 'text-red-400';
+                    const icon = isDeposit ? '📥' : '📤';
+                    return `<div class="bet-card"><div class="flex items-center justify-between"><div class="flex items-center space-x-4"><div class="text-3xl">${icon}</div><div><h3 class="font-bold text-white">${tx.description}</h3><p class="text-sm text-gray-400">${new Date(tx.date + 'T00:00:00').toLocaleDateString('tr-TR')}</p></div></div><div class="flex items-center space-x-4"><p class="text-lg font-bold ${amountColor}">${tx.profit_loss > 0 ? '+' : ''}${tx.profit_loss.toFixed(2)} ₺</p><button onclick="deleteBet(${tx.id})" class="px-3 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️</button></div></div></div>`;
+                }).join('');
+                renderPagination('cash', totalPages, cashCurrentPage, changeCashPage);
+            }
+            
+            function updateCashHistoryStats(transactions) {
+                const totalDeposit = transactions.reduce((sum, tx) => sum + (tx.profit_loss > 0 ? tx.profit_loss : 0), 0);
+                const totalWithdrawal = Math.abs(transactions.reduce((sum, tx) => sum + (tx.profit_loss < 0 ? tx.profit_loss : 0), 0));
+                document.getElementById('cash-history-deposit').textContent = `+${totalDeposit.toFixed(2)} ₺`;
+                document.getElementById('cash-history-withdrawal').textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
+                document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
+                document.getElementById('cash-history-count').textContent = transactions.length;
+            }
+
+            function renderPagination(type, totalPages, current, changeFn) {
+                const containerId = type === 'bets' ? 'pagination-container' : 'cash-pagination-container';
+                const container = document.getElementById(containerId);
+                if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+                let html = `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} onclick="${changeFn.name}(${current - 1})">←</button>`;
+                for (let i = 1; i <= totalPages; i++) { html += `<button class="pagination-btn ${i === current ? 'active' : ''}" onclick="${changeFn.name}(${i})">${i}</button>`; }
+                html += `<button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} onclick="${changeFn.name}(${current + 1})">→</button>`;
+                container.innerHTML = html;
+            }
+
+            function changePage(page) { currentPage = page; renderHistory(); document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' }); }
+            function changeCashPage(page) { cashCurrentPage = page; renderCashHistory(); document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' }); }
+            
+            function renderRecentBets() {
+                const container = document.getElementById('recent-bets');
+                if (!container) return;
+                const recentBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi').slice(0, 5);
+                if(recentBets.length === 0) { container.innerHTML = `<div class="text-center py-8 text-gray-400">📝 Henüz bahis yok.</div>`; return; }
+                container.innerHTML = recentBets.map(bet => {
+                    const statusClass = { pending: 'status-pending', won: 'status-won', lost: 'status-lost' };
+                    const statusText = { pending: '⏳', won: '✅', lost: '❌' };
+                    const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
+                    return `<div class="bet-item"><div class="flex justify-between items-center"><div class="flex-1 min-w-0"><div class="flex items-center space-x-2 mb-1"><span class="font-medium text-white text-sm">${bet.platform}</span><span class="px-2 py-1 rounded-full text-xs ${statusClass[bet.status]}">${statusText[bet.status]}</span></div><p class="text-gray-300 text-xs truncate">${bet.description}</p></div><div class="text-right ml-2"><div class="font-bold text-sm">${bet.bet_amount.toFixed(2)} ₺</div>${bet.status !== 'pending' ? `<div class="font-bold ${profitColor} text-sm">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div>` : ''}</div></div></div>`;
+                }).join('');
+            }
+
+            // ============== GEMINI API ==============
+            
+            async function analyzeBetSlip() {
+                if (!currentImageData) { showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning'); return; }
+                const geminiButton = document.getElementById('gemini-analyze-btn');
+                const buttonText = document.getElementById('gemini-button-text');
+                const buttonIcon = document.getElementById('gemini-button-icon');
+                const analysisContainer = document.getElementById('ai-analysis-container');
+                const analysisContent = document.getElementById('ai-analysis-content');
+                geminiButton.disabled = true; buttonText.textContent = 'Okunuyor...'; buttonIcon.innerHTML = '🧠'; analysisContainer.classList.remove('hidden'); analysisContent.innerHTML = '<p>Analiz ediliyor, lütfen bekleyin...</p>';
+                try {
+                    const base64Data = currentImageData.split(',')[1];
+                    const result = await callGeminiApi(base64Data);
+                    if (result) {
+                        if (result.description) document.getElementById('description').value = result.description;
+                        if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
+                        if (result.odds) document.getElementById('odds').value = result.odds;
+                        analysisContent.innerHTML = result.analysis ? result.analysis.replace(/\n/g, '<br>') : '<p>Bu kupon için ek bir analiz bulunamadı.</p>';
+                        showNotification('✨ Kupon okundu ve analiz edildi!', 'success');
+                    } else { throw new Error("API'den geçerli bir sonuç alınamadı."); }
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    showNotification('Kupon okunurken bir hata oluştu.', 'error');
+                    analysisContent.innerHTML = `<p class="text-red-400">Analiz alınamadı. Lütfen daha sonra tekrar deneyin.</p>`;
+                } finally {
+                    geminiButton.disabled = false; buttonText.textContent = 'Kuponu Oku ve Analiz Et'; buttonIcon.innerHTML = '✨';
+                }
+            }
+
+            async function callGeminiApi(base64ImageData) {
+                const localApiUrl = '/api/analyze';
+                const payload = { base64ImageData: base64ImageData };
+                let response; let retries = 3; let delay = 1000;
+                while (retries > 0) {
+                    try {
+                        response = await fetch(localApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                        if (response.ok) return await response.json();
+                        else throw new Error(`API isteği başarısız oldu: ${response.status}`);
+                    } catch (error) {
+                        console.error(`Attempt failed: ${error.message}`); retries--; if (retries === 0) throw error; await new Promise(resolve => setTimeout(resolve, delay)); delay *= 2;
+                    }
+                }
+            }
+            
+            // ============== APP START ==============
+            document.addEventListener('DOMContentLoaded', () => {
+                setupAuthEventListeners();
+                // onAuthStateChange will handle the rest
+            });
+            
+            // Make some functions globally accessible from inline HTML event handlers
+            window.openEditModal = openEditModal;
+            window.deleteBet = deleteBet;
+            window.showImageModal = showImageModal;
+            window.changePage = changePage;
+            window.changeCashPage = changeCashPage;
+
+        })();
+    </script>
+</body>
+</html>

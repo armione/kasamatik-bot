@@ -503,7 +503,7 @@
 </head>
 <body class="text-white">
 
-    <div id="auth-container" class="hidden">
+    <div id="auth-container">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
             <div class="text-center mb-8">
                 <h1 class="font-montserrat font-bold text-3xl gradient-text">Kasamatik</h1>
@@ -526,7 +526,7 @@
         </div>
     </div>
 
-    <div id="app-container" class="hidden">
+    <div id="app-container">
         <button id="mobile-menu-toggle" class="mobile-menu-toggle">
             <span class="text-xl">☰</span>
         </button>
@@ -1369,8 +1369,8 @@
             let cashCurrentPage = 1;
             const itemsPerPage = 10;
             const defaultPlatforms = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
-            let listenersAttached = false; // <<< DEĞİŞİKLİK 1: BAYRAK DEĞİŞKENİ EKLENDİ
-
+            let listenersAttached = false; 
+            
             // ============== AUTHENTICATION ==============
             async function setupAuthEventListeners() {
                 loginBtn.addEventListener('click', async (e) => {
@@ -1418,15 +1418,20 @@
             // ============== APP INITIALIZATION ==============
             
             _supabase.auth.onAuthStateChange((event, session) => {
+                const authEl = document.getElementById('auth-container');
+                const appEl = document.getElementById('app-container');
+
                 if (session && session.user) {
+                    // Kullanıcı giriş yaptıysa
                     currentUser = session.user;
-                    authContainer.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
+                    authEl.style.display = 'none'; // Giriş ekranını GİZLE
+                    appEl.style.display = 'block'; // Uygulamayı GÖSTER
                     initApp();
                 } else {
+                    // Kullanıcı çıkış yaptıysa veya giriş yapmamışsa
                     currentUser = null;
-                    authContainer.classList.remove('hidden');
-                    appContainer.classList.add('hidden');
+                    authEl.style.display = 'flex'; // Giriş ekranını GÖSTER
+                    appEl.style.display = 'none';  // Uygulamayı GİZLE
                     bets = [];
                     customPlatforms = [];
                 }
@@ -1487,7 +1492,6 @@
                 }
             }
             
-            // DEĞİŞİKLİK 2: Fonksiyonun tamamı güncellendi
             function setupEventListeners() {
                 if (listenersAttached) return; 
 

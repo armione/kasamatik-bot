@@ -1369,6 +1369,7 @@
             let cashCurrentPage = 1;
             const itemsPerPage = 10;
             const defaultPlatforms = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
+            let listenersAttached = false; // <<< DEĞİŞİKLİK 1: BAYRAK DEĞİŞKENİ EKLENDİ
 
             // ============== AUTHENTICATION ==============
             async function setupAuthEventListeners() {
@@ -1405,7 +1406,6 @@
                 if (error) {
                     showNotification(`Giriş hatası: ${error.message}`, 'error');
                 }
-                // onAuthStateChange tetiklenecek ve uygulamayı başlatacak
             };
             
             const handleLogout = async () => {
@@ -1413,7 +1413,6 @@
                 if (error) {
                     showNotification(`Çıkış hatası: ${error.message}`, 'error');
                 }
-                 // onAuthStateChange tetiklenecek ve arayüzü güncelleyecek
             };
             
             // ============== APP INITIALIZATION ==============
@@ -1488,50 +1487,36 @@
                 }
             }
             
+            // DEĞİŞİKLİK 2: Fonksiyonun tamamı güncellendi
             function setupEventListeners() {
-                // Logout
-                logoutBtn.addEventListener('click', handleLogout);
+                if (listenersAttached) return; 
 
-                // Sidebar Navigation
+                logoutBtn.addEventListener('click', handleLogout);
                 document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
                     item.addEventListener('click', () => showSection(item.dataset.section, item));
                 });
-
-                // Toggles
                 document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
                 document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
-
-                // Dashboard Buttons
                 document.getElementById('quick-add-btn').addEventListener('click', openQuickAddModal);
                 document.getElementById('cash-transaction-btn').addEventListener('click', openCashTransactionModal);
                 document.getElementById('show-history-btn').addEventListener('click', () => showSection('history', document.querySelector('[data-section="history"]')));
-
-                // Floating Action Button
                 document.getElementById('floating-add-btn').addEventListener('click', openQuickAddModal);
-
-                // New Bet Form
                 document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmit);
                 document.getElementById('reset-form-btn').addEventListener('click', resetForm);
                 document.getElementById('platform-manager-btn').addEventListener('click', openPlatformManager);
                 document.getElementById('bet-type').addEventListener('change', toggleBetTypeFields);
                 document.getElementById('slot-type').addEventListener('change', toggleSlotDetails);
                 document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlip);
-
-                // History Page
                 document.getElementById('status-filter').addEventListener('change', () => {
                     currentPage = 1;
                     renderHistory();
                 });
                 document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
-                
-                // Settings Page
                 document.getElementById('add-platform-btn').addEventListener('click', () => addCustomPlatform(false));
                 document.getElementById('import-btn').addEventListener('click', openImportModal);
                 document.getElementById('export-btn').addEventListener('click', exportData);
                 document.getElementById('clear-all-settings-btn').addEventListener('click', clearAllData);
                 document.getElementById('reset-bankroll-btn').addEventListener('click', resetBankroll);
-
-                // Modals
                 document.getElementById('close-platform-manager-btn').addEventListener('click', closePlatformManager);
                 document.getElementById('add-platform-modal-btn').addEventListener('click', () => addCustomPlatform(true));
                 document.getElementById('cash-transaction-close-btn').addEventListener('click', closeCashTransactionModal);
@@ -1545,11 +1530,13 @@
                 document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
                 document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
                 document.getElementById('image-modal').addEventListener('click', closeImageModal);
-
                 setupImageUpload('main');
                 setupImageUpload('quick');
                 setupKeyboardShortcuts();
+                
+                listenersAttached = true;
             }
+
 
             // ============== DATA MANIPULATION (CRUD) ==============
             
@@ -1620,16 +1607,13 @@
                     };
                 }
                 
-                // TODO: Image upload to Supabase Storage
-                // if(currentImageData) { ... }
-
                 const { data, error } = await _supabase.from('bets').insert(newBetData).select();
 
                 if(error) {
                     showNotification('Bahis eklenirken hata oluştu: ' + error.message, 'error');
                     console.error(error);
                 } else {
-                    bets.unshift(data[0]); // Add to the beginning of the local array
+                    bets.unshift(data[0]);
                     updateAllStatsAndRenders();
                     resetForm();
                     showNotification('🎯 Yeni bahis başarıyla eklendi!', 'success');
@@ -1651,9 +1635,6 @@
                     profit_loss: 0
                 };
                 
-                 // TODO: Image upload to Supabase Storage
-                 // if(quickImageData) { ... }
-
                 const { data, error } = await _supabase.from('bets').insert(newBetData).select();
                  if(error) {
                     showNotification('Hızlı bahis eklenemedi.', 'error');
@@ -1679,7 +1660,7 @@
                 } else if (status === 'lost') {
                     updateData.win_amount = 0;
                     updateData.profit_loss = -bet.bet_amount;
-                } else { // pending
+                } else { 
                     updateData.win_amount = 0;
                     updateData.profit_loss = 0;
                 }
@@ -1900,7 +1881,7 @@
             function closeQuickAddModal() { const modal = document.getElementById('quick-add-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('quick-add-form')?.reset(); removeImage('quick'); }
             function openImportModal() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
             function exportData() {
-                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; // Sadece isimleri export et
+                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; 
                 const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2224,4 +2205,5 @@
         })();
     </script>
 </body>
+
 </html>

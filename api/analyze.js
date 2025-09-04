@@ -24,18 +24,22 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // GÜNCELLENMİŞ "UZUN TALİMAT": Kullanıcının istediği spesifik formatta analiz yapacak.
+    // YENİ VE DAHA KATI TALİMAT
     const prompt = `
-      Sen, veriye dayalı analizler yapan profesyonel bir bahis yorumcususun. Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
+      Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
 
-      1.  **Kupon Bilgileri:** Resimden 'description', 'betAmount' ve 'odds' bilgilerini çıkar. Bir bilgiyi bulamazsan değeri null olsun.
+      1.  **Kupon Bilgileri ('description', 'betAmount', 'odds'):**
+          * 'description': Kupondaki maçları "Takım A - Takım B (MS 1)" şeklinde, her bir maçı noktalı virgül (;) ile ayırarak listele. ASLA "3 maç kombinesi" gibi genel özetler YAZMA. Sadece maçları ve tahminleri listele.
+          * 'betAmount': Toplam bahis miktarını sayı olarak çıkar.
+          * 'odds': Toplam oranı sayı olarak çıkar.
+          * Bir bilgiyi bulamazsan değeri null olsun.
       
       2.  **Detaylı Risk Analizi ('analysis'):**
           * İlk olarak kupon hakkında "Dürüst olayım: ..." gibi genel bir giriş yap.
-          * Ardından "🔎 Kısa analiz:" başlığı altında, kupondaki HER BİR maçı OK İŞARETİ (→) kullanarak ayrı ayrı değerlendir.
+          * Ardından "🔎 **Kısa analiz:**" başlığı altında, kupondaki HER BİR maçı OK İŞARETİ (→) kullanarak ayrı ayrı değerlendir.
           * Her maç için, kendi bilgine dayanarak TAHMİNİ BİR KAZANMA YÜZDESİ (%xx ihtimal) belirt.
           * Yüzdenin yanına "çok güvenilir", "en riskli parçalardan biri", "çiftlerde sürpriz çok olur" gibi kısa, net ve cesur yorumlar ekle.
-          * Tüm metni tek bir string olarak 'analysis' alanına ekle.
+          * Tüm metni, başlıkları kalın (bold) yapacak şekilde, tek bir string olarak 'analysis' alanına ekle.
     `;
 
     const payload = {
@@ -47,7 +51,6 @@ export default async function handler(request, response) {
       }],
       generationConfig: {
         responseMimeType: "application/json",
-        // JSON ŞEMASI: 'analysis' alanı dahil.
         responseSchema: {
           type: "OBJECT",
           properties: {
@@ -60,7 +63,6 @@ export default async function handler(request, response) {
       }
     };
 
-    // Google Gemini API'sine güvenli isteği gönder
     const geminiResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,7 +78,6 @@ export default async function handler(request, response) {
     const result = await geminiResponse.json();
     const jsonText = result.candidates[0].content.parts[0].text;
     
-    // Sonucu sitenize geri gönder
     response.status(200).json(JSON.parse(jsonText));
 
   } catch (error) {

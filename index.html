@@ -1377,6 +1377,7 @@
             const itemsPerPage = 10;
             const defaultPlatforms = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
             let listenersAttached = false; 
+			let currentlyEditingBet = null;
             
             // ============== AUTHENTICATION ==============
             async function setupAuthEventListeners() {
@@ -1541,7 +1542,23 @@
                 document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
-                document.getElementById('edit-status').addEventListener('change', toggleWinAmountSection);
+                // Otomatik kazanç hesaplama ve alan gösterme/gizleme
+                document.getElementById('edit-status').addEventListener('change', () => {
+                    const status = document.getElementById('edit-status').value;
+                    const winAmountSection = document.getElementById('win-amount-section');
+                    const winAmountInput = document.getElementById('edit-win-amount');
+
+                    if (status === 'won') {
+                        winAmountSection.classList.remove('hidden');
+                        if (currentlyEditingBet) {
+                            const calculatedWin = currentlyEditingBet.bet_amount * currentlyEditingBet.odds;
+                            winAmountInput.value = calculatedWin.toFixed(2);
+                        }
+                    } else {
+                        winAmountSection.classList.add('hidden');
+                        winAmountInput.value = 0; // Eğer "Kazandı" seçilmezse değeri sıfırla
+                    }
+                });
                 document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
                 document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
                 document.getElementById('image-modal').addEventListener('click', closeImageModal);
@@ -1913,9 +1930,15 @@
                 editingBetId = id;
                 const bet = bets.find(b => b.id === id);
                 if (!bet) return;
+
+                currentlyEditingBet = bet; // <-- YENİ EKLENEN SATIR
+
                 document.getElementById('edit-status').value = bet.status;
                 document.getElementById('edit-win-amount').value = bet.win_amount;
-                toggleWinAmountSection();
+                
+                // Bu fonksiyon artık bir sonraki adımda ekleyeceğimiz kod tarafından yönetilecek.
+                // Bu yüzden şimdilik burada kalabilir ama sonra kaldıracağız.
+
                 document.getElementById('edit-modal')?.classList.remove('hidden');
                 document.getElementById('edit-modal')?.classList.add('flex');
             }

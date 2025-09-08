@@ -22,7 +22,8 @@ export default async function handler(request, response) {
     }
     
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
-    const apiUrl = `https://generativela'nguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // *** HATANIN DÜZELTİLDİĞİ SATIR AŞAĞIDA ***
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     // === HIZ İÇİN OPTİMİZE EDİLMİŞ, DOĞRUDAN KOMUT PROMPT'U ===
     const prompt = `

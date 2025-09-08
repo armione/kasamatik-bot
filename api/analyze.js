@@ -24,33 +24,34 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // === TÜM KUPON TÜRLERİNİ ANLAMAK İÇİN TASARLANMIŞ NİHAİ MASTER PROMPT ===
+    // === TÜM ÖRNEKLERDEN ÖĞRENEN, JARGON SÖZLÜKLÜ NİHAİ PROMPT ===
     const prompt = `
       Sen, her türlü spor ve bahis türü (futbol, basketbol vb.) kupon formatını mükemmel anlayan, iddia diline ve jargonuna hakim bir veri çıkarma uzmanısın. Görevin, resimdeki bilgileri analiz edip istenen JSON formatında sunmaktır.
 
-      ANALİZ SÜRECİ:
-      1.  **Kuponun Yapısını Anla:** Kuponu dikkatlice incele ve aşağıdaki temel yapılardan hangisine uyduğunu tespit et:
-          * **Yapı A (Her Maça Ayrı Bahis):** Her maçın bahsi kendi yanında veya altında mı belirtilmiş? ("Maç Sonucu: 1", "2.5 ÜST" gibi)
-          * **Yapı B (Tüm Maçlara Ortak Kural):** Tüm maçlar için geçerli tek bir kural mı var? ("Tüm Maçlar Karşılıklı Gol Olur", "Maçlarda İlk Yarı 1.5 Üst Olur" gibi)
-          * **Yapı C (Kazananlar Listesi):** Maçlar listelenmiş ve ayrı bir yerde kazanan takımlar mı belirtilmiş? ("Almanya, Hollanda, Belçika Kazanır" gibi). Bu listeye bazen "ve Maçlar 3.5 Üst Olur" gibi ek bir genel kural eşlik edebilir.
-          * **Yapı D (Tek Maç, Çoklu Şart / Bet Builder):** Tek bir maç için birden fazla şart mı sıralanmış? ("İtalya Kazanır, 3.5 Üst, Retegui Gol Atar" gibi)
-          * **Yapı E (Karışık Kurallar):** Bazı maçlara özel bahisler atanırken, belirli başka maçlara VEYA geri kalan tüm maçlara farklı bir kural mı uygulanıyor? (Örn: "Çekya & Hırvatistan Kazanır, Slovenya-İsveç ve Danimarka-İskoçya Maçları Karşılıklı Gol Olur")
+      **JARGON SÖZLÜĞÜ (Bu terimleri gördüğünde ne anlama geldiklerini bil):**
+      * "1": Ev sahibi takım kazanır.
+      * "2": Deplasman takımı kazanır.
+      * "1x" veya "X1": Ev sahibi takım kazanır veya berabere kalır (Çifte Şans).
+      * "2x" veya "X2": Deplasman takımı kazanır veya berabere kalır (Çifte Şans).
+      * "İY": İlk Yarı demektir. "İY Sonucu: 1" = İlk Yarı Ev Sahibi Kazanır.
+      * "KG Var" veya "İki Takım da Gol Atar: Evet": Karşılıklı Gol Var.
+      * "Kazanan1": Ev sahibi takım kazanır.
+      * "Deplasman": Deplasman takımı.
+      * Karmaşık bahisleri olduğu gibi al, örneğin "Çifte Şans ve Toplam: 1x ve Üst (1.5)".
 
-      2.  **Maçları ve Bahisleri Eşleştir:** Tespit ettiğin yapıya göre bahisleri maçlarla doğru şekilde birleştir.
-          * "Maç Sonucu: 1" ev sahibi kazanır, "Maç Sonucu: 2" deplasman takımı kazanır demektir.
-          * "Karşılıklı Gol Olur" veya "KG Var" gibi ifadeleri doğru yorumla.
-          * Karmaşık kuralları dikkatlice ayır ve ilgili maçlara ata. Örneğin "Çekya & Hırvatistan Kazanır" kuralından Çekya ve Hırvatistan'a "Kazanır" bahsi ata. "Slovenya-İsveç ve Danimarka-İskoçya Maçları Karşılıklı Gol Olur" kuralından bu iki maça "Karşılıklı Gol Olur" bahsi ata.
+      **ANALİZ SÜRECİ:**
+      1.  **Kuponun Yapısını Anla:** Kuponu dikkatlice incele ve temel yapısını anla (Her maça ayrı bahis mi? Tüm maçlara ortak kural mı? Kazananlar listesi mi? Tek maç çoklu şart mı? Karışık kurallar mı?).
+      2.  **Maçları ve Bahisleri Eşleştir:** Tespit ettiğin yapıya ve yukarıdaki jargon sözlüğüne göre bahisleri maçlarla doğru şekilde birleştir.
+          * **Karışık Kurallar Örneği:** "Çekya & Hırvatistan Kazanır, Slovenya-İsveç Maçı Karşılıklı Gol Olur" gibi bir ifadede, ilk kuralı ilk iki takıma, ikinci kuralı ise adı geçen üçüncü maça uygula.
+          * **Liste Halindeki Kazananlar Örneği:** "isveç-isviçre-iskoçya / Hepsi İY Kazanır" gibi bir ifadede, listelenen tüm takımların ilk yarıyı kazanacağı bahsini her birinin kendi maçına uygula.
+      3.  **Çıktıyı Formatla:** Eşleştirdiğin bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında, aralarına noktalı virgül (;) koyarak birleştir. Karmaşık bahisleri virgülle ayır (Örn: Maç Sonucu: 1, 2.5 Üst).
 
-      3.  **Çıktıyı Formatla:** Eşleştirdiğin bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında, aralarına noktalı virgül (;) koyarak birleştir.
-
-      İSTENEN JSON ÇIKTISI:
+      **İSTENEN JSON ÇIKTISI:**
       {
         "description": "Yukarıdaki analiz sürecini uygulayarak oluşturduğun nihai metin.",
-        "betAmount": "Resimdeki 'Max Bahis', 'Maksimum bahis', 'Tutar', 'EN YÜKSEK BAHİS TUTARI' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
-        "odds": "Resimdeki 'Oran', 'Özel Oran', 'KATI' vb. anahtar kelimelerden toplam oranı sayı olarak çıkar."
+        "betAmount": "Resimdeki 'Bahis Miktarı', 'Max Bahis', 'EN YÜKSEK BAHİS TUTARI' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
+        "odds": "Resimdeki 'TOPLAM ORAN', 'Özel Oran', 'BOMBA ORAN' vb. anahtar kelimelerden toplam oranı sayı olarak çıkar."
       }
-
-      Eğer bir bilgiyi bulamazsan değeri null olsun.
     `;
 
     const payload = {

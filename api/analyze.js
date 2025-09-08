@@ -24,7 +24,7 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // GÜNCELLENMİŞ VE DAHA AKILLI TALİMAT
+    // GÜNCELLENMİŞ VE ANALİZ KISMI KALDIRILMIŞ TALİMAT
     const prompt = `
       Sen, bahis kuponlarındaki metinleri hatasız okuyan bir veri çıkarma uzmanısın. Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
 
@@ -34,12 +34,6 @@ export default async function handler(request, response) {
           * 'betAmount': "Bahis Tutarı", "Miktar", "Yatırılan" veya "Tutar" gibi anahtar kelimeleri arayarak toplam bahis miktarını sayı olarak çıkar.
           * 'odds': Toplam oranı sayı olarak çıkar.
           * Bir bilgiyi bulamazsan değeri null olsun.
-      
-      2.  **Detaylı Risk Analizi ('analysis'):**
-          * Kupon hakkında kısa ve dürüst bir giriş yap.
-          * Ardından kupondaki HER BİR maçı, kendi bilgine dayanarak TAHMİNİ BİR KAZANMA YÜZDESİ (%xx ihtimal) ile birlikte ayrı ayrı değerlendir.
-          * Yorumlarını kısa, net ve cesur bir dille yap.
-          * Tüm metni, başlıkları kalın (bold) yapacak şekilde, tek bir string olarak 'analysis' alanına ekle.
     `;
 
     const payload = {
@@ -56,8 +50,7 @@ export default async function handler(request, response) {
           properties: {
             "description": { "type": "STRING" },
             "betAmount": { "type": "NUMBER" },
-            "odds": { "type": "NUMBER" },
-            "analysis": { "type": "STRING" }
+            "odds": { "type": "NUMBER" }
           }
         }
       }

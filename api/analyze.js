@@ -42,11 +42,13 @@ async function callGeminiApi(base64ImageData, apiKey, prompt) {
     return JSON.parse(jsonText);
 }
 
-// 2. OpenAI (GPT-4o) API Çağrısı (Yedek)
+// 2. OpenAI (GPT-5 nano) API Çağrısı (Yedek)
 async function callOpenAiApi(base64ImageData, apiKey, prompt) {
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
     const payload = {
-        model: "gpt-4o",
+        // ----> İSTEĞİNİZE GÖRE MODEL GÜNCELLENDİ <----
+        model: "gpt-5-nano", 
+        // ---------------------------------------------
         response_format: { type: "json_object" },
         messages: [
             {

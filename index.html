@@ -491,14 +491,6 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             border-color: rgba(139, 179, 240, 0.3);
         }
-        
-        .slot-fields {
-            display: none;
-        }
-        
-        .sport-fields {
-            display: block;
-        }
     </style>
 </head>
 <body class="text-white">
@@ -734,16 +726,13 @@
                             <div>
                                 <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Türü</label>
                                 <select id="bet-type" required class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                    <option value="">Tür Seçin</option>
-                                    <option value="Spor Bahis">Spor Bahis</option>
+                                    <option value="Spor Bahis" selected>Spor Bahis</option>
                                     <option value="Canlı Bahis">Canlı Bahis</option>
-                                    <option value="Casino">Casino</option>
-                                    <option value="Slot">Slot</option>
                                 </select>
                             </div>
                         </div>
     
-                        <div id="sport-fields" class="sport-fields space-y-6">
+                        <div class="space-y-6">
                             <div>
                                 <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Açıklaması</label>
                                 <input type="text" id="description" placeholder="Örn: Galatasaray - Fenerbahçe (1)" 
@@ -768,57 +757,6 @@
                                     <input type="date" id="bet-date" 
                                            class="input-glass w-full p-3 rounded-lg text-gray-800">
                                 </div>
-                            </div>
-                        </div>
-    
-                        <div id="slot-fields" class="slot-fields space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-gray-300 text-sm font-medium mb-2">Slot Türü</label>
-                                    <select id="slot-type" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                        <option value="Normal Slot">Normal Slot</option>
-                                        <option value="Freespin">Freespin</option>
-                                        <option value="Happy Hour">Happy Hour</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-300 text-sm font-medium mb-2">Slot Oyunu</label>
-                                    <input type="text" id="slot-game" placeholder="Örn: Sweet Bonanza" 
-                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                </div>
-                            </div>
-    
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div>
-                                    <label class="block text-gray-300 text-sm font-medium mb-2">Spin Sayısı</label>
-                                    <input type="number" id="spin-count" min="1" placeholder="100"
-                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-300 text-sm font-medium mb-2">Spin Başına Bahis (₺)</label>
-                                    <input type="number" id="spin-bet" min="0" step="0.01" placeholder="1.00"
-                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-300 text-sm font-medium mb-2">Tarih</label>
-                                    <input type="date" id="slot-date" 
-                                           class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                </div>
-                            </div>
-    
-                            <div id="freespin-details" class="hidden">
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Freespin Detayı</label>
-                                <input type="text" id="freespin-detail" placeholder="Örn: 100 freespin x20 çarpan" 
-                                       class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
-    
-                            <div id="happy-hour-details" class="hidden">
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Happy Hour Bonus Detayı</label>
-                                <input type="text" id="happy-hour-detail" placeholder="Örn: %50 bonus + 50 freespin" 
-                                       class="input-glass w-full p-3 rounded-lg text-gray-800">
                             </div>
                         </div>
     
@@ -960,7 +898,7 @@
                                 </div>
                             </div>
                             <div class="text-xs text-gray-400">Kasa işlemleri hariç toplam bahis sayısı</div>
-                            <div class="mt-2 text-xs text-blue-300" id="stats-bet-breakdown">Spor: 0 | Slot: 0 | Casino: 0</div>
+                            <div class="mt-2 text-xs text-blue-300" id="stats-bet-breakdown">Spor: 0 | Canlı: 0</div>
                         </div>
     
                         <div class="stat-card">
@@ -1510,8 +1448,6 @@
                 document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmit);
                 document.getElementById('reset-form-btn').addEventListener('click', resetForm);
                 document.getElementById('platform-manager-btn').addEventListener('click', openPlatformManager);
-                document.getElementById('bet-type').addEventListener('change', toggleBetTypeFields);
-                document.getElementById('slot-type').addEventListener('change', toggleSlotDetails);
                 document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlip);
                 document.getElementById('status-filter').addEventListener('change', () => {
                     currentPage = 1;
@@ -1532,7 +1468,7 @@
                 document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
-                // Otomatik kazanç hesaplama ve alan gösterme/gizleme
+                
                 document.getElementById('edit-status').addEventListener('change', () => {
                     const status = document.getElementById('edit-status').value;
                     const winAmountSection = document.getElementById('win-amount-section');
@@ -1546,7 +1482,7 @@
                         }
                     } else {
                         winAmountSection.classList.add('hidden');
-                        winAmountInput.value = 0; // Eğer "Kazandı" seçilmezse değeri sıfırla
+                        winAmountInput.value = 0;
                     }
                 });
                 document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
@@ -1608,26 +1544,18 @@
 
             async function handleBetFormSubmit(e) {
                 e.preventDefault();
-                const betType = document.getElementById('bet-type').value;
-                let newBetData;
-
-                if (betType === 'Slot' || betType === 'Casino') {
-                     showNotification('Bu bahis türü henüz desteklenmiyor.', 'warning');
-                     return;
-                } else {
-                    newBetData = {
-                        user_id: currentUser.id,
-                        platform: document.getElementById('platform').value,
-                        bet_type: betType,
-                        description: document.getElementById('description').value || 'Açıklama yok',
-                        bet_amount: parseFloat(document.getElementById('bet-amount').value),
-                        odds: parseFloat(document.getElementById('odds').value),
-                        date: document.getElementById('bet-date').value,
-                        status: 'pending',
-                        win_amount: 0,
-                        profit_loss: 0
-                    };
-                }
+                const newBetData = {
+                    user_id: currentUser.id,
+                    platform: document.getElementById('platform').value,
+                    bet_type: document.getElementById('bet-type').value,
+                    description: document.getElementById('description').value || 'Açıklama yok',
+                    bet_amount: parseFloat(document.getElementById('bet-amount').value),
+                    odds: parseFloat(document.getElementById('odds').value),
+                    date: document.getElementById('bet-date').value,
+                    status: 'pending',
+                    win_amount: 0,
+                    profit_loss: 0
+                };
                 
                 const { data, error } = await _supabase.from('bets').insert(newBetData).select();
 
@@ -1921,14 +1849,11 @@
                 const bet = bets.find(b => b.id === id);
                 if (!bet) return;
 
-                currentlyEditingBet = bet; // <-- YENİ EKLENEN SATIR
+                currentlyEditingBet = bet;
 
                 document.getElementById('edit-status').value = bet.status;
                 document.getElementById('edit-win-amount').value = bet.win_amount;
                 
-                // Bu fonksiyon artık bir sonraki adımda ekleyeceğimiz kod tarafından yönetilecek.
-                // Bu yüzden şimdilik burada kalabilir ama sonra kaldıracağız.
-
                 document.getElementById('edit-modal')?.classList.remove('hidden');
                 document.getElementById('edit-modal')?.classList.add('flex');
             }
@@ -1936,11 +1861,8 @@
             function closeEditModal() { document.getElementById('edit-modal')?.classList.add('hidden'); editingBetId = null; }
             function showImageModal(imageSrc) { const modal = document.getElementById('image-modal'); document.getElementById('modal-image').src = imageSrc; modal?.classList.remove('hidden'); modal?.classList.add('flex'); }
             function closeImageModal() { document.getElementById('image-modal')?.classList.add('hidden'); }
-            function setDefaultDates() { const today = new Date().toISOString().split('T')[0]; document.getElementById('bet-date').value = today; document.getElementById('slot-date').value = today; }
-            function toggleBetTypeFields() { const betType = document.getElementById('bet-type').value; const isSlot = betType === 'Slot'; document.getElementById('sport-fields').style.display = isSlot ? 'none' : 'block'; document.getElementById('slot-fields').style.display = isSlot ? 'block' : 'none';['description', 'bet-amount', 'odds', 'bet-date'].forEach(id => document.getElementById(id).required = !isSlot);['slot-game', 'spin-count', 'spin-bet', 'slot-date'].forEach(id => document.getElementById(id).required = isSlot); }
-            function toggleSlotDetails() { const slotType = document.getElementById('slot-type').value; document.getElementById('freespin-details').classList.toggle('hidden', slotType !== 'Freespin'); document.getElementById('happy-hour-details').classList.toggle('hidden', slotType !== 'Happy Hour'); }
-            function toggleWinAmountSection() { document.getElementById('win-amount-section').classList.toggle('hidden', document.getElementById('edit-status').value !== 'won'); }
-            function resetForm() { document.getElementById('bet-form').reset(); setDefaultDates(); removeImage('main'); toggleBetTypeFields(); }
+            function setDefaultDates() { const today = new Date().toISOString().split('T')[0]; document.getElementById('bet-date').value = today; }
+            function resetForm() { document.getElementById('bet-form').reset(); setDefaultDates(); removeImage('main'); }
             function setupKeyboardShortcuts() { document.addEventListener('paste', handleGlobalPaste); }
             
             function setupImageUpload(type) {
@@ -2027,10 +1949,9 @@
                 const settledBets = actualBets.filter(b => b.status !== 'pending');
                 const wonBets = settledBets.filter(b => b.status === 'won');
                 document.getElementById('stats-total-bets').textContent = actualBets.length;
-                const sportsBetsCount = actualBets.filter(b => b.bet_type === 'Spor Bahis' || b.bet_type === 'Canlı Bahis').length;
-                const slotBetsCount = actualBets.filter(b => b.bet_type === 'Slot').length;
-                const casinoBetsCount = actualBets.filter(b => b.bet_type === 'Casino').length;
-                document.getElementById('stats-bet-breakdown').textContent = `Spor: ${sportsBetsCount} | Slot: ${slotBetsCount} | Casino: ${casinoBetsCount}`;
+                const sportsBetsCount = actualBets.filter(b => b.bet_type === 'Spor Bahis').length;
+                const liveBetsCount = actualBets.filter(b => b.bet_type === 'Canlı Bahis').length;
+                document.getElementById('stats-bet-breakdown').textContent = `Spor: ${sportsBetsCount} | Canlı: ${liveBetsCount}`;
                 const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
                 document.getElementById('stats-win-rate').textContent = `${winRate.toFixed(1)}%`;
                 document.getElementById('stats-win-breakdown').textContent = `Kazanan: ${wonBets.length} | Kaybeden: ${settledBets.length - wonBets.length}`;
@@ -2091,7 +2012,7 @@
                     const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
                     const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
                     const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
-                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Casino': '🎰', 'Slot': '🎲' };
+                    const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
                     let actionButtons = (bet.status === 'pending')
                         ? `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
                         : `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;

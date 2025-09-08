@@ -24,23 +24,30 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // === ADIM ADIM DÜŞÜNME MANTIĞI İLE YAZILMIŞ, EN GELİŞMİŞ TALİMAT ===
+    // === TÜM KUPON TÜRLERİNİ ANLAMAK İÇİN TASARLANMIŞ NİHAİ MASTER PROMPT ===
     const prompt = `
-      Sen, bahis kuponlarındaki metinleri ve iddia jargonunu mükemmel anlayan bir uzmansın. Görevin, resimdeki bilgileri çıkarıp JSON formatında sunmak.
+      Sen, her türlü spor ve bahis türü (futbol, basketbol vb.) kupon formatını mükemmel anlayan, iddia diline ve jargonuna hakim bir veri çıkarma uzmanısın. Görevin, resimdeki bilgileri analiz edip istenen JSON formatında sunmaktır.
 
-      ADIM ADIM DÜŞÜNEREK HAREKET ET:
-      1.  **Maçları Listele:** Resimdeki tüm maçları "Takım A - Takım B" formatında bul.
-      2.  **Bahisleri Bul:** Resimdeki "HIRVATİTAN - İSKOÇYA KAZANIR" veya "YUNANİSTAN - DANİMARKA MAÇI 2.5 ÜST BİTER" gibi tüm bahis kurallarını tespit et.
-      3.  **Eşleştirme Yap:** 1. adımda bulduğun her maçı, 2. adımda bulduğun ilgili bahis kuralıyla eşleştir.
-          * Eğer bir kural birden fazla takımı içeriyorsa (örneğin "Hırvatistan - İskoçya Kazanır"), o kuralı ilgili takımların HER BİRİNİN KENDİ maçına uygula. (Yani, Hırvatistan'ın maçına "Hırvatistan Kazanır", İskoçya'nın maçına "İskoçya Kazanır" ekle).
-          * Eğer bir kural tek bir maça özgüyse (örneğin "Yunanistan - Danimarka Maçı 2.5 Üst Biter"), o kuralı sadece o maça uygula.
-      4.  **Formatla:** Eşleştirdiğin her maçı "Takım A - Takım B (Uygulanan Bahis)" formatında yaz. Her birini noktalı virgül (;) ile ayırarak birleştir.
+      ANALİZ SÜRECİ:
+      1.  **Kuponun Yapısını Anla:** Kuponu dikkatlice incele ve aşağıdaki temel yapılardan hangisine uyduğunu tespit et:
+          * **Yapı A (Her Maça Ayrı Bahis):** Her maçın bahsi kendi yanında veya altında mı belirtilmiş? ("Maç Sonucu: 1", "2.5 ÜST" gibi)
+          * **Yapı B (Tüm Maçlara Ortak Kural):** Tüm maçlar için geçerli tek bir kural mı var? ("Tüm Maçlar Karşılıklı Gol Olur", "Maçlarda İlk Yarı 1.5 Üst Olur" gibi)
+          * **Yapı C (Kazananlar Listesi):** Maçlar listelenmiş ve ayrı bir yerde kazanan takımlar mı belirtilmiş? ("Almanya, Hollanda, Belçika Kazanır" gibi). Bu listeye bazen "ve Maçlar 3.5 Üst Olur" gibi ek bir genel kural eşlik edebilir.
+          * **Yapı D (Tek Maç, Çoklu Şart / Bet Builder):** Tek bir maç için birden fazla şart mı sıralanmış? ("İtalya Kazanır, 3.5 Üst, Retegui Gol Atar" gibi)
+          * **Yapı E (Karışık Kurallar):** Bazı maçlara özel bahisler atanırken, belirli başka maçlara VEYA geri kalan tüm maçlara farklı bir kural mı uygulanıyor? (Örn: "Çekya & Hırvatistan Kazanır, Slovenya-İsveç ve Danimarka-İskoçya Maçları Karşılıklı Gol Olur")
+
+      2.  **Maçları ve Bahisleri Eşleştir:** Tespit ettiğin yapıya göre bahisleri maçlarla doğru şekilde birleştir.
+          * "Maç Sonucu: 1" ev sahibi kazanır, "Maç Sonucu: 2" deplasman takımı kazanır demektir.
+          * "Karşılıklı Gol Olur" veya "KG Var" gibi ifadeleri doğru yorumla.
+          * Karmaşık kuralları dikkatlice ayır ve ilgili maçlara ata. Örneğin "Çekya & Hırvatistan Kazanır" kuralından Çekya ve Hırvatistan'a "Kazanır" bahsi ata. "Slovenya-İsveç ve Danimarka-İskoçya Maçları Karşılıklı Gol Olur" kuralından bu iki maça "Karşılıklı Gol Olur" bahsi ata.
+
+      3.  **Çıktıyı Formatla:** Eşleştirdiğin bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında, aralarına noktalı virgül (;) koyarak birleştir.
 
       İSTENEN JSON ÇIKTISI:
       {
-        "description": "Yukarıdaki 4 adımı izleyerek oluşturduğun nihai metin. Resimde bahsi açıkça belirtilmeyen hiçbir maçı bu alana dahil ETME.",
-        "betAmount": "Resimdeki 'Max Bahis', 'Tutar', 'Miktar' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
-        "odds": "Resimdeki 'Oran' kelimesinden toplam oranı sayı olarak çıkar.",
+        "description": "Yukarıdaki analiz sürecini uygulayarak oluşturduğun nihai metin.",
+        "betAmount": "Resimdeki 'Max Bahis', 'Maksimum bahis', 'Tutar', 'EN YÜKSEK BAHİS TUTARI' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
+        "odds": "Resimdeki 'Oran', 'Özel Oran', 'KATI' vb. anahtar kelimelerden toplam oranı sayı olarak çıkar."
       }
 
       Eğer bir bilgiyi bulamazsan değeri null olsun.

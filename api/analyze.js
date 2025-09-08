@@ -24,21 +24,26 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // === İDDİA DİLİNE HAKİM, GELİŞTİRİLMİŞ TALİMAT ===
+    // === ADIM ADIM DÜŞÜNME MANTIĞI İLE YAZILMIŞ, EN GELİŞMİŞ TALİMAT ===
     const prompt = `
-      Sen, karmaşık bahis kuponlarını ve iddia dilini hatasız okuyan bir veri çıkarma uzmanısın. Sana gönderilen kupon resmini analiz et ve aşağıdaki formatta, tek bir JSON objesi olarak cevap ver:
+      Sen, bahis kuponlarındaki metinleri ve iddia jargonunu mükemmel anlayan bir uzmansın. Görevin, resimdeki bilgileri çıkarıp JSON formatında sunmak.
 
-      'description': Senin görevin, kupondaki bahisleri en doğru şekilde tek bir açıklama metnine dönüştürmek.
-      1.  Öncelikle kuponda listelenen TÜM maçları (örneğin, "Takım A - Takım B") tespit et.
-      2.  Ardından, bu maçlarla ilgili olan "HIRVATİSTAN - İSKOÇYA KAZANIR" veya "YUNANİSTAN - DANİMARKA MAÇI 2.5 ÜST BİTER" gibi özel bahis açıklamalarını bul. Bunlar iddia jargonudur ve doğru yorumlanmalıdır.
-      3.  Tespit ettiğin maçlar ile özel bahis açıklamalarını DİKKATLİCE eşleştir. Örneğin, "Hırvatistan - İskoçya Kazanır" gibi bir ifade varsa, bu bahsi hem Hırvatistan'ın kendi maçı için ("Hırvatistan Kazanır" olarak) hem de İskoçya'nın kendi maçı için ("İskoçya Kazanır" olarak) geçerli kabul et.
-      4.  Sonuç olarak, her bir bahsi "Takım A - Takım B (Yapılan Bahis)" formatında, aralarına noktalı virgül (;) koyarak tek bir metin olarak birleştir. Eğer bir maç için özel bir bahis açıklaması bulamazsan, o maçı çıktıya dahil etme. Sadece resimde AÇIKÇA belirtilen bahisleri ve takımları kullan.
-      
-      'betAmount': "Bahis Tutarı", "Miktar", "Yatırılan", "Tutar" veya "Max Bahis" gibi anahtar kelimeleri arayarak bahis miktarını sayı olarak çıkar.
-      
-      'odds': "Oran" veya "Toplam Oran" kelimelerini arayarak toplam oranı sayı olarak çıkar.
-      
-      Bir bilgiyi bulamazsan değeri null olsun.
+      ADIM ADIM DÜŞÜNEREK HAREKET ET:
+      1.  **Maçları Listele:** Resimdeki tüm maçları "Takım A - Takım B" formatında bul.
+      2.  **Bahisleri Bul:** Resimdeki "HIRVATİTAN - İSKOÇYA KAZANIR" veya "YUNANİSTAN - DANİMARKA MAÇI 2.5 ÜST BİTER" gibi tüm bahis kurallarını tespit et.
+      3.  **Eşleştirme Yap:** 1. adımda bulduğun her maçı, 2. adımda bulduğun ilgili bahis kuralıyla eşleştir.
+          * Eğer bir kural birden fazla takımı içeriyorsa (örneğin "Hırvatistan - İskoçya Kazanır"), o kuralı ilgili takımların HER BİRİNİN KENDİ maçına uygula. (Yani, Hırvatistan'ın maçına "Hırvatistan Kazanır", İskoçya'nın maçına "İskoçya Kazanır" ekle).
+          * Eğer bir kural tek bir maça özgüyse (örneğin "Yunanistan - Danimarka Maçı 2.5 Üst Biter"), o kuralı sadece o maça uygula.
+      4.  **Formatla:** Eşleştirdiğin her maçı "Takım A - Takım B (Uygulanan Bahis)" formatında yaz. Her birini noktalı virgül (;) ile ayırarak birleştir.
+
+      İSTENEN JSON ÇIKTISI:
+      {
+        "description": "Yukarıdaki 4 adımı izleyerek oluşturduğun nihai metin. Resimde bahsi açıkça belirtilmeyen hiçbir maçı bu alana dahil ETME.",
+        "betAmount": "Resimdeki 'Max Bahis', 'Tutar', 'Miktar' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
+        "odds": "Resimdeki 'Oran' kelimesinden toplam oranı sayı olarak çıkar.",
+      }
+
+      Eğer bir bilgiyi bulamazsan değeri null olsun.
     `;
 
     const payload = {

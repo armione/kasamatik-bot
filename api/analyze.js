@@ -24,19 +24,19 @@ export default async function handler(request, response) {
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // === HIZ İÇİN OPTİMİZE EDİLMİŞ VE "İY" JARGONU DÜZELTİLMİŞ PROMPT ===
+    // === ZAMAN ARALIĞI BAHİSLERİ İÇİN GELİŞTİRİLMİŞ NİHAİ PROMPT ===
     const prompt = `
       Sen, bir bahis kuponundan veri çıkaran bir uzmansın. Görevin, resimdeki maçları ve bahisleri analiz ederek istenen JSON formatında, olabildiğince hızlı bir şekilde cevap vermektir.
 
       **KURALLAR:**
       1.  **description:** Maçları ve bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında birleştir. Her birini noktalı virgül (;) ile ayır.
-          * **Genel Kurallar:** "Tüm Maçlar 2.5 Üst" gibi bir ifade varsa, bu bahsi listedeki TÜM maçlara uygula.
+          * **Genel Kurallar:** "Tüm Maçlar 2.5 Üst" veya "0.15 Dakikalar Arası 0.5 ÜST" gibi bir ifade varsa, bu bahsin tamamını listedeki TÜM maçlara uygula.
           * **Liste Kuralları:** "İsveç, İtalya, İsviçre Kazanır" gibi bir ifade varsa, her takıma kendi maçında "Kazanır" bahsi ata. Eğer ifade "Hepsi İY Kazanır" şeklinde ise, her takıma "İY Kazanır" (İlk Yarı Kazanır) bahsini ata.
           * **Karmaşık Kurallar:** "Hırvatistan Kazanır, 3.5 Üst, Kramaric Gol Atar" gibi tek maça ait çoklu bahisleri virgülle ayırarak aynı parantez içine yaz.
           * **Karışık Kurallar:** "Yunanistan ve İtalya Kazanır/ Diğerleri 2.5 Üst" gibi ifadelerde, ilk kuralı ilgili takımlara, ikinci kuralı ise geriye kalan maçlara uygula.
           * **Jargon:** "1" = Ev Sahibi Kazanır, "2" = Deplasman Kazanır, "İY" = İlk Yarı, "KG Var" = Karşılıklı Gol Var.
       2.  **betAmount:** Resimdeki 'Bahis Miktarı', 'Max Bahis' gibi ifadelerden tutarı sayı olarak çıkar.
-      3.  **odds:** Resimdeki 'Toplam Oran', 'Özel Oran' gibi ifadelerden oranı sayı olarak çıkar.
+      3.  **odds:** Resimdeki 'Toplam Oran', 'Özel Oran', 'BOMBA ORAN' gibi ifadelerden oranı sayı olarak çıkar.
 
       Sadece istenen JSON objesini, başka hiçbir ek metin olmadan döndür.
     `;

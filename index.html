@@ -840,22 +840,12 @@
                                 </button>
                                 <button type="button" id="gemini-analyze-btn" class="gradient-button px-4 py-2 rounded-lg text-white flex items-center gap-x-2" disabled>
                                     <span id="gemini-button-icon">✨</span>
-                                    <span id="gemini-button-text">Kuponu Oku ve Analiz Et</span>
+                                    <span id="gemini-button-text">Kuponu Oku</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                         
-                        <div id="ai-analysis-container" class="hidden mt-4">
-                            <div class="glass-card rounded-2xl p-4">
-                                 <h3 class="text-md font-montserrat font-bold gradient-text mb-2">🤖 AI Risk Analizi</h3>
-                                 <div id="ai-analysis-content" class="text-sm text-gray-300 space-y-2">
-                                    </div>
-                                 <p class="text-xs text-gray-500 mt-3 text-center">Bu analiz yapay zeka tarafından oluşturulmuştur ve sadece bilgilendirme amaçlıdır.</p>
-                            </div>
-                        </div>
-    
-    
                         <div class="flex justify-end space-x-4 pt-6">
                             <button type="button" id="reset-form-btn" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                                 Temizle
@@ -1950,7 +1940,7 @@
             function toggleBetTypeFields() { const betType = document.getElementById('bet-type').value; const isSlot = betType === 'Slot'; document.getElementById('sport-fields').style.display = isSlot ? 'none' : 'block'; document.getElementById('slot-fields').style.display = isSlot ? 'block' : 'none';['description', 'bet-amount', 'odds', 'bet-date'].forEach(id => document.getElementById(id).required = !isSlot);['slot-game', 'spin-count', 'spin-bet', 'slot-date'].forEach(id => document.getElementById(id).required = isSlot); }
             function toggleSlotDetails() { const slotType = document.getElementById('slot-type').value; document.getElementById('freespin-details').classList.toggle('hidden', slotType !== 'Freespin'); document.getElementById('happy-hour-details').classList.toggle('hidden', slotType !== 'Happy Hour'); }
             function toggleWinAmountSection() { document.getElementById('win-amount-section').classList.toggle('hidden', document.getElementById('edit-status').value !== 'won'); }
-            function resetForm() { document.getElementById('bet-form').reset(); setDefaultDates(); removeImage('main'); toggleBetTypeFields(); document.getElementById('ai-analysis-container').classList.add('hidden'); document.getElementById('ai-analysis-content').innerHTML = ''; }
+            function resetForm() { document.getElementById('bet-form').reset(); setDefaultDates(); removeImage('main'); toggleBetTypeFields(); }
             function setupKeyboardShortcuts() { document.addEventListener('paste', handleGlobalPaste); }
             
             function setupImageUpload(type) {
@@ -2004,10 +1994,6 @@
                 document.getElementById(`${prefix}upload-area`).classList.remove('hidden');
                 document.getElementById(`${prefix}image-preview`).classList.add('hidden');
                 document.getElementById(`${prefix}image-input`).value = '';
-                if (type === 'main') {
-                    document.getElementById('ai-analysis-container').classList.add('hidden');
-                    document.getElementById('ai-analysis-content').innerHTML = '';
-                }
             }
             
             function handleGlobalPaste(e) {
@@ -2190,9 +2176,7 @@
                 const geminiButton = document.getElementById('gemini-analyze-btn');
                 const buttonText = document.getElementById('gemini-button-text');
                 const buttonIcon = document.getElementById('gemini-button-icon');
-                const analysisContainer = document.getElementById('ai-analysis-container');
-                const analysisContent = document.getElementById('ai-analysis-content');
-                geminiButton.disabled = true; buttonText.textContent = 'Okunuyor...'; buttonIcon.innerHTML = '🧠'; analysisContainer.classList.remove('hidden'); analysisContent.innerHTML = '<p>Analiz ediliyor, lütfen bekleyin...</p>';
+                geminiButton.disabled = true; buttonText.textContent = 'Okunuyor...'; buttonIcon.innerHTML = '🧠';
                 try {
                     const base64Data = currentImageData.split(',')[1];
                     const result = await callGeminiApi(base64Data);
@@ -2200,15 +2184,13 @@
                         if (result.description) document.getElementById('description').value = result.description;
                         if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
                         if (result.odds) document.getElementById('odds').value = result.odds;
-                        analysisContent.innerHTML = result.analysis ? result.analysis.replace(/\n/g, '<br>') : '<p>Bu kupon için ek bir analiz bulunamadı.</p>';
-                        showNotification('✨ Kupon okundu ve analiz edildi!', 'success');
+                        showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
                     } else { throw new Error("API'den geçerli bir sonuç alınamadı."); }
                 } catch (error) {
                     console.error('Gemini API Error:', error);
                     showNotification('Kupon okunurken bir hata oluştu.', 'error');
-                    analysisContent.innerHTML = `<p class="text-red-400">Analiz alınamadı. Lütfen daha sonra tekrar deneyin.</p>`;
                 } finally {
-                    geminiButton.disabled = false; buttonText.textContent = 'Kuponu Oku ve Analiz Et'; buttonIcon.innerHTML = '✨';
+                    geminiButton.disabled = false; buttonText.textContent = 'Kuponu Oku'; buttonIcon.innerHTML = '✨';
                 }
             }
 
@@ -2245,6 +2227,3 @@
 </body>
 
 </html>
-
-
-

@@ -22,36 +22,23 @@ export default async function handler(request, response) {
     }
     
     // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativela'nguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // === TÜM ÖRNEKLERDEN ÖĞRENEN, JARGON SÖZLÜKLÜ NİHAİ PROMPT ===
+    // === HIZ İÇİN OPTİMİZE EDİLMİŞ, DOĞRUDAN KOMUT PROMPT'U ===
     const prompt = `
-      Sen, her türlü spor ve bahis türü (futbol, basketbol vb.) kupon formatını mükemmel anlayan, iddia diline ve jargonuna hakim bir veri çıkarma uzmanısın. Görevin, resimdeki bilgileri analiz edip istenen JSON formatında sunmaktır.
+      Sen, bir bahis kuponundan veri çıkaran bir uzmansın. Görevin, resimdeki maçları ve bahisleri analiz ederek istenen JSON formatında, olabildiğince hızlı bir şekilde cevap vermektir.
 
-      **JARGON SÖZLÜĞÜ (Bu terimleri gördüğünde ne anlama geldiklerini bil):**
-      * "1": Ev sahibi takım kazanır.
-      * "2": Deplasman takımı kazanır.
-      * "1x" veya "X1": Ev sahibi takım kazanır veya berabere kalır (Çifte Şans).
-      * "2x" veya "X2": Deplasman takımı kazanır veya berabere kalır (Çifte Şans).
-      * "İY": İlk Yarı demektir. "İY Sonucu: 1" = İlk Yarı Ev Sahibi Kazanır.
-      * "KG Var" veya "İki Takım da Gol Atar: Evet": Karşılıklı Gol Var.
-      * "Kazanan1": Ev sahibi takım kazanır.
-      * "Deplasman": Deplasman takımı.
-      * Karmaşık bahisleri olduğu gibi al, örneğin "Çifte Şans ve Toplam: 1x ve Üst (1.5)".
+      **KURALLAR:**
+      1.  **description:** Maçları ve bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında birleştir. Her birini noktalı virgül (;) ile ayır.
+          * **Genel Kurallar:** "Tüm Maçlar 2.5 Üst" gibi bir ifade varsa, bu bahsi listedeki TÜM maçlara uygula.
+          * **Liste Kuralları:** "İsveç, İtalya, İsviçre Kazanır" gibi bir ifade varsa, bu takımların her birine kendi maçında "Kazanır" bahsi ata.
+          * **Karmaşık Kurallar:** "Hırvatistan Kazanır, 3.5 Üst, Kramaric Gol Atar" gibi tek maça ait çoklu bahisleri virgülle ayırarak aynı parantez içine yaz.
+          * **Karışık Kurallar:** "Yunanistan ve İtalya Kazanır/ Diğerleri 2.5 Üst" gibi ifadelerde, ilk kuralı ilgili takımlara, ikinci kuralı ise geriye kalan maçlara uygula.
+          * **Jargon:** "1" = Ev Sahibi Kazanır, "2" = Deplasman Kazanır, "İY" = İlk Yarı, "KG Var" = Karşılıklı Gol Var.
+      2.  **betAmount:** Resimdeki 'Bahis Miktarı', 'Max Bahis' gibi ifadelerden tutarı sayı olarak çıkar.
+      3.  **odds:** Resimdeki 'Toplam Oran', 'Özel Oran' gibi ifadelerden oranı sayı olarak çıkar.
 
-      **ANALİZ SÜRECİ:**
-      1.  **Kuponun Yapısını Anla:** Kuponu dikkatlice incele ve temel yapısını anla (Her maça ayrı bahis mi? Tüm maçlara ortak kural mı? Kazananlar listesi mi? Tek maç çoklu şart mı? Karışık kurallar mı?).
-      2.  **Maçları ve Bahisleri Eşleştir:** Tespit ettiğin yapıya ve yukarıdaki jargon sözlüğüne göre bahisleri maçlarla doğru şekilde birleştir.
-          * **Karışık Kurallar Örneği:** "Çekya & Hırvatistan Kazanır, Slovenya-İsveç Maçı Karşılıklı Gol Olur" gibi bir ifadede, ilk kuralı ilk iki takıma, ikinci kuralı ise adı geçen üçüncü maça uygula.
-          * **Liste Halindeki Kazananlar Örneği:** "isveç-isviçre-iskoçya / Hepsi İY Kazanır" gibi bir ifadede, listelenen tüm takımların ilk yarıyı kazanacağı bahsini her birinin kendi maçına uygula.
-      3.  **Çıktıyı Formatla:** Eşleştirdiğin bahisleri "Takım A - Takım B (Yapılan Bahis)" formatında, aralarına noktalı virgül (;) koyarak birleştir. Karmaşık bahisleri virgülle ayır (Örn: Maç Sonucu: 1, 2.5 Üst).
-
-      **İSTENEN JSON ÇIKTISI:**
-      {
-        "description": "Yukarıdaki analiz sürecini uygulayarak oluşturduğun nihai metin.",
-        "betAmount": "Resimdeki 'Bahis Miktarı', 'Max Bahis', 'EN YÜKSEK BAHİS TUTARI' vb. anahtar kelimelerden bahis tutarını sayı olarak çıkar.",
-        "odds": "Resimdeki 'TOPLAM ORAN', 'Özel Oran', 'BOMBA ORAN' vb. anahtar kelimelerden toplam oranı sayı olarak çıkar."
-      }
+      Sadece istenen JSON objesini, başka hiçbir ek metin olmadan döndür.
     `;
 
     const payload = {

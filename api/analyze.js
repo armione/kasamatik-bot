@@ -3,7 +3,7 @@
 
 // --- BİRİNCİL VE YEDEK API FONKSİYONLARI ---
 
-// 1. Google Gemini API Çağrısı (Artık Yedek)
+// 1. Google Gemini API Çağrısı
 async function callGeminiApi(base64ImageData, apiKey, prompt) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
     const payload = {
@@ -42,11 +42,13 @@ async function callGeminiApi(base64ImageData, apiKey, prompt) {
     return JSON.parse(jsonText);
 }
 
-// 2. OpenAI (gpt-5-nano) API Çağrısı (Artık Birincil)
+// 2. OpenAI (GPT-5 nano) API Çağrısı (Yedek)
 async function callOpenAiApi(base64ImageData, apiKey, prompt) {
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
     const payload = {
+        // ----> İSTEĞİNİZE GÖRE MODEL GÜNCELLENDİ <----
         model: "gpt-5-nano", 
+        // ---------------------------------------------
         response_format: { type: "json_object" },
         messages: [
             {
@@ -86,7 +88,7 @@ async function callOpenAiApi(base64ImageData, apiKey, prompt) {
 }
 
 
-// --- ANA SUNUCU FONKSİYONU (GÜNCELLENMİŞ SIRALAMA) ---
+// --- ANA SUNUCU FONKSİYONU ---
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
@@ -123,19 +125,19 @@ export default async function handler(request, response) {
 
         let result;
         try {
-            // ÖNCE OPENAI'Yİ DENE
-            console.log("Birincil API deneniyor: OpenAI");
-            result = await callOpenAiApi(base64ImageData, openAiApiKey, prompt);
+            // Önce Gemini'yi dene
+            console.log("Birincil API deneniyor: Gemini");
+            result = await callGeminiApi(base64ImageData, geminiApiKey, prompt);
             
-        } catch (openAiError) {
-            console.warn("OpenAI API hatası, yedek API'ye geçiliyor:", openAiError.message);
+        } catch (geminiError) {
+            console.warn("Gemini API hatası, yedek API'ye geçiliyor:", geminiError.message);
             
-            // OPENAI BAŞARISIZ OLURSA GEMINI'Yİ DENE
+            // Gemini başarısız olursa OpenAI'yi dene
             try {
-                console.log("Yedek API deneniyor: Gemini");
-                result = await callGeminiApi(base64ImageData, geminiApiKey, prompt);
-            } catch (geminiError) {
-                console.error("Yedek API (Gemini) de başarısız oldu:", geminiError.message);
+                console.log("Yedek API deneniyor: OpenAI");
+                result = await callOpenAiApi(base64ImageData, openAiApiKey, prompt);
+            } catch (openAiError) {
+                console.error("Yedek API (OpenAI) de başarısız oldu:", openAiError.message);
                 throw new Error("Her iki yapay zeka servisi de kuponu okuyamadı.");
             }
         }
@@ -147,3 +149,4 @@ export default async function handler(request, response) {
         response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
     }
 }
+

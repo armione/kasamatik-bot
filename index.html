@@ -581,7 +581,6 @@
 
 
     <div id="auth-container">
-        <div id="auth-notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm relative">
              <div id="auth-view">
                 <div class="text-center mb-8">
@@ -1463,7 +1462,7 @@
                     if (error) {
                         showNotification(`Hata: ${error.message}`, 'error');
                     } else {
-                        showNotification('📧 Şifre sıfırlama linki e-postana gönderildi. Lütfen kontrol et.', 'success');
+                        showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
                         forgotPasswordView.classList.add('hidden');
                         authView.classList.remove('hidden');
                     }
@@ -1803,7 +1802,7 @@
             async function handleUpdatePassword(e) {
                 e.preventDefault();
                 const newPassword = document.getElementById('new-password').value;
-                    if(newPassword.length < 6) {
+                if(newPassword.length < 6) {
                     showNotification('Şifre en az 6 karakter olmalı.', 'warning');
                     return;
                 }
@@ -1811,7 +1810,7 @@
                 if (error) {
                     showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
                 } else {
-                    showNotification('✔️ Şifreniz başarıyla güncellendi!', 'success');
+                    showNotification('Şifreniz başarıyla güncellendi.', 'success');
                     updatePasswordForm.reset();
                 }
             }
@@ -1823,7 +1822,7 @@
                 if (error) {
                     showNotification(`E-posta güncellenemedi: ${error.message}`, 'error');
                 } else {
-                    showNotification(`📧 Doğrulama linki yeni e-postana (${newEmail}) gönderildi. Onayladıktan sonra tekrar giriş yapmalısın.`, 'success');
+                    showNotification(`Doğrulama linki yeni e-postana (${newEmail}) gönderildi. Lütfen onayladıktan sonra tekrar giriş yap.`, 'success');
                     updateEmailForm.reset();
                     // E-posta değişikliği sonrası güvenlik için kullanıcıyı çıkışa zorlamak iyi bir pratiktir.
                     setTimeout(() => handleLogout(), 4000);
@@ -1842,15 +1841,7 @@
             }
             
             function showNotification(message, type = 'info', duration = 4000) {
-                // Hangi bildirim alanının kullanılacağını belirle: Giriş yapılmışsa uygulama içi, değilse giriş ekranı için.
-                const containerId = currentUser ? 'notifications' : 'auth-notifications';
-                const notificationsContainer = document.getElementById(containerId);
-
-                if (!notificationsContainer) {
-                    console.error('Bildirim alanı bulunamadı:', containerId);
-                    return;
-                }
-
+                const notificationsContainer = document.getElementById('notifications');
                 const notification = document.createElement('div');
                 const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-red-600', warning: 'from-yellow-500 to-orange-600', info: 'from-blue-500 to-blue-600' };
                 notification.className = `notification bg-gradient-to-r ${colors[type]} text-white px-6 py-4 rounded-xl shadow-lg max-w-sm glass-card`;
@@ -2244,5 +2235,3 @@
 </body>
 
 </html>
-
-

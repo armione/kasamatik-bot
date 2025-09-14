@@ -514,6 +514,10 @@
                     <button type="button" id="login-btn" class="gradient-button w-full py-3 rounded-lg">Giriş Yap</button>
                     <button type="button" id="signup-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">Kayıt Ol</button>
                 </div>
+                 <!-- ŞİFRE SIFIRLAMA LİNKİ -->
+                <div class="text-center mt-4">
+                    <a href="#" id="forgot-password-link" class="text-sm text-gray-400 hover:text-primary-blue">Şifremi Unuttum</a>
+                </div>
             </form>
 
             <div id="signup-success-message" class="hidden text-center">
@@ -523,8 +527,26 @@
             </div>
         </div>
     </div>
+    
+    <!-- ================= ŞİFRE SIFIRLAMA MODALI ================= -->
+    <div id="password-reset-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
+            <h2 class="font-montserrat font-bold text-2xl gradient-text mb-6 text-center">Şifre Sıfırla</h2>
+            <p class="text-gray-400 text-center mb-6 text-sm">Hesabınıza ait e-posta adresini girin, size sıfırlama linki gönderelim.</p>
+            <form id="password-reset-form" class="space-y-6">
+                <div>
+                    <label for="reset-email" class="block text-gray-300 text-sm font-medium mb-2">E-posta</label>
+                    <input type="email" id="reset-email" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="ornek@mail.com">
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-2">
+                    <button type="button" id="cancel-reset-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">İptal</button>
+                    <button type="submit" id="send-reset-btn" class="gradient-button w-full py-3 rounded-lg">Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <div id="app-container">
+    <div id="app-container" style="display: none;">
         <button id="mobile-menu-toggle" class="mobile-menu-toggle">
             <span class="text-xl">☰</span>
         </button>
@@ -583,7 +605,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.0-supabase</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.1-security</p>
                 </div>
             </div>
         </div>
@@ -1290,6 +1312,12 @@
             const signupBtn = document.getElementById('signup-btn');
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailDisplay = document.getElementById('user-email-display');
+            // YENİ: Şifre sıfırlama elemanları
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const passwordResetModal = document.getElementById('password-reset-modal');
+            const passwordResetForm = document.getElementById('password-reset-form');
+            const cancelResetBtn = document.getElementById('cancel-reset-btn');
+            const sendResetBtn = document.getElementById('send-reset-btn');
 
             // ============== APPLICATION STATE ==============
             let currentUser = null;
@@ -1326,18 +1354,37 @@
                     signupBtn.disabled = false;
                     signupBtn.textContent = "Kayıt Ol";
                 });
+
+                // YENİ: Şifre sıfırlama modalı için olay dinleyicileri
+                forgotPasswordLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    passwordResetModal.classList.remove('hidden');
+                    passwordResetModal.classList.add('flex');
+                });
+
+                cancelResetBtn.addEventListener('click', () => {
+                    passwordResetModal.classList.add('hidden');
+                    passwordResetModal.classList.remove('flex');
+                });
+
+                passwordResetForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    sendResetBtn.disabled = true;
+                    sendResetBtn.textContent = "Gönderiliyor...";
+                    await handlePasswordResetRequest(passwordResetForm['reset-email'].value);
+                    sendResetBtn.disabled = false;
+                    sendResetBtn.textContent = "Gönder";
+                });
             }
 
             const handleSignUp = async (email, password) => {
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 if (error) {
-                    // Hata durumunda sadece bildirim göster
                     showNotification(`Kayıt hatası: ${error.message}`, 'error');
                 } else {
-                    // Başarı durumunda arayüzü değiştir
-                    document.getElementById('auth-form').classList.add('hidden'); // Formu gizle
-                    document.getElementById('user-email-confirm').textContent = email; // E-postayı mesaja ekle
-                    document.getElementById('signup-success-message').classList.remove('hidden'); // Başarı mesajını göster
+                    document.getElementById('auth-form').classList.add('hidden');
+                    document.getElementById('user-email-confirm').textContent = email;
+                    document.getElementById('signup-success-message').classList.remove('hidden');
                 }
             };
 
@@ -1354,37 +1401,68 @@
                     showNotification(`Çıkış hatası: ${error.message}`, 'error');
                 }
             };
+
+            // YENİ: Şifre sıfırlama isteği gönderme fonksiyonu
+            const handlePasswordResetRequest = async (email) => {
+                const { data, error } = await _supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.href, // Kullanıcıyı şifre sıfırlama sonrası aynı sayfaya yönlendirir
+                });
+
+                if (error) {
+                    showNotification(`Hata: ${error.message}`, 'error');
+                } else {
+                    showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
+                    passwordResetModal.classList.add('hidden');
+                    passwordResetModal.classList.remove('flex');
+                }
+            };
             
             // ============== APP INITIALIZATION ==============
             
-            _supabase.auth.onAuthStateChange((event, session) => {
+            _supabase.auth.onAuthStateChange(async (event, session) => {
+                // YENİ: Şifre sıfırlama linkinden dönüldüğünde bu event tetiklenir
+                if (event === 'PASSWORD_RECOVERY') {
+                    const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
+                    if (newPassword && newPassword.length >= 6) {
+                        const { data, error } = await _supabase.auth.updateUser({ password: newPassword });
+                        if (error) {
+                            showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
+                        } else {
+                            showNotification('Şifreniz başarıyla güncellendi!', 'success');
+                        }
+                    } else if (newPassword) {
+                         showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
+                    }
+                }
+
                 const authEl = document.getElementById('auth-container');
                 const appEl = document.getElementById('app-container');
 
                 if (session && session.user) {
-                    // Kullanıcı giriş yaptıysa
                     currentUser = session.user;
-                    authEl.style.display = 'none'; // Giriş ekranını GİZLE
-                    appEl.style.display = 'block'; // Uygulamayı GÖSTER
-                    initApp();
+                    authEl.style.display = 'none';
+                    appEl.style.display = 'block';
+                    if (!listenersAttached) {
+                        initApp();
+                    }
                 } else {
-                    // Kullanıcı çıkış yaptıysa veya giriş yapmamışsa
                     currentUser = null;
-                    authEl.style.display = 'flex'; // Giriş ekranını GÖSTER
-                    appEl.style.display = 'none';  // Uygulamayı GİZLE
+                    authEl.style.display = 'flex';
+                    appEl.style.display = 'none';
                     bets = [];
                     customPlatforms = [];
                 }
             });
 
             async function initApp() {
-                if (!currentUser) return;
+                if (!currentUser || listenersAttached) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
                 setupEventListeners();
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();
+                listenersAttached = true;
             }
 
             async function loadData() {
@@ -1433,8 +1511,6 @@
             }
             
             function setupEventListeners() {
-                if (listenersAttached) return; 
-
                 logoutBtn.addEventListener('click', handleLogout);
                 document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
                     item.addEventListener('click', () => showSection(item.dataset.section, item));
@@ -1491,8 +1567,6 @@
                 setupImageUpload('main');
                 setupImageUpload('quick');
                 setupKeyboardShortcuts();
-                
-                listenersAttached = true;
             }
 
 
@@ -2133,7 +2207,6 @@
             // ============== APP START ==============
             document.addEventListener('DOMContentLoaded', () => {
                 setupAuthEventListeners();
-                // onAuthStateChange will handle the rest
             });
             
             // Make some functions globally accessible from inline HTML event handlers
@@ -2148,3 +2221,4 @@
 </body>
 
 </html>
+

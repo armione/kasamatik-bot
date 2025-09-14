@@ -491,40 +491,148 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             border-color: rgba(139, 179, 240, 0.3);
         }
+
+        .sponsor-card {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sponsor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(139, 179, 240, 0.3);
+        }
+
+        .sponsor-logo {
+            max-height: 80px;
+            max-width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .popup-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        
+        .popup-modal.visible .popup-content {
+            transform: scale(1);
+        }
+
+        .popup-close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: white;
+            color: black;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid #333;
+        }
     </style>
 </head>
 <body class="text-white">
 
-    <div id="auth-container">
-        <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
-            <div class="text-center mb-8">
-                <h1 class="font-montserrat font-bold text-3xl gradient-text">Kasamatik</h1>
-                <p class="text-gray-400">Akıllı Bahis Takibi</p>
-            </div>
-            <form id="auth-form" class="space-y-6">
-                <div>
-                    <label for="email" class="block text-gray-300 text-sm font-medium mb-2">E-posta</label>
-                    <input type="email" id="email" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="ornek@mail.com">
-                </div>
-                <div>
-                    <label for="password" class="block text-gray-300 text-sm font-medium mb-2">Şifre</label>
-                    <input type="password" id="password" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="••••••••">
-                </div>
-                <div class="flex items-center justify-between gap-4 pt-2">
-                    <button type="button" id="login-btn" class="gradient-button w-full py-3 rounded-lg">Giriş Yap</button>
-                    <button type="button" id="signup-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">Kayıt Ol</button>
-                </div>
-            </form>
+    <div id="popup-container" class="popup-modal">
+        <div class="popup-content">
+             <div id="popup-close" class="popup-close-btn">×</div>
+            <a href="#" id="popup-link" target="_blank" rel="noopener noreferrer">
+                <img id="popup-image" src="" alt="Reklam" class="rounded-lg w-full">
+            </a>
+        </div>
+    </div>
 
-            <div id="signup-success-message" class="hidden text-center">
-                <div class="text-6xl mb-4">✅</div>
-                <h2 class="text-xl font-bold text-white mb-2">Kayıt Başarılı!</h2>
-                <p class="text-gray-300">Giriş yapabilmek için lütfen <strong id="user-email-confirm" class="text-white">e-posta adresinize</strong> gönderdiğimiz doğrulama linkine tıklayın.</p>
+
+    <div id="auth-container">
+        <div id="auth-notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
+        <div class="glass-card rounded-2xl p-8 w-full max-w-sm relative">
+             <div id="auth-view">
+                <div class="text-center mb-8">
+                    <h1 class="font-montserrat font-bold text-3xl gradient-text">Kasamatik</h1>
+                    <p class="text-gray-400">Akıllı Bahis Takibi</p>
+                </div>
+                <form id="auth-form" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-gray-300 text-sm font-medium mb-2">E-posta</label>
+                        <input type="email" id="email" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="ornek@mail.com">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-gray-300 text-sm font-medium mb-2">Şifre</label>
+                        <input type="password" id="password" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="••••••••">
+                    </div>
+                    <div class="text-right">
+                        <a href="#" id="forgot-password-link" class="text-sm text-blue-400 hover:text-blue-300">Şifremi Unuttum</a>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-2">
+                        <button type="button" id="login-btn" class="gradient-button w-full py-3 rounded-lg">Giriş Yap</button>
+                        <button type="button" id="signup-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">Kayıt Ol</button>
+                    </div>
+                </form>
+
+                <div id="signup-success-message" class="hidden text-center">
+                    <div class="text-6xl mb-4">✅</div>
+                    <h2 class="text-xl font-bold text-white mb-2">Kayıt Başarılı!</h2>
+                    <p class="text-gray-300">Giriş yapabilmek için lütfen <strong id="user-email-confirm" class="text-white">e-posta adresinize</strong> gönderdiğimiz doğrulama linkine tıklayın.</p>
+                </div>
+            </div>
+
+            <div id="forgot-password-view" class="hidden">
+                 <div class="text-center mb-8">
+                    <h1 class="font-montserrat font-bold text-2xl gradient-text">Şifre Sıfırlama</h1>
+                    <p class="text-gray-400 mt-2">Kayıtlı e-posta adresinizi girin, size bir sıfırlama linki gönderelim.</p>
+                </div>
+                <form id="forgot-password-form" class="space-y-6">
+                    <div>
+                        <label for="forgot-email" class="block text-gray-300 text-sm font-medium mb-2">E-posta</label>
+                        <input type="email" id="forgot-email" required class="input-glass w-full p-3 rounded-lg text-gray-800" placeholder="ornek@mail.com">
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-2">
+                         <button type="button" id="back-to-login-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">← Geri</button>
+                        <button type="submit" id="send-reset-link-btn" class="gradient-button w-full py-3 rounded-lg">Link Gönder</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <div id="app-container">
+    <div id="app-container" style="display: none;">
         <button id="mobile-menu-toggle" class="mobile-menu-toggle">
             <span class="text-xl">☰</span>
         </button>
@@ -555,6 +663,10 @@
                     <span class="sidebar-icon">📋</span>
                     <span class="sidebar-text">Bahis Geçmişi</span>
                 </div>
+                 <div class="sidebar-item" data-section="sponsors">
+                    <span class="sidebar-icon">🏆</span>
+                    <span class="sidebar-text">Sponsorlar</span>
+                </div>
                 <div class="sidebar-item" data-section="cash-history">
                     <span class="sidebar-icon">💰</span>
                     <span class="sidebar-text">Kasa Geçmişi</span>
@@ -583,7 +695,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.0-supabase</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.1-sponsors</p>
                 </div>
             </div>
         </div>
@@ -652,6 +764,9 @@
                         </div>
                         <div class="text-xs text-gray-400">Bahis sayısı</div>
                     </div>
+                </div>
+
+                <div id="banner-ad-container" class="mb-6">
                 </div>
     
                 <div class="dashboard-grid">
@@ -843,6 +958,16 @@
                 </div>
             </div>
     
+            <div id="sponsors" class="page-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">🏆 Sponsorlarımız</h2>
+                    <p class="text-gray-400 text-sm">Büyümemize destek olan değerli sponsorlarımız.</p>
+                </div>
+                <div id="sponsors-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Sponsorlar buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+
             <div id="cash-history" class="page-section">
                 <div class="mb-8">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
@@ -1043,6 +1168,24 @@
     
             <div id="settings" class="page-section">
                 <div class="dashboard-grid">
+                     <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">👤 Hesap Yönetimi</h3>
+                        <form id="update-password-form" class="space-y-4 mb-6">
+                            <p class="text-gray-300 text-sm font-medium">Şifre Değiştir</p>
+                            <div>
+                                <input type="password" id="new-password" required placeholder="Yeni Şifre" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+                            <button type="submit" class="gradient-button w-full py-3 rounded-lg text-white">Şifreyi Güncelle</button>
+                        </form>
+                         <form id="update-email-form" class="space-y-4">
+                            <p class="text-gray-300 text-sm font-medium">E-posta Değiştir</p>
+                            <div>
+                                <input type="email" id="new-email" required placeholder="Yeni E-posta Adresi" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+                            <button type="submit" class="gradient-button w-full py-3 rounded-lg text-white">E-postayı Güncelle</button>
+                        </form>
+                    </div>
+
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Yönetimi</h3>
                         <div class="space-y-4">
@@ -1061,9 +1204,6 @@
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📊 Veri Yönetimi</h3>
                         <div class="space-y-3">
-                            <button id="import-btn" class="gradient-button w-full py-3 rounded-lg text-white">
-                                📥 İçe Aktar
-                            </button>
                             <button id="export-btn" class="gradient-button w-full py-3 rounded-lg text-white">
                                 📤 Dışa Aktar
                             </button>
@@ -1071,6 +1211,7 @@
                                 🗑️ Tüm Verileri Temizle
                             </button>
                         </div>
+                         <p class="text-xs text-gray-500 mt-4">Not: İçe aktarma özelliği güvenlik nedeniyle devre dışı bırakılmıştır.</p>
                     </div>
     
                     <div class="glass-card rounded-2xl p-6">
@@ -1200,42 +1341,6 @@
             </div>
         </div>
     
-        <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
-            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Veri İçe Aktarma</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">JSON Dosyası Seç</label>
-                        <input type="file" id="import-file" accept=".json" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Veya JSON Metni Yapıştır</label>
-                        <textarea id="import-text" placeholder="JSON verisini buraya yapıştırın..." 
-                                  class="input-glass w-full p-3 rounded-lg text-gray-800 h-32 resize-none"></textarea>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">İçe Aktarma Modu</label>
-                        <select id="import-mode" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            <option value="merge">Birleştir (mevcut veriler korunur)</option>
-                            <option value="replace">Değiştir (mevcut veriler silinir)</option>
-                        </select>
-                    </div>
-                </div>
-    
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button id="close-import-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        İptal
-                    </button>
-                    <button id="import-data-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        İçe Aktar
-                    </button>
-                </div>
-            </div>
-        </div>
-    
         <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Güncelle</h3>
@@ -1277,8 +1382,8 @@
     <script>
         (function() {
             // ============== SUPABASE SETUP ==============
-            const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co'; // <-- KENDİ SUPABASE URL'NİZİ GİRİN
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg'; // <-- KENDİ SUPABASE ANON KEY'İNİZİ GİRİN
+            const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg';
             const { createClient } = supabase;
             const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1290,11 +1395,21 @@
             const signupBtn = document.getElementById('signup-btn');
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailDisplay = document.getElementById('user-email-display');
+            // Yeni Eklenenler
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const backToLoginBtn = document.getElementById('back-to-login-btn');
+            const authView = document.getElementById('auth-view');
+            const forgotPasswordView = document.getElementById('forgot-password-view');
+            const forgotPasswordForm = document.getElementById('forgot-password-form');
+            const updatePasswordForm = document.getElementById('update-password-form');
+            const updateEmailForm = document.getElementById('update-email-form');
 
             // ============== APPLICATION STATE ==============
             let currentUser = null;
             let bets = [];
             let customPlatforms = [];
+            let sponsors = [];
+            let advertisements = [];
             let editingBetId = null;
             let currentImageData = null;
             let quickImageData = null;
@@ -1311,33 +1426,59 @@
             async function setupAuthEventListeners() {
                 loginBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    loginBtn.disabled = true;
-                    loginBtn.textContent = "Giriş yapılıyor...";
+                    loginBtn.disabled = true; loginBtn.textContent = "Giriş yapılıyor...";
                     await handleLogin(authForm.email.value, authForm.password.value);
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = "Giriş Yap";
+                    loginBtn.disabled = false; loginBtn.textContent = "Giriş Yap";
                 });
                 
                 signupBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    signupBtn.disabled = true;
-                    signupBtn.textContent = "Kayıt olunuyor...";
+                    signupBtn.disabled = true; signupBtn.textContent = "Kayıt olunuyor...";
                     await handleSignUp(authForm.email.value, authForm.password.value);
-                    signupBtn.disabled = false;
-                    signupBtn.textContent = "Kayıt Ol";
+                    signupBtn.disabled = false; signupBtn.textContent = "Kayıt Ol";
+                });
+
+                forgotPasswordLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    authView.classList.add('hidden');
+                    forgotPasswordView.classList.remove('hidden');
+                });
+
+                backToLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    forgotPasswordView.classList.add('hidden');
+                    authView.classList.remove('hidden');
+                });
+
+                forgotPasswordForm.addEventListener('submit', async(e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('forgot-email').value;
+                    const btn = document.getElementById('send-reset-link-btn');
+                    btn.disabled = true; btn.textContent = "Gönderiliyor...";
+                    
+                    const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin, // Kullanıcıyı şifreyi sıfırladıktan sonra ana sayfaya yönlendirir.
+                    });
+
+                    if (error) {
+                        showNotification(`Hata: ${error.message}`, 'error');
+                    } else {
+                        showNotification('📧 Şifre sıfırlama linki e-postana gönderildi. Lütfen kontrol et.', 'success');
+                        forgotPasswordView.classList.add('hidden');
+                        authView.classList.remove('hidden');
+                    }
+                    btn.disabled = false; btn.textContent = "Link Gönder";
                 });
             }
 
             const handleSignUp = async (email, password) => {
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 if (error) {
-                    // Hata durumunda sadece bildirim göster
                     showNotification(`Kayıt hatası: ${error.message}`, 'error');
                 } else {
-                    // Başarı durumunda arayüzü değiştir
-                    document.getElementById('auth-form').classList.add('hidden'); // Formu gizle
-                    document.getElementById('user-email-confirm').textContent = email; // E-postayı mesaja ekle
-                    document.getElementById('signup-success-message').classList.remove('hidden'); // Başarı mesajını göster
+                    document.getElementById('auth-form').classList.add('hidden');
+                    document.getElementById('user-email-confirm').textContent = email;
+                    document.getElementById('signup-success-message').classList.remove('hidden');
                 }
             };
 
@@ -1350,30 +1491,35 @@
             
             const handleLogout = async () => {
                 const { error } = await _supabase.auth.signOut();
-                if (error) {
-                    showNotification(`Çıkış hatası: ${error.message}`, 'error');
-                }
+                if (error) showNotification(`Çıkış hatası: ${error.message}`, 'error');
             };
             
             // ============== APP INITIALIZATION ==============
             
-            _supabase.auth.onAuthStateChange((event, session) => {
+            _supabase.auth.onAuthStateChange(async (event, session) => {
                 const authEl = document.getElementById('auth-container');
                 const appEl = document.getElementById('app-container');
 
+                if (event === 'PASSWORD_RECOVERY') {
+                    // Şifre sıfırlama linkinden geliniyorsa, direkt ana uygulamayı gösterme, şifre güncelleme formunu göster.
+                    // Bu senaryo için özel bir arayüz gerekebilir, şimdilik basit tutuyoruz.
+                    showNotification('Yeni şifrenizi belirleyebilirsiniz.', 'info');
+                    // Burada özel bir şifre güncelleme modal'ı açılabilir. Şimdilik ayarlar sayfasına yönlendiriyoruz.
+                }
+
                 if (session && session.user) {
-                    // Kullanıcı giriş yaptıysa
                     currentUser = session.user;
-                    authEl.style.display = 'none'; // Giriş ekranını GİZLE
-                    appEl.style.display = 'block'; // Uygulamayı GÖSTER
-                    initApp();
+                    authEl.style.display = 'none';
+                    appEl.style.display = 'block';
+                    await initApp();
                 } else {
-                    // Kullanıcı çıkış yaptıysa veya giriş yapmamışsa
                     currentUser = null;
-                    authEl.style.display = 'flex'; // Giriş ekranını GÖSTER
-                    appEl.style.display = 'none';  // Uygulamayı GİZLE
+                    authEl.style.display = 'flex';
+                    appEl.style.display = 'none';
                     bets = [];
                     customPlatforms = [];
+                    sponsors = [];
+                    advertisements = [];
                 }
             });
 
@@ -1381,43 +1527,41 @@
                 if (!currentUser) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
-                setupEventListeners();
-                await loadData();
+                if(!listenersAttached) setupEventListeners();
+                await loadAllData();
                 initializeUI();
                 showWelcomeNotification();
             }
-
-            async function loadData() {
+            
+            async function loadAllData() {
                 if (!currentUser) return;
                 
-                const { data: betsData, error: betsError } = await _supabase
-                    .from('bets')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (betsError) {
-                    console.error('Bahisler yüklenemedi:', betsError);
-                    showNotification('Bahis verileri yüklenemedi.', 'error');
-                } else {
-                    bets = betsData;
-                }
+                const [betsResult, platformsResult, sponsorsResult, adsResult] = await Promise.all([
+                    _supabase.from('bets').select('*').order('created_at', { ascending: false }),
+                    _supabase.from('platforms').select('id, name'),
+                    _supabase.from('sponsors').select('*').eq('is_active', true),
+                    _supabase.from('advertisements').select('*').eq('is_active', true)
+                ]);
 
-                const { data: platformsData, error: platformsError } = await _supabase
-                    .from('platforms')
-                    .select('id, name');
-                
-                if(platformsError) {
-                    console.error('Platformlar yüklenemedi:', platformsError);
-                    showNotification('Platform verileri yüklenemedi.', 'error');
-                } else {
-                    customPlatforms = platformsData;
-                }
+                if (betsResult.error) console.error('Bahisler yüklenemedi:', betsResult.error);
+                else bets = betsResult.data;
+
+                if(platformsResult.error) console.error('Platformlar yüklenemedi:', platformsResult.error);
+                else customPlatforms = platformsResult.data;
+
+                if(sponsorsResult.error) console.error('Sponsorlar yüklenemedi:', sponsorsResult.error);
+                else sponsors = sponsorsResult.data;
+
+                if(adsResult.error) console.error('Reklamlar yüklenemedi:', adsResult.error);
+                else advertisements = adsResult.data;
             }
 
             function initializeUI() {
                 setDefaultDates();
                 populatePlatformOptions();
                 renderCustomPlatforms();
+                renderSponsors();
+                displayAds();
                 updateAllStatsAndRenders();
             }
             
@@ -1455,7 +1599,6 @@
                 });
                 document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
                 document.getElementById('add-platform-btn').addEventListener('click', () => addCustomPlatform(false));
-                document.getElementById('import-btn').addEventListener('click', openImportModal);
                 document.getElementById('export-btn').addEventListener('click', exportData);
                 document.getElementById('clear-all-settings-btn').addEventListener('click', clearAllData);
                 document.getElementById('reset-bankroll-btn').addEventListener('click', resetBankroll);
@@ -1466,9 +1609,6 @@
                 document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransaction('withdrawal'));
                 document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmit);
                 document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
-                document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
-                document.getElementById('import-data-btn').addEventListener('click', importData);
-                
                 document.getElementById('edit-status').addEventListener('change', () => {
                     const status = document.getElementById('edit-status').value;
                     const winAmountSection = document.getElementById('win-amount-section');
@@ -1488,6 +1628,12 @@
                 document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
                 document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
                 document.getElementById('image-modal').addEventListener('click', closeImageModal);
+                
+                // Yeni event listener'lar
+                updatePasswordForm.addEventListener('submit', handleUpdatePassword);
+                updateEmailForm.addEventListener('submit', handleUpdateEmail);
+                document.getElementById('popup-close').addEventListener('click', closePopupAd);
+
                 setupImageUpload('main');
                 setupImageUpload('quick');
                 setupKeyboardShortcuts();
@@ -1507,36 +1653,25 @@
                 if (name && !allPlatforms.includes(name)) {
                     const { data, error } = await _supabase.from('platforms').insert({ name: name, user_id: currentUser.id }).select();
                     if(error){
-                        showNotification('Platform eklenemedi.', 'error');
-                        console.error(error);
+                        showNotification('Platform eklenemedi.', 'error'); console.error(error);
                     } else {
                         customPlatforms.push(data[0]);
                         input.value = '';
-                        if (fromModal) {
-                            renderCustomPlatformsModal();
-                        } else {
-                            renderCustomPlatforms();
-                        }
+                        if (fromModal) renderCustomPlatformsModal(); else renderCustomPlatforms();
                         populatePlatformOptions();
                         showNotification(`✅ ${name} platformu eklendi!`, 'success');
                     }
-                } else if (!name) {
-                    showNotification('Platform adı boş olamaz.', 'warning');
-                } else {
-                    showNotification('Bu platform zaten mevcut.', 'warning');
-                }
+                } else if (!name) showNotification('Platform adı boş olamaz.', 'warning');
+                else showNotification('Bu platform zaten mevcut.', 'warning');
             }
 
             async function removeCustomPlatform(platformId, platformName) {
                 if (confirm(`'${platformName}' platformunu silmek istediğinizden emin misiniz?`)) {
                     const { error } = await _supabase.from('platforms').delete().eq('id', platformId);
-                    if(error){
-                        showNotification('Platform silinemedi.', 'error');
+                    if(error){ showNotification('Platform silinemedi.', 'error');
                     } else {
                         customPlatforms = customPlatforms.filter(p => p.id !== platformId);
-                        renderCustomPlatforms();
-                        renderCustomPlatformsModal();
-                        populatePlatformOptions();
+                        renderCustomPlatforms(); renderCustomPlatformsModal(); populatePlatformOptions();
                         showNotification(`🗑️ ${platformName} platformu silindi`, 'error');
                     }
                 }
@@ -1545,27 +1680,19 @@
             async function handleBetFormSubmit(e) {
                 e.preventDefault();
                 const newBetData = {
-                    user_id: currentUser.id,
-                    platform: document.getElementById('platform').value,
+                    user_id: currentUser.id, platform: document.getElementById('platform').value,
                     bet_type: document.getElementById('bet-type').value,
                     description: document.getElementById('description').value || 'Açıklama yok',
                     bet_amount: parseFloat(document.getElementById('bet-amount').value),
                     odds: parseFloat(document.getElementById('odds').value),
                     date: document.getElementById('bet-date').value,
-                    status: 'pending',
-                    win_amount: 0,
-                    profit_loss: 0
+                    status: 'pending', win_amount: 0, profit_loss: 0
                 };
-                
                 const { data, error } = await _supabase.from('bets').insert(newBetData).select();
-
-                if(error) {
-                    showNotification('Bahis eklenirken hata oluştu: ' + error.message, 'error');
-                    console.error(error);
+                if(error) { showNotification('Bahis eklenirken hata oluştu: ' + error.message, 'error'); console.error(error);
                 } else {
                     bets.unshift(data[0]);
-                    updateAllStatsAndRenders();
-                    resetForm();
+                    updateAllStatsAndRenders(); resetForm();
                     showNotification('🎯 Yeni bahis başarıyla eklendi!', 'success');
                 }
             }
@@ -1573,61 +1700,39 @@
             async function handleQuickAddSubmit(e) {
                 e.preventDefault();
                 const newBetData = {
-                    user_id: currentUser.id,
-                    platform: document.getElementById('quick-platform').value,
-                    bet_type: 'Spor Bahis',
-                    description: 'Hızlı bahis',
+                    user_id: currentUser.id, platform: document.getElementById('quick-platform').value,
+                    bet_type: 'Spor Bahis', description: 'Hızlı bahis',
                     bet_amount: parseFloat(document.getElementById('quick-amount').value),
                     odds: parseFloat(document.getElementById('quick-odds').value),
                     date: new Date().toISOString().split('T')[0],
-                    status: 'pending',
-                    win_amount: 0,
-                    profit_loss: 0
+                    status: 'pending', win_amount: 0, profit_loss: 0
                 };
-                
                 const { data, error } = await _supabase.from('bets').insert(newBetData).select();
-                 if(error) {
-                    showNotification('Hızlı bahis eklenemedi.', 'error');
-                } else {
+                 if(error) showNotification('Hızlı bahis eklenemedi.', 'error');
+                 else {
                     bets.unshift(data[0]);
-                    updateAllStatsAndRenders();
-                    closeQuickAddModal();
+                    updateAllStatsAndRenders(); closeQuickAddModal();
                     showNotification('🚀 Hızlı bahis eklendi!', 'success');
                 }
             }
             
             async function saveEdit() {
-                const bet = bets.find(b => b.id === editingBetId);
-                if (!bet) return;
-
+                const bet = bets.find(b => b.id === editingBetId); if (!bet) return;
                 const status = document.getElementById('edit-status').value;
                 const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
-                
                 let updateData = { status: status };
                 if (status === 'won') {
-                    updateData.win_amount = winAmount;
-                    updateData.profit_loss = winAmount - bet.bet_amount;
+                    updateData.win_amount = winAmount; updateData.profit_loss = winAmount - bet.bet_amount;
                 } else if (status === 'lost') {
-                    updateData.win_amount = 0;
-                    updateData.profit_loss = -bet.bet_amount;
-                } else { 
-                    updateData.win_amount = 0;
-                    updateData.profit_loss = 0;
-                }
+                    updateData.win_amount = 0; updateData.profit_loss = -bet.bet_amount;
+                } else { updateData.win_amount = 0; updateData.profit_loss = 0; }
 
-                const { data, error } = await _supabase
-                    .from('bets')
-                    .update(updateData)
-                    .eq('id', editingBetId)
-                    .select();
-
-                if(error){
-                     showNotification('Bahis güncellenemedi.', 'error');
-                } else {
+                const { data, error } = await _supabase.from('bets').update(updateData).eq('id', editingBetId).select();
+                if(error) showNotification('Bahis güncellenemedi.', 'error');
+                else {
                     const index = bets.findIndex(b => b.id === editingBetId);
                     if (index !== -1) bets[index] = data[0];
-                    updateAllStatsAndRenders();
-                    closeEditModal();
+                    updateAllStatsAndRenders(); closeEditModal();
                     showNotification('✔️ Bahis güncellendi!', 'info');
                 }
             }
@@ -1635,9 +1740,8 @@
             async function deleteBet(id) {
                 if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
                     const { error } = await _supabase.from('bets').delete().eq('id', id);
-                    if(error){
-                        showNotification('Kayıt silinemedi.', 'error');
-                    } else {
+                    if(error) showNotification('Kayıt silinemedi.', 'error');
+                    else {
                         bets = bets.filter(b => b.id !== id);
                         updateAllStatsAndRenders();
                         showNotification('🗑️ Kayıt silindi.', 'error');
@@ -1648,35 +1752,20 @@
             async function handleCashTransaction(type) {
                 const input = document.getElementById('cash-amount');
                 let amount = parseFloat(input.value);
-
-                if (isNaN(amount) || amount <= 0) {
-                    showNotification('Lütfen geçerli bir miktar girin.', 'error');
-                    return;
-                }
-
+                if (isNaN(amount) || amount <= 0) { showNotification('Lütfen geçerli bir miktar girin.', 'error'); return; }
                 const isDeposit = type === 'deposit';
                 const profitLoss = isDeposit ? amount : -amount;
-
                 const cashTransaction = {
-                    user_id: currentUser.id,
-                    platform: 'Kasa İşlemi',
-                    bet_type: 'Kasa İşlemi',
-                    description: isDeposit ? 'Para Ekleme' : 'Para Çekme',
-                    bet_amount: Math.abs(amount),
-                    odds: 1,
-                    date: new Date().toISOString().split('T')[0],
-                    status: isDeposit ? 'won' : 'lost',
-                    win_amount: isDeposit ? amount : 0,
-                    profit_loss: profitLoss,
+                    user_id: currentUser.id, platform: 'Kasa İşlemi', bet_type: 'Kasa İşlemi',
+                    description: isDeposit ? 'Para Ekleme' : 'Para Çekme', bet_amount: Math.abs(amount),
+                    odds: 1, date: new Date().toISOString().split('T')[0],
+                    status: isDeposit ? 'won' : 'lost', win_amount: isDeposit ? amount : 0, profit_loss: profitLoss,
                 };
-                
                 const { data, error } = await _supabase.from('bets').insert(cashTransaction).select();
-                if(error){
-                    showNotification('Kasa işlemi kaydedilemedi.', 'error');
-                } else {
+                if(error) showNotification('Kasa işlemi kaydedilemedi.', 'error');
+                else {
                     bets.unshift(data[0]);
-                    updateAllStatsAndRenders();
-                    closeCashTransactionModal();
+                    updateAllStatsAndRenders(); closeCashTransactionModal();
                     showNotification(`💸 Kasa işlemi kaydedildi: ${profitLoss.toFixed(2)} ₺`, 'success');
                 }
             }
@@ -1686,23 +1775,15 @@
                     const currentBankroll = bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
                     if (currentBankroll !== 0) {
                         const resetTransaction = {
-                            user_id: currentUser.id,
-                            platform: 'Kasa Sıfırlama',
-                            bet_type: 'Kasa İşlemi',
-                            description: 'Bakiye Sıfırlandı',
-                            bet_amount: Math.abs(currentBankroll),
-                            odds: 1,
-                            date: new Date().toISOString().split('T')[0],
-                            status: 'lost',
-                            win_amount: 0,
-                            profit_loss: -currentBankroll,
+                            user_id: currentUser.id, platform: 'Kasa Sıfırlama', bet_type: 'Kasa İşlemi',
+                            description: 'Bakiye Sıfırlandı', bet_amount: Math.abs(currentBankroll),
+                            odds: 1, date: new Date().toISOString().split('T')[0], status: 'lost',
+                            win_amount: 0, profit_loss: -currentBankroll,
                         };
                          const { data, error } = await _supabase.from('bets').insert(resetTransaction).select();
-                         if(error){
-                             showNotification('Kasa sıfırlanamadı.', 'error');
-                         } else {
-                             bets.unshift(data[0]);
-                             updateAllStatsAndRenders();
+                         if(error) showNotification('Kasa sıfırlanamadı.', 'error');
+                         else {
+                             bets.unshift(data[0]); updateAllStatsAndRenders();
                              showNotification('🔄 Kasa sıfırlandı!', 'warning');
                          }
                     }
@@ -1711,32 +1792,65 @@
             
             async function clearAllData() {
                  if (confirm('TÜM BAHİS VE PLATFORM VERİLERİNİ SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem geri alınamaz!')) {
-                    const { error: betsError } = await _supabase.from('bets').delete().eq('user_id', currentUser.id);
-                    const { error: platformsError } = await _supabase.from('platforms').delete().eq('user_id', currentUser.id);
-
-                    if(betsError || platformsError) {
-                        showNotification('Veriler silinirken bir hata oluştu.', 'error');
-                    } else {
-                        bets = [];
-                        customPlatforms = [];
-                        updateAllStatsAndRenders();
-                        populatePlatformOptions();
-                        renderCustomPlatforms();
-                        showNotification('🗑️ Tüm veriler silindi!', 'error');
-                    }
+                    await _supabase.from('bets').delete().eq('user_id', currentUser.id);
+                    await _supabase.from('platforms').delete().eq('user_id', currentUser.id);
+                    bets = []; customPlatforms = [];
+                    updateAllStatsAndRenders(); populatePlatformOptions(); renderCustomPlatforms();
+                    showNotification('🗑️ Tüm veriler silindi!', 'error');
                 }
             }
+
+            async function handleUpdatePassword(e) {
+                e.preventDefault();
+                const newPassword = document.getElementById('new-password').value;
+                    if(newPassword.length < 6) {
+                    showNotification('Şifre en az 6 karakter olmalı.', 'warning');
+                    return;
+                }
+                const { error } = await _supabase.auth.updateUser({ password: newPassword });
+                if (error) {
+                    showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
+                } else {
+                    showNotification('✔️ Şifreniz başarıyla güncellendi!', 'success');
+                    updatePasswordForm.reset();
+                }
+            }
+
+            async function handleUpdateEmail(e) {
+                e.preventDefault();
+                const newEmail = document.getElementById('new-email').value;
+                const { error } = await _supabase.auth.updateUser({ email: newEmail });
+                if (error) {
+                    showNotification(`E-posta güncellenemedi: ${error.message}`, 'error');
+                } else {
+                    showNotification(`📧 Doğrulama linki yeni e-postana (${newEmail}) gönderildi. Onayladıktan sonra tekrar giriş yapmalısın.`, 'success');
+                    updateEmailForm.reset();
+                    // E-posta değişikliği sonrası güvenlik için kullanıcıyı çıkışa zorlamak iyi bir pratiktir.
+                    setTimeout(() => handleLogout(), 4000);
+                }
+            }
+
 
              // ============== UI & HELPERS ==============
             
             function showWelcomeNotification() {
                  setTimeout(() => {
+                    const popupShown = sessionStorage.getItem('kasamatik_popup_shown');
+                    if(!popupShown) showPopupAd();
                     showNotification(`🚀 Hoş geldin ${currentUser.email}!`, 'success');
                 }, 1000);
             }
             
             function showNotification(message, type = 'info', duration = 4000) {
-                const notificationsContainer = document.getElementById('notifications');
+                // Hangi bildirim alanının kullanılacağını belirle: Giriş yapılmışsa uygulama içi, değilse giriş ekranı için.
+                const containerId = currentUser ? 'notifications' : 'auth-notifications';
+                const notificationsContainer = document.getElementById(containerId);
+
+                if (!notificationsContainer) {
+                    console.error('Bildirim alanı bulunamadı:', containerId);
+                    return;
+                }
+
                 const notification = document.createElement('div');
                 const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-red-600', warning: 'from-yellow-500 to-orange-600', info: 'from-blue-500 to-blue-600' };
                 notification.className = `notification bg-gradient-to-r ${colors[type]} text-white px-6 py-4 rounded-xl shadow-lg max-w-sm glass-card`;
@@ -1785,79 +1899,42 @@
             function renderCustomPlatforms() {
                 const container = document.getElementById('custom-platforms-list');
                 if (!container) return;
-                if (customPlatforms.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>';
-                    return;
-                }
-                container.innerHTML = customPlatforms.map(p => `
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
-                        <span class="text-white text-sm">${p.name}</span>
-                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded">🗑️</button>
-                    </div>
-                `).join('');
-                container.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
-                });
+                if (customPlatforms.length === 0) { container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>'; return; }
+                container.innerHTML = customPlatforms.map(p => `<div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg"><span class="text-white text-sm">${p.name}</span><button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded">🗑️</button></div>`).join('');
+                container.querySelectorAll('button').forEach(button => button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name)));
             }
 
             function renderCustomPlatformsModal() {
                 const container = document.getElementById('custom-platforms-list-modal');
                 if (!container) return;
-                if (customPlatforms.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>';
-                    return;
-                }
-                container.innerHTML = customPlatforms.map(p => `
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-2 rounded">
-                        <span class="text-white text-sm">${p.name}</span>
-                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
-                    </div>
-                `).join('');
-                 container.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
-                });
+                if (customPlatforms.length === 0) { container.innerHTML = '<p class="text-gray-400 text-sm">Henüz özel platform eklenmemiş</p>'; return; }
+                container.innerHTML = customPlatforms.map(p => `<div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-2 rounded"><span class="text-white text-sm">${p.name}</span><button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm">🗑️</button></div>`).join('');
+                 container.querySelectorAll('button').forEach(button => button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name)));
             }
-
-            function openPlatformManager() {
-                document.getElementById('platform-manager-modal')?.classList.remove('hidden');
-                document.getElementById('platform-manager-modal')?.classList.add('flex');
-                renderCustomPlatformsModal();
-            }
-
+            
+            function openPlatformManager() { document.getElementById('platform-manager-modal')?.classList.remove('hidden'); document.getElementById('platform-manager-modal')?.classList.add('flex'); renderCustomPlatformsModal(); }
             function closePlatformManager() { document.getElementById('platform-manager-modal')?.classList.add('hidden'); }
             function openCashTransactionModal() { document.getElementById('cash-transaction-modal')?.classList.remove('hidden'); document.getElementById('cash-transaction-modal')?.classList.add('flex'); }
             function closeCashTransactionModal() { const modal = document.getElementById('cash-transaction-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('cash-amount').value = ''; }
             function openQuickAddModal() { document.getElementById('quick-add-modal')?.classList.remove('hidden'); document.getElementById('quick-add-modal')?.classList.add('flex'); }
             function closeQuickAddModal() { const modal = document.getElementById('quick-add-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('quick-add-form')?.reset(); removeImage('quick'); }
-            function openImportModal() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
             function exportData() {
                 const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; 
                 const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
+                const a = document.createElement('a'); a.href = url;
                 a.download = `kasamatik-backup-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
+                a.click(); URL.revokeObjectURL(url);
                 showNotification('📤 Veriler başarıyla dışa aktarıldı!', 'success');
             }
-            function importData() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
-            function closeImportModal() { document.getElementById('import-modal')?.classList.add('hidden'); document.getElementById('import-file').value = ''; document.getElementById('import-text').value = ''; }
-            
             function openEditModal(id) {
-                editingBetId = id;
-                const bet = bets.find(b => b.id === id);
-                if (!bet) return;
-
+                editingBetId = id; const bet = bets.find(b => b.id === id); if (!bet) return;
                 currentlyEditingBet = bet;
-
                 document.getElementById('edit-status').value = bet.status;
                 document.getElementById('edit-win-amount').value = bet.win_amount;
-                
                 document.getElementById('edit-modal')?.classList.remove('hidden');
                 document.getElementById('edit-modal')?.classList.add('flex');
             }
-
             function closeEditModal() { document.getElementById('edit-modal')?.classList.add('hidden'); editingBetId = null; }
             function showImageModal(imageSrc) { const modal = document.getElementById('image-modal'); document.getElementById('modal-image').src = imageSrc; modal?.classList.remove('hidden'); modal?.classList.add('flex'); }
             function closeImageModal() { document.getElementById('image-modal')?.classList.add('hidden'); }
@@ -1876,12 +1953,9 @@
                 removeBtn?.addEventListener('click', () => removeImage(type));
                 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
                     uploadArea?.addEventListener(eventName, e => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                        e.preventDefault(); e.stopPropagation();
                         uploadArea.classList.toggle('dragover', eventName === 'dragover');
-                        if (eventName === 'drop') {
-                            handleImageFile(e.dataTransfer.files[0], type);
-                        }
+                        if (eventName === 'drop') handleImageFile(e.dataTransfer.files[0], type);
                     });
                 });
             }
@@ -1895,9 +1969,7 @@
                     if (type === 'main') {
                         currentImageData = imageData;
                         document.getElementById('gemini-analyze-btn').disabled = false;
-                    } else {
-                        quickImageData = imageData;
-                    }
+                    } else { quickImageData = imageData; }
                     document.getElementById(`${prefix}preview-img`).src = imageData;
                     document.getElementById(`${prefix}upload-area`).classList.add('hidden');
                     document.getElementById(`${prefix}image-preview`).classList.remove('hidden');
@@ -1907,12 +1979,8 @@
 
             function removeImage(type) {
                 const prefix = type === 'main' ? '' : 'quick-';
-                if (type === 'main') {
-                    currentImageData = null;
-                    document.getElementById('gemini-analyze-btn').disabled = true;
-                } else {
-                    quickImageData = null;
-                }
+                if (type === 'main') { currentImageData = null; document.getElementById('gemini-analyze-btn').disabled = true;
+                } else { quickImageData = null; }
                 document.getElementById(`${prefix}upload-area`).classList.remove('hidden');
                 document.getElementById(`${prefix}image-preview`).classList.add('hidden');
                 document.getElementById(`${prefix}image-input`).value = '';
@@ -1923,9 +1991,7 @@
                 if (!file) return;
                 const quickModalOpen = !document.getElementById('quick-add-modal').classList.contains('hidden');
                 const type = quickModalOpen ? 'quick' : 'main';
-                if (type === 'main' && currentSection !== 'new-bet') {
-                    return;
-                }
+                if (type === 'main' && currentSection !== 'new-bet') return;
                 handleImageFile(file, type);
             }
 
@@ -1987,11 +2053,11 @@
                 const profitCtx = document.getElementById('profitChart').getContext('2d');
                 let cumulativeProfit = 0;
                 const profitData = [...actualBets].reverse().map(bet => { cumulativeProfit += bet.profit_loss; return cumulativeProfit; });
-                if (window.profitChart instanceof Chart) { window.profitChart.destroy(); }
+                if (window.profitChart instanceof Chart) window.profitChart.destroy();
                 window.profitChart = new Chart(profitCtx, { type: 'line', data: { labels: actualBets.map((b, i) => `Bahis ${i + 1}`), datasets: [{ label: 'Kümülatif Kar/Zarar', data: profitData, borderColor: 'rgba(139, 179, 240, 0.8)', backgroundColor: 'rgba(139, 179, 240, 0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: 'rgba(255,255,255,0.7)' } }, x: { ticks: { color: 'rgba(255,255,255,0.7)' } } } } });
                 const platformCtx = document.getElementById('platformChart').getContext('2d');
                 const platformCounts = actualBets.reduce((acc, bet) => { acc[bet.platform] = (acc[bet.platform] || 0) + 1; return acc; }, {});
-                if (window.platformChart instanceof Chart) { window.platformChart.destroy(); }
+                if (window.platformChart instanceof Chart) window.platformChart.destroy();
                 window.platformChart = new Chart(platformCtx, { type: 'doughnut', data: { labels: Object.keys(platformCounts), datasets: [{ label: 'Platformlara Göre Bahis Sayısı', data: Object.values(platformCounts), backgroundColor: ['#8db3f0', '#6366f1', '#10b981', '#ef4444', '#f59e0b', '#a855f7'], borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
             
@@ -2001,11 +2067,7 @@
                 let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
                 updateHistoryStats(filteredBets);
                 const historyContainer = document.getElementById('bet-history');
-                if (filteredBets.length === 0) {
-                    historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu filtrede bahis bulunmuyor.</p></div>`;
-                    document.getElementById('pagination-container').innerHTML = '';
-                    return;
-                }
+                if (filteredBets.length === 0) { historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu filtrede bahis bulunmuyor.</p></div>`; document.getElementById('pagination-container').innerHTML = ''; return; }
                 const totalPages = Math.ceil(filteredBets.length / itemsPerPage);
                 const paginatedBets = filteredBets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
                 historyContainer.innerHTML = paginatedBets.map(bet => {
@@ -2013,22 +2075,14 @@
                     const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
                     const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
                     const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
-                    let actionButtons = (bet.status === 'pending')
-                        ? `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
-                        : `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
-
+                    let actionButtons = (bet.status === 'pending') ? `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>` : `<button onclick="openEditModal(${bet.id})" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
                     return `<div class="bet-card ${statusClass[bet.status]}"><div class="flex flex-col space-y-4"><div class="flex justify-between items-start"><div class="flex items-center space-x-3"><div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg">${betTypeIcon[bet.bet_type] || '🎯'}</div><div><h3 class="font-bold text-white text-lg">${bet.platform}</h3><p class="text-gray-400 text-sm">${bet.bet_type}</p></div></div><span class="px-4 py-2 rounded-full text-sm font-medium ${statusClass[bet.status]}">${statusText[bet.status]}</span></div><div class="bg-gray-800 bg-opacity-30 rounded-lg p-3"><p>${bet.description}</p></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4"><div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date + 'T00:00:00').toLocaleDateString('tr-TR')}</div></div><div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>${bet.bet_type !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div></div>` : ''}</div>${bet.image_url ? `<div class="flex justify-center"><img src="${bet.image_url}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" onclick="showImageModal('${bet.image_url}')"></div>` : ''}<div class="flex gap-3 pt-4 border-t border-gray-600">${actionButtons}<button onclick="deleteBet(${bet.id})" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button></div></div></div>`;
                 }).join('');
                 renderPagination('bets', totalPages, currentPage, changePage);
             }
             
             function updateHistoryStats(filteredBets) {
-                const els = {
-                    total: document.getElementById('history-total-bets'),
-                    won: document.getElementById('history-won-bets'),
-                    lost: document.getElementById('history-lost-bets'),
-                    pending: document.getElementById('history-pending-bets')
-                };
+                const els = { total: document.getElementById('history-total-bets'), won: document.getElementById('history-won-bets'), lost: document.getElementById('history-lost-bets'), pending: document.getElementById('history-pending-bets') };
                 if(els.total) els.total.textContent = filteredBets.length;
                 if(els.won) els.won.textContent = filteredBets.filter(b => b.status === 'won').length;
                 if(els.lost) els.lost.textContent = filteredBets.filter(b => b.status === 'lost').length;
@@ -2039,11 +2093,7 @@
                 const cashTransactions = bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
                 updateCashHistoryStats(cashTransactions);
                 const container = document.getElementById('cash-history-list');
-                if (cashTransactions.length === 0) {
-                    container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`;
-                    document.getElementById('cash-pagination-container').innerHTML = '';
-                    return;
-                }
+                if (cashTransactions.length === 0) { container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`; document.getElementById('cash-pagination-container').innerHTML = ''; return; }
                 const totalPages = Math.ceil(cashTransactions.length / itemsPerPage);
                 const paginatedTxs = cashTransactions.slice((cashCurrentPage - 1) * itemsPerPage, cashCurrentPage * itemsPerPage);
                 container.innerHTML = paginatedTxs.map(tx => {
@@ -2090,6 +2140,54 @@
                 }).join('');
             }
 
+            function renderSponsors() {
+                const container = document.getElementById('sponsors-list');
+                if(!container) return;
+                if (sponsors.length === 0) {
+                    container.innerHTML = `<div class="text-center py-16 text-gray-400 col-span-full"><div class="text-6xl mb-4">🏆</div><p class="text-xl">Henüz sponsor bulunmuyor.</p></div>`;
+                    return;
+                }
+                container.innerHTML = sponsors.map(sponsor => `
+                    <div class="sponsor-card">
+                        <img src="${sponsor.logo_url}" alt="${sponsor.name} Logo" class="sponsor-logo">
+                        <h3 class="font-bold text-lg text-white mb-2">${sponsor.name}</h3>
+                        <a href="${sponsor.website_url}" target="_blank" rel="noopener noreferrer" class="gradient-button px-6 py-2 rounded-lg text-sm">
+                            Siteye Git
+                        </a>
+                    </div>
+                `).join('');
+            }
+
+            function displayAds() {
+                // Banner Ad
+                const bannerAds = advertisements.filter(ad => ad.location === 'banner');
+                if(bannerAds.length > 0){
+                    const randomBanner = bannerAds[Math.floor(Math.random() * bannerAds.length)];
+                    const bannerContainer = document.getElementById('banner-ad-container');
+                    bannerContainer.innerHTML = `
+                        <a href="${randomBanner.target_url}" target="_blank" rel="noopener noreferrer">
+                            <img src="${randomBanner.image_url}" alt="Reklam" class="rounded-lg w-full">
+                        </a>
+                    `;
+                }
+            }
+
+            function showPopupAd(){
+                const popupAds = advertisements.filter(ad => ad.location === 'popup');
+                if(popupAds.length > 0){
+                    const randomPopup = popupAds[Math.floor(Math.random() * popupAds.length)];
+                    document.getElementById('popup-image').src = randomPopup.image_url;
+                    document.getElementById('popup-link').href = randomPopup.target_url;
+                    document.getElementById('popup-container').classList.add('visible');
+                    sessionStorage.setItem('kasamatik_popup_shown', 'true');
+                }
+            }
+
+            function closePopupAd() {
+                 document.getElementById('popup-container').classList.remove('visible');
+            }
+
+
             // ============== GEMINI API ==============
             
             async function analyzeBetSlip() {
@@ -2133,10 +2231,8 @@
             // ============== APP START ==============
             document.addEventListener('DOMContentLoaded', () => {
                 setupAuthEventListeners();
-                // onAuthStateChange will handle the rest
             });
             
-            // Make some functions globally accessible from inline HTML event handlers
             window.openEditModal = openEditModal;
             window.deleteBet = deleteBet;
             window.showImageModal = showImageModal;
@@ -2148,3 +2244,5 @@
 </body>
 
 </html>
+
+

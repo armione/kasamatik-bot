@@ -1443,6 +1443,9 @@
                     authEl.style.display = 'none';
                     appEl.style.display = 'block';
                     if (!listenersAttached) {
+                        // HATA DÜZELTME: Bayrağı, fonksiyonu çağırmadan HEMEN ÖNCE ayarlıyoruz.
+                        // Bu, birden fazla tetiklenmeyi ve çift dinleyici eklenmesini önler.
+                        listenersAttached = true; 
                         initApp();
                     }
                 } else {
@@ -1451,18 +1454,23 @@
                     appEl.style.display = 'none';
                     bets = [];
                     customPlatforms = [];
+                    // HATA DÜZELTME: Kullanıcı çıkış yaptığında bayrağı sıfırlıyoruz ki
+                    // tekrar giriş yaptığında uygulama düzgün bir şekilde başlayabilsin.
+                    listenersAttached = false; 
                 }
             });
 
             async function initApp() {
-                if (!currentUser || listenersAttached) return;
+                // HATA DÜZELTME: Gereksiz olan ikinci kontrolü kaldırıyoruz.
+                // Artık ana kontrol onAuthStateChange içinde daha güvenli bir şekilde yapılıyor.
+                if (!currentUser) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
                 setupEventListeners();
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();
-                listenersAttached = true;
+                // HATA DÜZELTME: Bayrak zaten yukarıda ayarlandığı için bu satırı kaldırıyoruz.
             }
 
             async function loadData() {
@@ -2221,4 +2229,5 @@
 </body>
 
 </html>
+
 

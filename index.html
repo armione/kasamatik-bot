@@ -335,6 +335,19 @@
             justify-content: center;
             padding: 16px;
         }
+
+        .sponsor-card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sponsor-card img {
+            transition: transform 0.3s ease;
+        }
+
+        .sponsor-card:hover img {
+            transform: scale(1.05);
+        }
         
         @media (max-width: 768px) {
             .sidebar {
@@ -589,6 +602,11 @@
                     <span class="sidebar-icon">📖</span>
                     <span class="sidebar-text">Rehber</span>
                 </div>
+                 <!-- YENİ: SPONSORLAR MENÜSÜ -->
+                <div class="sidebar-item" data-section="sponsors_page">
+                    <span class="sidebar-icon">🏆</span>
+                    <span class="sidebar-text">Sponsorlar</span>
+                </div>
                 <div class="sidebar-item" data-section="settings">
                     <span class="sidebar-icon">⚙️</span>
                     <span class="sidebar-text">Ayarlar</span>
@@ -605,7 +623,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.1-security</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.3-admin</p>
                 </div>
             </div>
         </div>
@@ -1062,6 +1080,15 @@
                     </div>
                 </div>
             </div>
+
+             <!-- YENİ: SPONSORLAR SAYFASI -->
+            <div id="sponsors_page" class="page-section">
+                <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">🏆 Sponsorlarımız</h2>
+                <p class="text-gray-400 mb-8">Projeye destek veren değerli sponsorlarımız.</p>
+                <div id="sponsors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Sponsor cards will be dynamically inserted here -->
+                </div>
+            </div>
     
             <div id="settings" class="page-section">
                 <div class="dashboard-grid">
@@ -1104,6 +1131,26 @@
                             <p class="text-xs text-gray-400">Bu işlem mevcut bakiyeyi sıfırlar ve geri alınamaz.</p>
                         </div>
                     </div>
+
+                    <!-- YENİ: SPONSOR YÖNETİM PANELİ (SADECE ADMİN GÖRECEK) -->
+                    <div id="sponsor-management-panel" class="glass-card rounded-2xl p-6 md:col-span-2 lg:col-span-3" style="display: none;">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏆 Sponsor Yönetimi (Admin)</h3>
+                        <form id="sponsor-form" class="space-y-4 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="text" id="sponsor-name" placeholder="Sponsor Adı" required class="input-glass p-3 rounded-lg text-gray-800">
+                                <input type="url" id="sponsor-logo-url" placeholder="Logo URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                <input type="url" id="sponsor-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                            </div>
+                            <button type="submit" class="gradient-button w-full py-3 rounded-lg">
+                                Sponsor Ekle
+                            </button>
+                        </form>
+                        <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Sponsorlar</h4>
+                        <div id="sponsors-list" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- Sponsor list will be dynamically inserted here -->
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1303,6 +1350,8 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg'; // <-- KENDİ SUPABASE ANON KEY'İNİZİ GİRİN
             const { createClient } = supabase;
             const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // ADIM 1: KENDİ USER ID'NİZİ BURAYA YAPIŞTIRIN
+            const ADMIN_USER_ID = 'SENIN_SUPABASE_USER_ID_BURAYA_GELECEK';
 
             // ============== DOM ELEMENTS ==============
             const authContainer = document.getElementById('auth-container');
@@ -1312,17 +1361,21 @@
             const signupBtn = document.getElementById('signup-btn');
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailDisplay = document.getElementById('user-email-display');
-            // YENİ: Şifre sıfırlama elemanları
             const forgotPasswordLink = document.getElementById('forgot-password-link');
             const passwordResetModal = document.getElementById('password-reset-modal');
             const passwordResetForm = document.getElementById('password-reset-form');
             const cancelResetBtn = document.getElementById('cancel-reset-btn');
             const sendResetBtn = document.getElementById('send-reset-btn');
+            const sponsorForm = document.getElementById('sponsor-form');
+            const sponsorsListContainer = document.getElementById('sponsors-list');
+            const sponsorsGridContainer = document.getElementById('sponsors-grid');
+            const sponsorManagementPanel = document.getElementById('sponsor-management-panel');
 
             // ============== APPLICATION STATE ==============
             let currentUser = null;
             let bets = [];
             let customPlatforms = [];
+            let sponsors = [];
             let editingBetId = null;
             let currentImageData = null;
             let quickImageData = null;
@@ -1355,7 +1408,6 @@
                     signupBtn.textContent = "Kayıt Ol";
                 });
 
-                // YENİ: Şifre sıfırlama modalı için olay dinleyicileri
                 forgotPasswordLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     passwordResetModal.classList.remove('hidden');
@@ -1402,10 +1454,9 @@
                 }
             };
 
-            // YENİ: Şifre sıfırlama isteği gönderme fonksiyonu
             const handlePasswordResetRequest = async (email) => {
                 const { data, error } = await _supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.href, // Kullanıcıyı şifre sıfırlama sonrası aynı sayfaya yönlendirir
+                    redirectTo: window.location.href, 
                 });
 
                 if (error) {
@@ -1420,7 +1471,6 @@
             // ============== APP INITIALIZATION ==============
             
             _supabase.auth.onAuthStateChange(async (event, session) => {
-                // YENİ: Şifre sıfırlama linkinden dönüldüğünde bu event tetiklenir
                 if (event === 'PASSWORD_RECOVERY') {
                     const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
                     if (newPassword && newPassword.length >= 6) {
@@ -1443,8 +1493,6 @@
                     authEl.style.display = 'none';
                     appEl.style.display = 'block';
                     if (!listenersAttached) {
-                        // HATA DÜZELTME: Bayrağı, fonksiyonu çağırmadan HEMEN ÖNCE ayarlıyoruz.
-                        // Bu, birden fazla tetiklenmeyi ve çift dinleyici eklenmesini önler.
                         listenersAttached = true; 
                         initApp();
                     }
@@ -1454,56 +1502,67 @@
                     appEl.style.display = 'none';
                     bets = [];
                     customPlatforms = [];
-                    // HATA DÜZELTME: Kullanıcı çıkış yaptığında bayrağı sıfırlıyoruz ki
-                    // tekrar giriş yaptığında uygulama düzgün bir şekilde başlayabilsin.
+                    sponsors = [];
                     listenersAttached = false; 
                 }
             });
 
             async function initApp() {
-                // HATA DÜZELTME: Gereksiz olan ikinci kontrolü kaldırıyoruz.
-                // Artık ana kontrol onAuthStateChange içinde daha güvenli bir şekilde yapılıyor.
                 if (!currentUser) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
+                // GÜNCELLEME: Admin paneli görünürlüğünü ayarla
+                if (currentUser.id === ADMIN_USER_ID) {
+                    sponsorManagementPanel.style.display = 'block';
+                } else {
+                    sponsorManagementPanel.style.display = 'none';
+                }
+
                 setupEventListeners();
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();
-                // HATA DÜZELTME: Bayrak zaten yukarıda ayarlandığı için bu satırı kaldırıyoruz.
             }
 
             async function loadData() {
                 if (!currentUser) return;
-                
-                const { data: betsData, error: betsError } = await _supabase
-                    .from('bets')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (betsError) {
-                    console.error('Bahisler yüklenemedi:', betsError);
+
+                // GÜNCELLEME: Sponsor sorgusundan user_id filtresini kaldırdık, çünkü herkes tüm sponsorları görecek.
+                const [betsResponse, platformsResponse, sponsorsResponse] = await Promise.all([
+                    _supabase.from('bets').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
+                    _supabase.from('platforms').select('id, name').eq('user_id', currentUser.id),
+                    _supabase.from('sponsors').select('*').order('created_at', { ascending: false })
+                ]);
+
+                if (betsResponse.error) {
+                    console.error('Bahisler yüklenemedi:', betsResponse.error);
                     showNotification('Bahis verileri yüklenemedi.', 'error');
                 } else {
-                    bets = betsData;
+                    bets = betsResponse.data;
                 }
 
-                const { data: platformsData, error: platformsError } = await _supabase
-                    .from('platforms')
-                    .select('id, name');
-                
-                if(platformsError) {
-                    console.error('Platformlar yüklenemedi:', platformsError);
+                if (platformsResponse.error) {
+                    console.error('Platformlar yüklenemedi:', platformsResponse.error);
                     showNotification('Platform verileri yüklenemedi.', 'error');
                 } else {
-                    customPlatforms = platformsData;
+                    customPlatforms = platformsResponse.data;
+                }
+                
+                if (sponsorsResponse.error) {
+                    console.error('Sponsorlar yüklenemedi:', sponsorsResponse.error);
+                    showNotification('Sponsor verileri yüklenemedi.', 'error');
+                } else {
+                    sponsors = sponsorsResponse.data;
                 }
             }
+
 
             function initializeUI() {
                 setDefaultDates();
                 populatePlatformOptions();
                 renderCustomPlatforms();
+                renderSponsorsPage(); 
+                renderSponsorManagementList(); 
                 updateAllStatsAndRenders();
             }
             
@@ -1552,6 +1611,7 @@
                 document.getElementById('close-quick-add-btn').addEventListener('click', closeQuickAddModal);
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
+                sponsorForm.addEventListener('submit', handleSponsorFormSubmit);
                 
                 document.getElementById('edit-status').addEventListener('change', () => {
                     const status = document.getElementById('edit-status').value;
@@ -1579,6 +1639,60 @@
 
 
             // ============== DATA MANIPULATION (CRUD) ==============
+
+            async function handleSponsorFormSubmit(e) {
+                e.preventDefault();
+                // GÜNCELLEME: Sadece adminin ekleyebilmesi için kontrol
+                if (currentUser.id !== ADMIN_USER_ID) {
+                    showNotification('Bu işlem için yetkiniz yok.', 'error');
+                    return;
+                }
+                const name = document.getElementById('sponsor-name').value;
+                const logo_url = document.getElementById('sponsor-logo-url').value;
+                const target_url = document.getElementById('sponsor-target-url').value;
+
+                if (!name || !logo_url || !target_url) {
+                    showNotification('Lütfen tüm sponsor alanlarını doldurun.', 'warning');
+                    return;
+                }
+                
+                // GÜNCELLEME: Ekleyen kişinin user_id'si yerine her zaman adminin id'si kullanılır
+                const { data, error } = await _supabase
+                    .from('sponsors')
+                    .insert({ name, logo_url, target_url, user_id: ADMIN_USER_ID })
+                    .select();
+
+                if (error) {
+                    showNotification('Sponsor eklenirken hata oluştu.', 'error');
+                    console.error(error);
+                } else {
+                    sponsors.unshift(data[0]);
+                    renderSponsorsPage();
+                    renderSponsorManagementList();
+                    sponsorForm.reset();
+                    showNotification(`🏆 "${name}" sponsoru eklendi!`, 'success');
+                }
+            }
+
+            async function deleteSponsor(id, name) {
+                 // GÜNCELLEME: Sadece adminin silebilmesi için kontrol
+                if (currentUser.id !== ADMIN_USER_ID) {
+                    showNotification('Bu işlem için yetkiniz yok.', 'error');
+                    return;
+                }
+                if (confirm(`'${name}' sponsorunu silmek istediğinizden emin misiniz?`)) {
+                    const { error } = await _supabase.from('sponsors').delete().eq('id', id);
+
+                    if (error) {
+                        showNotification('Sponsor silinirken hata oluştu.', 'error');
+                    } else {
+                        sponsors = sponsors.filter(s => s.id !== id);
+                        renderSponsorsPage();
+                        renderSponsorManagementList();
+                        showNotification(`"${name}" sponsoru silindi.`, 'error');
+                    }
+                }
+            }
             
             async function addCustomPlatform(fromModal = false) {
                 const inputId = fromModal ? 'new-platform-name-modal' : 'new-platform-name';
@@ -1792,11 +1906,13 @@
             }
             
             async function clearAllData() {
-                 if (confirm('TÜM BAHİS VE PLATFORM VERİLERİNİ SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem geri alınamaz!')) {
-                    const { error: betsError } = await _supabase.from('bets').delete().eq('user_id', currentUser.id);
-                    const { error: platformsError } = await _supabase.from('platforms').delete().eq('user_id', currentUser.id);
+                 if (confirm('TÜM KİŞİSEL VERİLERİNİZİ (BAHİS, PLATFORM) SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem geri alınamaz!')) {
+                    const [betsRes, platformsRes] = await Promise.all([
+                        _supabase.from('bets').delete().eq('user_id', currentUser.id),
+                        _supabase.from('platforms').delete().eq('user_id', currentUser.id)
+                    ]);
 
-                    if(betsError || platformsError) {
+                    if(betsRes.error || platformsRes.error) {
                         showNotification('Veriler silinirken bir hata oluştu.', 'error');
                     } else {
                         bets = [];
@@ -1804,7 +1920,7 @@
                         updateAllStatsAndRenders();
                         populatePlatformOptions();
                         renderCustomPlatforms();
-                        showNotification('🗑️ Tüm veriler silindi!', 'error');
+                        showNotification('🗑️ Kişisel verileriniz silindi!', 'error');
                     }
                 }
             }
@@ -1874,12 +1990,9 @@
                 container.innerHTML = customPlatforms.map(p => `
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
                         <span class="text-white text-sm">${p.name}</span>
-                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded">🗑️</button>
+                        <button onclick="removeCustomPlatform(${p.id}, '${p.name}')" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded">🗑️</button>
                     </div>
                 `).join('');
-                container.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
-                });
             }
 
             function renderCustomPlatformsModal() {
@@ -1892,12 +2005,47 @@
                 container.innerHTML = customPlatforms.map(p => `
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-2 rounded">
                         <span class="text-white text-sm">${p.name}</span>
-                        <button data-id="${p.id}" data-name="${p.name}" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                        <button onclick="removeCustomPlatform(${p.id}, '${p.name}')" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
                     </div>
                 `).join('');
-                 container.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', () => removeCustomPlatform(parseInt(button.dataset.id), button.dataset.name));
-                });
+            }
+
+            // YENİ: Sponsorları kullanıcı sayfasında render et
+            function renderSponsorsPage() {
+                if (!sponsorsGridContainer) return;
+                if (sponsors.length === 0) {
+                    sponsorsGridContainer.innerHTML = `<div class="text-center py-16 text-gray-400 col-span-full"><div class="text-6xl mb-4">🏆</div><p class="text-xl">Henüz sponsor bulunmuyor.</p></div>`;
+                    return;
+                }
+                sponsorsGridContainer.innerHTML = sponsors.map(s => `
+                    <a href="${s.target_url}" target="_blank" rel="noopener noreferrer" class="sponsor-card glass-card rounded-2xl block p-4">
+                        <div class="h-40 flex items-center justify-center rounded-xl overflow-hidden mb-4 bg-black bg-opacity-20">
+                            <img src="${s.logo_url}" alt="${s.name} Logosu" class="max-h-full max-w-full object-contain">
+                        </div>
+                        <h4 class="font-bold text-center text-lg text-white">${s.name}</h4>
+                    </a>
+                `).join('');
+            }
+
+            // YENİ: Sponsorları yönetim panelinde listele
+            function renderSponsorManagementList() {
+                if (!sponsorsListContainer) return;
+                if (sponsors.length === 0) {
+                    sponsorsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz sponsor eklenmemiş.</p>';
+                    return;
+                }
+                sponsorsListContainer.innerHTML = sponsors.map(s => `
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <img src="${s.logo_url}" class="w-10 h-10 object-contain rounded-md bg-white p-1">
+                            <div>
+                                <p class="text-white font-semibold">${s.name}</p>
+                                <a href="${s.target_url}" target="_blank" class="text-xs text-blue-400 hover:underline">${s.target_url}</a>
+                            </div>
+                        </div>
+                        <button onclick="deleteSponsor(${s.id}, '${s.name.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 text-xl px-2 py-1 rounded">🗑️</button>
+                    </div>
+                `).join('');
             }
 
             function openPlatformManager() {
@@ -1913,7 +2061,7 @@
             function closeQuickAddModal() { const modal = document.getElementById('quick-add-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('quick-add-form')?.reset(); removeImage('quick'); }
             function openImportModal() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
             function exportData() {
-                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; 
+                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; // Sponsors are global, not exported per user
                 const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1921,7 +2069,7 @@
                 a.download = `kasamatik-backup-${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
-                showNotification('📤 Veriler başarıyla dışa aktarıldı!', 'success');
+                showNotification('📤 Kişisel verileriniz dışa aktarıldı!', 'success');
             }
             function importData() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
             function closeImportModal() { document.getElementById('import-modal')?.classList.add('hidden'); document.getElementById('import-file').value = ''; document.getElementById('import-text').value = ''; }
@@ -2223,11 +2371,12 @@
             window.showImageModal = showImageModal;
             window.changePage = changePage;
             window.changeCashPage = changeCashPage;
+            window.removeCustomPlatform = removeCustomPlatform; // Make it globally accessible for onclick
+            window.deleteSponsor = deleteSponsor; // Make it globally accessible for onclick
 
         })();
     </script>
 </body>
 
 </html>
-
 

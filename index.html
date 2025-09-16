@@ -1530,8 +1530,10 @@
                     appEl.style.display = 'block';
                     if (!listenersAttached) {
                         listenersAttached = true; 
-                        initApp();
+                        setupEventListeners();
                     }
+                    // Her oturum açıldığında kullanıcı verilerini yükle ve arayüzü başlat
+                    initializeUserSession();
                 } else {
                     currentUser = null;
                     authEl.style.display = 'flex';
@@ -1540,11 +1542,14 @@
                     customPlatforms = [];
                     sponsors = [];
                     ads = [];
-                    listenersAttached = false; 
+                    // `listenersAttached` sıfırlanmıyor, bu sayede event listener'lar tekrar eklenmiyor.
                 }
             });
 
-            async function initApp() {
+            // `initApp` fonksiyonunu ikiye böldük: `initializeUserSession` ve `setupEventListeners`.
+            // `setupEventListeners` artık sadece bir kez çağrılıyor.
+            // Bu yeni fonksiyon ise her kullanıcı oturum açtığında çalışarak verileri yeniliyor.
+            async function initializeUserSession() {
                 if (!currentUser) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
@@ -1556,7 +1561,6 @@
                     adManagementPanel.style.display = 'none';
                 }
 
-                setupEventListeners();
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();

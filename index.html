@@ -527,7 +527,6 @@
                     <button type="button" id="login-btn" class="gradient-button w-full py-3 rounded-lg">Giriş Yap</button>
                     <button type="button" id="signup-btn" class="w-full py-3 rounded-lg bg-gray-600 hover:bg-gray-700">Kayıt Ol</button>
                 </div>
-                 <!-- ŞİFRE SIFIRLAMA LİNKİ -->
                 <div class="text-center mt-4">
                     <a href="#" id="forgot-password-link" class="text-sm text-gray-400 hover:text-primary-blue">Şifremi Unuttum</a>
                 </div>
@@ -541,7 +540,6 @@
         </div>
     </div>
     
-    <!-- ================= ŞİFRE SIFIRLAMA MODALI ================= -->
     <div id="password-reset-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
             <h2 class="font-montserrat font-bold text-2xl gradient-text mb-6 text-center">Şifre Sıfırla</h2>
@@ -556,6 +554,16 @@
                     <button type="submit" id="send-reset-btn" class="gradient-button w-full py-3 rounded-lg">Gönder</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- YENİ: GİRİŞ REKLAM POP-UP'I -->
+    <div id="ad-popup-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-[1001] p-4">
+        <div class="glass-card rounded-2xl p-4 w-full max-w-md relative">
+            <button id="close-ad-popup-btn" class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-lg font-bold z-10">&times;</button>
+            <a id="ad-popup-link" href="#" target="_blank" rel="noopener noreferrer" class="block">
+                <img id="ad-popup-image" src="" alt="Reklam" class="rounded-xl w-full">
+            </a>
         </div>
     </div>
 
@@ -602,7 +610,6 @@
                     <span class="sidebar-icon">📖</span>
                     <span class="sidebar-text">Rehber</span>
                 </div>
-                 <!-- YENİ: SPONSORLAR MENÜSÜ -->
                 <div class="sidebar-item" data-section="sponsors_page">
                     <span class="sidebar-icon">🏆</span>
                     <span class="sidebar-text">Sponsorlar</span>
@@ -623,7 +630,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.3-admin</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.4-ads</p>
                 </div>
             </div>
         </div>
@@ -728,8 +735,10 @@
                             </div>
                         </div>
                     </div>
-    
                 </div>
+
+                <!-- YENİ: ANA PANEL BANNER REKLAM ALANI -->
+                <div id="dashboard-ad-banner" class="mb-6"></div>
     
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-6">
@@ -1081,7 +1090,6 @@
                 </div>
             </div>
 
-             <!-- YENİ: SPONSORLAR SAYFASI -->
             <div id="sponsors_page" class="page-section">
                 <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">🏆 Sponsorlarımız</h2>
                 <p class="text-gray-400 mb-8">Projeye destek veren değerli sponsorlarımız.</p>
@@ -1091,7 +1099,7 @@
             </div>
     
             <div id="settings" class="page-section">
-                <div class="dashboard-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Yönetimi</h3>
                         <div class="space-y-4">
@@ -1132,8 +1140,7 @@
                         </div>
                     </div>
 
-                    <!-- YENİ: SPONSOR YÖNETİM PANELİ (SADECE ADMİN GÖRECEK) -->
-                    <div id="sponsor-management-panel" class="glass-card rounded-2xl p-6 md:col-span-2 lg:col-span-3" style="display: none;">
+                    <div id="sponsor-management-panel" class="glass-card rounded-2xl p-6 md:col-span-3" style="display: none;">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏆 Sponsor Yönetimi (Admin)</h3>
                         <form id="sponsor-form" class="space-y-4 mb-6">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1147,10 +1154,30 @@
                         </form>
                         <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Sponsorlar</h4>
                         <div id="sponsors-list" class="space-y-2 max-h-48 overflow-y-auto">
-                            <!-- Sponsor list will be dynamically inserted here -->
                         </div>
                     </div>
 
+                    <!-- YENİ: REKLAM YÖNETİM PANELİ -->
+                     <div id="ad-management-panel" class="glass-card rounded-2xl p-6 md:col-span-3" style="display: none;">
+                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📢 Reklam Yönetimi (Admin)</h3>
+                        <form id="ad-form" class="space-y-4 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="url" id="ad-image-url" placeholder="Reklam Resim URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                <input type="url" id="ad-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                <select id="ad-location" required class="input-glass p-3 rounded-lg text-gray-800">
+                                    <option value="">Konum Seçin</option>
+                                    <option value="login_popup">Giriş Pop-up</option>
+                                    <option value="dashboard_banner">Ana Panel Banner</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="gradient-button w-full py-3 rounded-lg">
+                                Reklam Ekle
+                            </button>
+                        </form>
+                        <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Reklamlar</h4>
+                        <div id="ads-list" class="space-y-2 max-h-48 overflow-y-auto">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1346,11 +1373,10 @@
     <script>
         (function() {
             // ============== SUPABASE SETUP ==============
-            const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co'; // <-- KENDİ SUPABASE URL'NİZİ GİRİN
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg'; // <-- KENDİ SUPABASE ANON KEY'İNİZİ GİRİN
+            const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWVscmRqcmNvbGpra3ByZXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDI4ODMsImV4cCI6MjA3MjQxODg4M30.kYcxJtT9qQ8rMcNUD2Dy7W8kgYBK9c9xRUVUthJV2Qg';
             const { createClient } = supabase;
             const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            // ADIM 1: KENDİ USER ID'NİZİ BURAYA YAPIŞTIRIN
             const ADMIN_USER_ID = 'fbf57686-1ec6-4ef0-9ee1-b908d3fae274';
 
             // ============== DOM ELEMENTS ==============
@@ -1370,12 +1396,21 @@
             const sponsorsListContainer = document.getElementById('sponsors-list');
             const sponsorsGridContainer = document.getElementById('sponsors-grid');
             const sponsorManagementPanel = document.getElementById('sponsor-management-panel');
+            // YENİ: Reklam Elemanları
+            const adManagementPanel = document.getElementById('ad-management-panel');
+            const adForm = document.getElementById('ad-form');
+            const adsListContainer = document.getElementById('ads-list');
+            const adPopupModal = document.getElementById('ad-popup-modal');
+            const closeAdPopupBtn = document.getElementById('close-ad-popup-btn');
+            const dashboardAdBanner = document.getElementById('dashboard-ad-banner');
+
 
             // ============== APPLICATION STATE ==============
             let currentUser = null;
             let bets = [];
             let customPlatforms = [];
             let sponsors = [];
+            let ads = []; // YENİ
             let editingBetId = null;
             let currentImageData = null;
             let quickImageData = null;
@@ -1503,6 +1538,7 @@
                     bets = [];
                     customPlatforms = [];
                     sponsors = [];
+                    ads = [];
                     listenersAttached = false; 
                 }
             });
@@ -1511,49 +1547,42 @@
                 if (!currentUser) return;
                 
                 userEmailDisplay.textContent = currentUser.email;
-                // GÜNCELLEME: Admin paneli görünürlüğünü ayarla
                 if (currentUser.id === ADMIN_USER_ID) {
                     sponsorManagementPanel.style.display = 'block';
+                    adManagementPanel.style.display = 'block';
                 } else {
                     sponsorManagementPanel.style.display = 'none';
+                    adManagementPanel.style.display = 'none';
                 }
 
                 setupEventListeners();
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();
+                showLoginAdPopup(); // Reklamı göster
             }
 
             async function loadData() {
                 if (!currentUser) return;
 
-                // GÜNCELLEME: Sponsor sorgusundan user_id filtresini kaldırdık, çünkü herkes tüm sponsorları görecek.
-                const [betsResponse, platformsResponse, sponsorsResponse] = await Promise.all([
+                const [betsResponse, platformsResponse, sponsorsResponse, adsResponse] = await Promise.all([
                     _supabase.from('bets').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
                     _supabase.from('platforms').select('id, name').eq('user_id', currentUser.id),
-                    _supabase.from('sponsors').select('*').order('created_at', { ascending: false })
+                    _supabase.from('sponsors').select('*').order('created_at', { ascending: false }),
+                    _supabase.from('ads').select('*').order('created_at', { ascending: false }) // YENİ
                 ]);
 
-                if (betsResponse.error) {
-                    console.error('Bahisler yüklenemedi:', betsResponse.error);
-                    showNotification('Bahis verileri yüklenemedi.', 'error');
-                } else {
-                    bets = betsResponse.data;
-                }
+                if (betsResponse.error) console.error('Bahisler yüklenemedi:', betsResponse.error);
+                else bets = betsResponse.data;
 
-                if (platformsResponse.error) {
-                    console.error('Platformlar yüklenemedi:', platformsResponse.error);
-                    showNotification('Platform verileri yüklenemedi.', 'error');
-                } else {
-                    customPlatforms = platformsResponse.data;
-                }
+                if (platformsResponse.error) console.error('Platformlar yüklenemedi:', platformsResponse.error);
+                else customPlatforms = platformsResponse.data;
                 
-                if (sponsorsResponse.error) {
-                    console.error('Sponsorlar yüklenemedi:', sponsorsResponse.error);
-                    showNotification('Sponsor verileri yüklenemedi.', 'error');
-                } else {
-                    sponsors = sponsorsResponse.data;
-                }
+                if (sponsorsResponse.error) console.error('Sponsorlar yüklenemedi:', sponsorsResponse.error);
+                else sponsors = sponsorsResponse.data;
+
+                if (adsResponse.error) console.error('Reklamlar yüklenemedi:', adsResponse.error); // YENİ
+                else ads = adsResponse.data;
             }
 
 
@@ -1562,7 +1591,9 @@
                 populatePlatformOptions();
                 renderCustomPlatforms();
                 renderSponsorsPage(); 
-                renderSponsorManagementList(); 
+                renderSponsorManagementList();
+                renderAdManagementList(); // YENİ
+                renderDashboardBannerAd(); // YENİ
                 updateAllStatsAndRenders();
             }
             
@@ -1612,6 +1643,8 @@
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
                 sponsorForm.addEventListener('submit', handleSponsorFormSubmit);
+                adForm.addEventListener('submit', handleAdFormSubmit); // YENİ
+                closeAdPopupBtn.addEventListener('click', () => adPopupModal.classList.add('hidden')); // YENİ
                 
                 document.getElementById('edit-status').addEventListener('change', () => {
                     const status = document.getElementById('edit-status').value;
@@ -1640,9 +1673,58 @@
 
             // ============== DATA MANIPULATION (CRUD) ==============
 
+            async function handleAdFormSubmit(e) {
+                e.preventDefault();
+                if (currentUser.id !== ADMIN_USER_ID) {
+                    showNotification('Bu işlem için yetkiniz yok.', 'error');
+                    return;
+                }
+                const image_url = document.getElementById('ad-image-url').value;
+                const target_url = document.getElementById('ad-target-url').value;
+                const location = document.getElementById('ad-location').value;
+
+                if (!image_url || !target_url || !location) {
+                    showNotification('Lütfen tüm reklam alanlarını doldurun.', 'warning');
+                    return;
+                }
+
+                const { data, error } = await _supabase
+                    .from('ads')
+                    .insert({ image_url, target_url, location, user_id: ADMIN_USER_ID })
+                    .select();
+                
+                if (error) {
+                    showNotification('Reklam eklenirken hata oluştu.', 'error');
+                } else {
+                    ads.unshift(data[0]);
+                    renderAdManagementList();
+                    renderDashboardBannerAd();
+                    adForm.reset();
+                    showNotification(`📢 Yeni reklam eklendi!`, 'success');
+                }
+            }
+
+            async function deleteAd(id) {
+                if (currentUser.id !== ADMIN_USER_ID) {
+                    showNotification('Bu işlem için yetkiniz yok.', 'error');
+                    return;
+                }
+                if (confirm(`Bu reklamı silmek istediğinizden emin misiniz?`)) {
+                    const { error } = await _supabase.from('ads').delete().eq('id', id);
+
+                    if (error) {
+                        showNotification('Reklam silinirken hata oluştu.', 'error');
+                    } else {
+                        ads = ads.filter(ad => ad.id !== id);
+                        renderAdManagementList();
+                        renderDashboardBannerAd();
+                        showNotification(`Reklam silindi.`, 'error');
+                    }
+                }
+            }
+
             async function handleSponsorFormSubmit(e) {
                 e.preventDefault();
-                // GÜNCELLEME: Sadece adminin ekleyebilmesi için kontrol
                 if (currentUser.id !== ADMIN_USER_ID) {
                     showNotification('Bu işlem için yetkiniz yok.', 'error');
                     return;
@@ -1656,7 +1738,6 @@
                     return;
                 }
                 
-                // GÜNCELLEME: Ekleyen kişinin user_id'si yerine her zaman adminin id'si kullanılır
                 const { data, error } = await _supabase
                     .from('sponsors')
                     .insert({ name, logo_url, target_url, user_id: ADMIN_USER_ID })
@@ -1675,7 +1756,6 @@
             }
 
             async function deleteSponsor(id, name) {
-                 // GÜNCELLEME: Sadece adminin silebilmesi için kontrol
                 if (currentUser.id !== ADMIN_USER_ID) {
                     showNotification('Bu işlem için yetkiniz yok.', 'error');
                     return;
@@ -2010,7 +2090,6 @@
                 `).join('');
             }
 
-            // YENİ: Sponsorları kullanıcı sayfasında render et
             function renderSponsorsPage() {
                 if (!sponsorsGridContainer) return;
                 if (sponsors.length === 0) {
@@ -2027,7 +2106,6 @@
                 `).join('');
             }
 
-            // YENİ: Sponsorları yönetim panelinde listele
             function renderSponsorManagementList() {
                 if (!sponsorsListContainer) return;
                 if (sponsors.length === 0) {
@@ -2048,6 +2126,52 @@
                 `).join('');
             }
 
+            function renderAdManagementList() {
+                if (!adsListContainer) return;
+                if (ads.length === 0) {
+                    adsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz reklam eklenmemiş.</p>';
+                    return;
+                }
+                adsListContainer.innerHTML = ads.map(ad => `
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <img src="${ad.image_url}" class="w-16 h-10 object-cover rounded-md">
+                            <div>
+                                <p class="text-white font-semibold">${ad.location === 'login_popup' ? 'Giriş Pop-up' : 'Ana Panel Banner'}</p>
+                                <a href="${ad.target_url}" target="_blank" class="text-xs text-blue-400 hover:underline">${ad.target_url}</a>
+                            </div>
+                        </div>
+                        <button onclick="deleteAd(${ad.id})" class="text-red-400 hover:text-red-300 text-xl px-2 py-1 rounded">🗑️</button>
+                    </div>
+                `).join('');
+            }
+
+            function renderDashboardBannerAd() {
+                if (!dashboardAdBanner) return;
+                const bannerAd = ads.find(ad => ad.location === 'dashboard_banner');
+                if (bannerAd) {
+                    dashboardAdBanner.innerHTML = `
+                        <a href="${bannerAd.target_url}" target="_blank" rel="noopener noreferrer">
+                            <img src="${bannerAd.image_url}" alt="Reklam" class="rounded-2xl w-full object-cover">
+                        </a>
+                    `;
+                    dashboardAdBanner.style.display = 'block';
+                } else {
+                    dashboardAdBanner.innerHTML = '';
+                    dashboardAdBanner.style.display = 'none';
+                }
+            }
+
+            function showLoginAdPopup() {
+                const popupAd = ads.find(ad => ad.location === 'login_popup');
+                if (popupAd) {
+                    document.getElementById('ad-popup-image').src = popupAd.image_url;
+                    document.getElementById('ad-popup-link').href = popupAd.target_url;
+                    adPopupModal.classList.remove('hidden');
+                    adPopupModal.classList.add('flex');
+                }
+            }
+
             function openPlatformManager() {
                 document.getElementById('platform-manager-modal')?.classList.remove('hidden');
                 document.getElementById('platform-manager-modal')?.classList.add('flex');
@@ -2061,7 +2185,7 @@
             function closeQuickAddModal() { const modal = document.getElementById('quick-add-modal'); modal?.classList.add('hidden'); modal?.classList.remove('flex'); document.getElementById('quick-add-form')?.reset(); removeImage('quick'); }
             function openImportModal() { showNotification("Bu özellik Supabase entegrasyonu ile devre dışı bırakılmıştır.", "info"); }
             function exportData() {
-                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) }; // Sponsors are global, not exported per user
+                const dataToExport = { bets, customPlatforms: customPlatforms.map(p => p.name) };
                 const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2371,13 +2495,16 @@
             window.showImageModal = showImageModal;
             window.changePage = changePage;
             window.changeCashPage = changeCashPage;
-            window.removeCustomPlatform = removeCustomPlatform; // Make it globally accessible for onclick
-            window.deleteSponsor = deleteSponsor; // Make it globally accessible for onclick
+            window.removeCustomPlatform = removeCustomPlatform;
+            window.deleteSponsor = deleteSponsor;
+            window.deleteAd = deleteAd; // YENİ
 
         })();
     </script>
 </body>
 
 </html>
+```
 
+---
 

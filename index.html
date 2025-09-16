@@ -64,6 +64,9 @@
             border-right: 1px solid var(--glass-border);
             z-index: 1000;
             transition: all 0.3s ease;
+            /* YENİ: Kenar çubuğunu esnek bir konteyner yap */
+            display: flex;
+            flex-direction: column;
         }
         
         .sidebar.collapsed {
@@ -542,7 +545,7 @@
     
     <div id="password-reset-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
-            <h2 class="font-montserrat font-bold text-2xl gradient-text mb-6 text-center">Şifre Sıfırla</h2>
+            <h2 class="font-montserrat font-bold text-2xl gradient-text mb-6 text-center">Şifre Sıırla</h2>
             <p class="text-gray-400 text-center mb-6 text-sm">Hesabınıza ait e-posta adresini girin, size sıfırlama linki gönderelim.</p>
             <form id="password-reset-form" class="space-y-6">
                 <div>
@@ -557,7 +560,6 @@
         </div>
     </div>
 
-    <!-- YENİ: GİRİŞ REKLAM POP-UP'I -->
     <div id="ad-popup-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-[1001] p-4">
         <div class="glass-card rounded-2xl p-4 w-full max-w-md relative">
             <button id="close-ad-popup-btn" class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-lg font-bold z-10">&times;</button>
@@ -573,7 +575,7 @@
         </button>
 
         <div class="sidebar" id="sidebar">
-            <div class="p-6 border-b border-white border-opacity-10">
+            <div class="p-6 border-b border-white border-opacity-10 flex-shrink-0">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl">
                         🎯
@@ -585,7 +587,8 @@
                 </div>
             </div>
             
-            <nav class="mt-6">
+            <!-- DEĞİŞİKLİK: Menü artık esnek ve kaydırılabilir -->
+            <nav class="mt-6 flex-grow overflow-y-auto">
                 <div class="sidebar-item active" data-section="dashboard">
                     <span class="sidebar-icon">🏠</span>
                     <span class="sidebar-text">Ana Panel</span>
@@ -620,7 +623,8 @@
                 </div>
             </nav>
             
-            <div class="absolute bottom-6 left-6 right-6">
+            <!-- DEĞİŞİKLİK: Alt bölüm artık sabit değil, akışın bir parçası -->
+            <div class="p-6 flex-shrink-0">
                  <button id="logout-btn" class="w-full sidebar-item justify-center mb-2 bg-red-800/80 hover:bg-red-700/80">
                     <span class="sidebar-icon">🚪</span>
                     <span class="sidebar-text">Çıkış Yap</span>
@@ -630,7 +634,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.4-ads</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.5-mobile-fix</p>
                 </div>
             </div>
         </div>
@@ -737,7 +741,6 @@
                     </div>
                 </div>
 
-                <!-- YENİ: ANA PANEL BANNER REKLAM ALANI -->
                 <div id="dashboard-ad-banner" class="mb-6"></div>
     
                 <div class="glass-card rounded-2xl p-6">
@@ -1157,7 +1160,6 @@
                         </div>
                     </div>
 
-                    <!-- YENİ: REKLAM YÖNETİM PANELİ -->
                      <div id="ad-management-panel" class="glass-card rounded-2xl p-6 md:col-span-3" style="display: none;">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📢 Reklam Yönetimi (Admin)</h3>
                         <form id="ad-form" class="space-y-4 mb-6">
@@ -1396,7 +1398,6 @@
             const sponsorsListContainer = document.getElementById('sponsors-list');
             const sponsorsGridContainer = document.getElementById('sponsors-grid');
             const sponsorManagementPanel = document.getElementById('sponsor-management-panel');
-            // YENİ: Reklam Elemanları
             const adManagementPanel = document.getElementById('ad-management-panel');
             const adForm = document.getElementById('ad-form');
             const adsListContainer = document.getElementById('ads-list');
@@ -1410,7 +1411,7 @@
             let bets = [];
             let customPlatforms = [];
             let sponsors = [];
-            let ads = []; // YENİ
+            let ads = [];
             let editingBetId = null;
             let currentImageData = null;
             let quickImageData = null;
@@ -1559,7 +1560,7 @@
                 await loadData();
                 initializeUI();
                 showWelcomeNotification();
-                showLoginAdPopup(); // Reklamı göster
+                showLoginAdPopup();
             }
 
             async function loadData() {
@@ -1569,7 +1570,7 @@
                     _supabase.from('bets').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
                     _supabase.from('platforms').select('id, name').eq('user_id', currentUser.id),
                     _supabase.from('sponsors').select('*').order('created_at', { ascending: false }),
-                    _supabase.from('ads').select('*').order('created_at', { ascending: false }) // YENİ
+                    _supabase.from('ads').select('*').order('created_at', { ascending: false })
                 ]);
 
                 if (betsResponse.error) console.error('Bahisler yüklenemedi:', betsResponse.error);
@@ -1581,7 +1582,7 @@
                 if (sponsorsResponse.error) console.error('Sponsorlar yüklenemedi:', sponsorsResponse.error);
                 else sponsors = sponsorsResponse.data;
 
-                if (adsResponse.error) console.error('Reklamlar yüklenemedi:', adsResponse.error); // YENİ
+                if (adsResponse.error) console.error('Reklamlar yüklenemedi:', adsResponse.error);
                 else ads = adsResponse.data;
             }
 
@@ -1592,8 +1593,8 @@
                 renderCustomPlatforms();
                 renderSponsorsPage(); 
                 renderSponsorManagementList();
-                renderAdManagementList(); // YENİ
-                renderDashboardBannerAd(); // YENİ
+                renderAdManagementList();
+                renderDashboardBannerAd();
                 updateAllStatsAndRenders();
             }
             
@@ -1643,8 +1644,8 @@
                 document.getElementById('close-import-btn').addEventListener('click', closeImportModal);
                 document.getElementById('import-data-btn').addEventListener('click', importData);
                 sponsorForm.addEventListener('submit', handleSponsorFormSubmit);
-                adForm.addEventListener('submit', handleAdFormSubmit); // YENİ
-                closeAdPopupBtn.addEventListener('click', () => adPopupModal.classList.add('hidden')); // YENİ
+                adForm.addEventListener('submit', handleAdFormSubmit);
+                closeAdPopupBtn.addEventListener('click', () => adPopupModal.classList.add('hidden'));
                 
                 document.getElementById('edit-status').addEventListener('change', () => {
                     const status = document.getElementById('edit-status').value;
@@ -2497,14 +2498,12 @@
             window.changeCashPage = changeCashPage;
             window.removeCustomPlatform = removeCustomPlatform;
             window.deleteSponsor = deleteSponsor;
-            window.deleteAd = deleteAd; // YENİ
+            window.deleteAd = deleteAd;
 
         })();
     </script>
 </body>
 
 </html>
-```
 
----
 

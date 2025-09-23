@@ -29,6 +29,8 @@
     const adPopupModal = document.getElementById('ad-popup-modal');
     const closeAdPopupBtn = document.getElementById('close-ad-popup-btn');
     const dashboardAdBanner = document.getElementById('dashboard-ad-banner');
+    // NEW: Account Settings Form
+    const accountSettingsForm = document.getElementById('account-settings-form');
 
 
     // ============== APPLICATION STATE ==============
@@ -128,6 +130,44 @@
             passwordResetModal.classList.remove('flex');
         }
     };
+
+    // NEW: Handle Password Update
+    async function handleUpdatePassword(e) {
+        e.preventDefault();
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const updateButton = document.getElementById('update-password-btn');
+
+        if (!newPassword || !confirmPassword) {
+            showNotification('Lütfen tüm şifre alanlarını doldurun.', 'warning');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showNotification('Yeni şifre en az 6 karakter olmalıdır.', 'warning');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showNotification('Şifreler uyuşmuyor.', 'error');
+            return;
+        }
+
+        updateButton.disabled = true;
+        updateButton.textContent = 'Güncelleniyor...';
+
+        const { data, error } = await _supabase.auth.updateUser({ password: newPassword });
+
+        if (error) {
+            showNotification(`Hata: ${error.message}`, 'error');
+        } else {
+            showNotification('Şifreniz başarıyla güncellendi!', 'success');
+            accountSettingsForm.reset();
+        }
+        
+        updateButton.disabled = false;
+        updateButton.textContent = 'Şifreyi Güncelle';
+    }
     
     // ============== APP INITIALIZATION ==============
     
@@ -290,6 +330,8 @@
         document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
         document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
         document.getElementById('image-modal').addEventListener('click', closeImageModal);
+        // NEW: Event listener for account settings
+        accountSettingsForm.addEventListener('submit', handleUpdatePassword);
         setupImageUpload('main');
         setupImageUpload('quick');
         setupKeyboardShortcuts();
@@ -1125,3 +1167,4 @@
     window.deleteAd = deleteAd;
 
 })();
+

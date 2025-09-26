@@ -1,4 +1,3 @@
-
 // Bu dosyanın adı: /api/analyze.js
 // Bu kod, Vercel sunucusunda çalışır ve API anahtarınızı gizli tutar.
 
@@ -22,11 +21,11 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    // Model versiyonu "gemini-1.5-flash-latest" olarak kullanılıyor.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // HATA DÜZELTMESİ: Model, daha kararlı olan 'gemini-pro-vision' olarak değiştirildi.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
 
-    // HIZLANDIRILMIŞ VE BASİTLEŞTİRİLMİŞ TALİMAT: Sadece veri çıkar.
-    const prompt = `
+    // HATA DÜZELTMESİ: gemini-pro-vision modeliyle daha uyumlu bir talimat (prompt) hazırlandı.
+     const prompt = `
       Bu bahis kuponu resmini analiz et ve SADECE aşağıdaki bilgileri içeren bir JSON objesi döndür:
       1. 'description': Kupondaki tüm maçları ve bahisleri içeren tek bir metin.
       2. 'betAmount': Kupondaki toplam bahis miktarını içeren bir sayı.
@@ -41,17 +40,7 @@ export default async function handler(request, response) {
           { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }
         ]
       }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            "description": { "type": "STRING" },
-            "betAmount": { "type": "NUMBER" },
-            "odds": { "type": "NUMBER" }
-          }
-        }
-      }
+      // Not: generationConfig, gemini-pro-vision için kaldırıldı ve prompt içine eklendi.
     };
 
     // Google Gemini API'sine güvenli isteği gönder
@@ -68,7 +57,17 @@ export default async function handler(request, response) {
     }
 
     const result = await geminiResponse.json();
-    const jsonText = result.candidates[0].content.parts[0].text;
+    
+    // HATA DÜZELTMESİ: Cevap metninin içindeki JSON'u ayıklamak için yeni mantık eklendi.
+    const rawText = result.candidates[0].content.parts[0].text;
+    const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
+
+    if (!jsonMatch || !jsonMatch[1]) {
+        console.error("API'den gelen cevapta JSON bulunamadı:", rawText);
+        throw new Error("API'den gelen cevap ayrıştırılamadı.");
+    }
+    
+    const jsonText = jsonMatch[1];
     
     // Sonucu sitenize geri gönder
     response.status(200).json(JSON.parse(jsonText));
@@ -78,3 +77,4 @@ export default async function handler(request, response) {
     response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
+

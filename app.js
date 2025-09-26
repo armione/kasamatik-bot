@@ -1,3 +1,6 @@
+// Bu dosyanın adı: app.js
+// Bu kod, tarayıcıda çalışır ve uygulamanın tüm mantığını içerir.
+
 (function() {
     // ============== SUPABASE SETUP ==============
     const SUPABASE_URL = 'https://huaelrdjrcoljkkprewz.supabase.co';
@@ -29,8 +32,7 @@
     const adPopupModal = document.getElementById('ad-popup-modal');
     const closeAdPopupBtn = document.getElementById('close-ad-popup-btn');
     const dashboardAdBanner = document.getElementById('dashboard-ad-banner');
-    // NEW: Account Settings Form
-    const accountSettingsForm = document.getElementById('account-settings-form');
+    const updatePasswordForm = document.getElementById('update-password-form');
 
 
     // ============== APPLICATION STATE ==============
@@ -131,43 +133,15 @@
         }
     };
 
-    // NEW: Handle Password Update
-    async function handleUpdatePassword(e) {
-        e.preventDefault();
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const updateButton = document.getElementById('update-password-btn');
-
-        if (!newPassword || !confirmPassword) {
-            showNotification('Lütfen tüm şifre alanlarını doldurun.', 'warning');
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            showNotification('Yeni şifre en az 6 karakter olmalıdır.', 'warning');
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            showNotification('Şifreler uyuşmuyor.', 'error');
-            return;
-        }
-
-        updateButton.disabled = true;
-        updateButton.textContent = 'Güncelleniyor...';
-
+    const handlePasswordUpdate = async (newPassword) => {
         const { data, error } = await _supabase.auth.updateUser({ password: newPassword });
-
         if (error) {
-            showNotification(`Hata: ${error.message}`, 'error');
+            showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
         } else {
             showNotification('Şifreniz başarıyla güncellendi!', 'success');
-            accountSettingsForm.reset();
+            updatePasswordForm.reset();
         }
-        
-        updateButton.disabled = false;
-        updateButton.textContent = 'Şifreyi Güncelle';
-    }
+    };
     
     // ============== APP INITIALIZATION ==============
     
@@ -175,12 +149,7 @@
         if (event === 'PASSWORD_RECOVERY') {
             const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
             if (newPassword && newPassword.length >= 6) {
-                const { data, error } = await _supabase.auth.updateUser({ password: newPassword });
-                if (error) {
-                    showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
-                } else {
-                    showNotification('Şifreniz başarıyla güncellendi!', 'success');
-                }
+                await handlePasswordUpdate(newPassword);
             } else if (newPassword) {
                  showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
             }
@@ -268,7 +237,7 @@
         renderHistory();
         renderRecentBets();
         renderCashHistory();
-         if (currentSection === 'statistics' && document.getElementById('profitChart').offsetParent !== null) {
+         if (currentSection === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
             updateCharts();
         }
     }
@@ -311,6 +280,24 @@
         adForm.addEventListener('submit', handleAdFormSubmit);
         closeAdPopupBtn.addEventListener('click', () => adPopupModal.classList.add('hidden'));
         
+        updatePasswordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword.length < 6) {
+                showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotification('Şifreler eşleşmiyor.', 'error');
+                return;
+            }
+
+            handlePasswordUpdate(newPassword);
+        });
+
         document.getElementById('edit-status').addEventListener('change', () => {
             const status = document.getElementById('edit-status').value;
             const winAmountSection = document.getElementById('win-amount-section');
@@ -330,8 +317,6 @@
         document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
         document.getElementById('close-edit-btn').addEventListener('click', closeEditModal);
         document.getElementById('image-modal').addEventListener('click', closeImageModal);
-        // NEW: Event listener for account settings
-        accountSettingsForm.addEventListener('submit', handleUpdatePassword);
         setupImageUpload('main');
         setupImageUpload('quick');
         setupKeyboardShortcuts();
@@ -676,7 +661,9 @@
     
     function showWelcomeNotification() {
          setTimeout(() => {
-            showNotification(`🚀 Hoş geldin ${currentUser.email}!`, 'success');
+            if(currentUser) {
+                showNotification(`🚀 Hoş geldin ${currentUser.email}!`, 'success');
+            }
         }, 1000);
     }
     
@@ -697,7 +684,7 @@
         clickedElement?.classList.add('active');
         currentSection = sectionName;
         document.getElementById('sidebar').classList.remove('mobile-open');
-        if (sectionName === 'statistics' && document.getElementById('profitChart').offsetParent !== null) {
+        if (sectionName === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
             updateCharts();
         }
     }
@@ -1005,12 +992,15 @@
 
     function updateCharts() {
         const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-        const profitCtx = document.getElementById('profitChart').getContext('2d');
+        const profitCtx = document.getElementById('profitChart')?.getContext('2d');
+        if (!profitCtx) return;
         let cumulativeProfit = 0;
         const profitData = [...actualBets].reverse().map(bet => { cumulativeProfit += bet.profit_loss; return cumulativeProfit; });
         if (window.profitChart instanceof Chart) { window.profitChart.destroy(); }
         window.profitChart = new Chart(profitCtx, { type: 'line', data: { labels: actualBets.map((b, i) => `Bahis ${i + 1}`), datasets: [{ label: 'Kümülatif Kar/Zarar', data: profitData, borderColor: 'rgba(139, 179, 240, 0.8)', backgroundColor: 'rgba(139, 179, 240, 0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: 'rgba(255,255,255,0.7)' } }, x: { ticks: { color: 'rgba(255,255,255,0.7)' } } } } });
-        const platformCtx = document.getElementById('platformChart').getContext('2d');
+        
+        const platformCtx = document.getElementById('platformChart')?.getContext('2d');
+        if (!platformCtx) return;
         const platformCounts = actualBets.reduce((acc, bet) => { acc[bet.platform] = (acc[bet.platform] || 0) + 1; return acc; }, {});
         if (window.platformChart instanceof Chart) { window.platformChart.destroy(); }
         window.platformChart = new Chart(platformCtx, { type: 'doughnut', data: { labels: Object.keys(platformCounts), datasets: [{ label: 'Platformlara Göre Bahis Sayısı', data: Object.values(platformCounts), backgroundColor: ['#8db3f0', '#6366f1', '#10b981', '#ef4444', '#f59e0b', '#a855f7'], borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false } });
@@ -1123,7 +1113,15 @@
             const base64Data = currentImageData.split(',')[1];
             const result = await callGeminiApi(base64Data);
             if (result) {
-                if (result.description) document.getElementById('description').value = result.description;
+                // YENİ GÖREV: Gelen yapısal veriyi işle ve description alanına yaz.
+                if (result.matches && Array.isArray(result.matches)) {
+                    const descriptionText = result.matches.map(match => {
+                        const betsText = match.bets.join(', ');
+                        return `${match.matchName}: ${betsText}`;
+                    }).join('\n');
+                    document.getElementById('description').value = descriptionText;
+                }
+                
                 if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
                 if (result.odds) document.getElementById('odds').value = result.odds;
                 showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');

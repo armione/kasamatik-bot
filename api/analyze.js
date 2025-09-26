@@ -21,13 +21,13 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    // GÜNCELLEME: Model, en güncel kararlı sürüm olan 'gemini-2.5-flash' olarak değiştirildi.
+    // Model, en güncel kararlı sürüm olan 'gemini-2.5-flash' olarak ayarlandı.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    // Modele ne yapacağını basit metinle anlatan, kararlı bir prompt.
+    // YENİ GÖREV: Seçenek 3'e uygun olarak, çok daha detaylı bir JSON yapısı istiyoruz.
     const prompt = `
       Bu bahis kuponu resmini analiz et. Cevap olarak SADECE ve SADECE bir markdown kod bloğu içinde aşağıdaki bilgileri içeren bir JSON objesi döndür:
-      1. 'description': Kupondaki tüm maçları ve bahisleri içeren tek bir metin.
+      1. 'matches': Her biri 'matchName' (string) ve 'bets' (o maça ait bahislerin string listesi/array'i) anahtarlarını içeren objelerden oluşan bir LİSTE.
       2. 'betAmount': Kupondaki toplam bahis miktarını içeren bir sayı.
       3. 'odds': Kupondaki toplam oranı içeren bir sayı.
       Eğer bir bilgiyi bulamazsan değeri null olsun. JSON kod bloğu dışında KESİNLİKLE hiçbir açıklama, selamlama veya ek metin yazma.
@@ -40,7 +40,6 @@ export default async function handler(request, response) {
           { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }
         ]
       }],
-      // Hata potansiyeli taşıyan "generationConfig" ayarı tamamen kaldırıldı.
     };
 
     // Google Gemini API'sine güvenli isteği gönder

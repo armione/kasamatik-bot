@@ -21,10 +21,10 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    // FİNAL DÜZELTME: En uyumlu ve maliyet-etkin olan 'gemini-1.5-flash-latest' modeline geri dönüldü.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // GÜNCELLEME: Model, en güncel kararlı sürüm olan 'gemini-2.5-flash' olarak değiştirildi.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    // FİNAL DÜZELTME: Modele ne yapacağını basit metinle anlatan, daha kararlı bir prompt.
+    // Modele ne yapacağını basit metinle anlatan, kararlı bir prompt.
     const prompt = `
       Bu bahis kuponu resmini analiz et. Cevap olarak SADECE ve SADECE bir markdown kod bloğu içinde aşağıdaki bilgileri içeren bir JSON objesi döndür:
       1. 'description': Kupondaki tüm maçları ve bahisleri içeren tek bir metin.
@@ -40,7 +40,7 @@ export default async function handler(request, response) {
           { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }
         ]
       }],
-      // FİNAL DÜZELTME: Hata potansiyeli taşıyan "generationConfig" ayarı tamamen kaldırıldı.
+      // Hata potansiyeli taşıyan "generationConfig" ayarı tamamen kaldırıldı.
     };
 
     // Google Gemini API'sine güvenli isteği gönder

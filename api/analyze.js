@@ -21,16 +21,16 @@ export default async function handler(request, response) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }
     
-    // HATA DÜZELTMESİ: Model, daha kararlı olan 'gemini-pro-vision' olarak değiştirildi.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
+    // FİNAL DÜZELTME: En uyumlu ve maliyet-etkin olan 'gemini-1.5-flash-latest' modeline geri dönüldü.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    // HATA DÜZELTMESİ: gemini-pro-vision modeliyle daha uyumlu bir talimat (prompt) hazırlandı.
-     const prompt = `
-      Bu bahis kuponu resmini analiz et ve SADECE aşağıdaki bilgileri içeren bir JSON objesi döndür:
+    // FİNAL DÜZELTME: Modele ne yapacağını basit metinle anlatan, daha kararlı bir prompt.
+    const prompt = `
+      Bu bahis kuponu resmini analiz et. Cevap olarak SADECE ve SADECE bir markdown kod bloğu içinde aşağıdaki bilgileri içeren bir JSON objesi döndür:
       1. 'description': Kupondaki tüm maçları ve bahisleri içeren tek bir metin.
       2. 'betAmount': Kupondaki toplam bahis miktarını içeren bir sayı.
       3. 'odds': Kupondaki toplam oranı içeren bir sayı.
-      Bir bilgiyi bulamazsan değeri null olsun. Ekstra açıklama veya metin ekleme.
+      Eğer bir bilgiyi bulamazsan değeri null olsun. JSON kod bloğu dışında KESİNLİKLE hiçbir açıklama, selamlama veya ek metin yazma.
     `;
 
     const payload = {
@@ -40,7 +40,7 @@ export default async function handler(request, response) {
           { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }
         ]
       }],
-      // Not: generationConfig, gemini-pro-vision için kaldırıldı ve prompt içine eklendi.
+      // FİNAL DÜZELTME: Hata potansiyeli taşıyan "generationConfig" ayarı tamamen kaldırıldı.
     };
 
     // Google Gemini API'sine güvenli isteği gönder
@@ -58,7 +58,7 @@ export default async function handler(request, response) {
 
     const result = await geminiResponse.json();
     
-    // HATA DÜZELTMESİ: Cevap metninin içindeki JSON'u ayıklamak için yeni mantık eklendi.
+    // Cevap metninin içindeki JSON'u ayıklamak için kullanılan mantık.
     const rawText = result.candidates[0].content.parts[0].text;
     const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
 

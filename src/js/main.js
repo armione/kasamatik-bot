@@ -4,7 +4,8 @@ import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
-import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd } from './components/dashboard.js';
+// GÜNCELLEME: initializeVisitorCounter içe aktarıldı
+import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
 import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels } from './components/ui_helpers.js';
@@ -24,10 +25,9 @@ onAuthStateChange(session => {
     } else {
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
-        // Reset state if needed
         updateState({
             bets: [], customPlatforms: [], sponsors: [], ads: [],
-            listenersAttached: false // Allow re-attaching listeners on next login
+            listenersAttached: false
         });
     }
 });
@@ -36,28 +36,21 @@ onAuthStateChange(session => {
 async function initializeApp() {
     if (!state.currentUser) return;
 
-    // Arayüzü kullanıcının kimliğine göre ayarla
     setupUserInterface();
     
-    // Veritabanından tüm verileri çek
     const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
     setBets(bets);
     setCustomPlatforms(platforms);
     setSponsors(sponsors);
     setAds(ads);
 
-    // Olay dinleyicilerini sadece bir kere kur
     setupEventListeners();
-
-    // Tüm arayüzü en güncel verilerle doldur
     initializeUI();
 
-    // Hoş geldin bildirimi ve reklamları göster
     showWelcomeNotification();
     showLoginAdPopup();
 }
 
-// Kullanıcıya özel arayüz elemanlarını ayarlar
 function setupUserInterface() {
     DOM.userEmailDisplay.textContent = state.currentUser.email;
     const isAdmin = state.currentUser.id === ADMIN_USER_ID;
@@ -65,7 +58,6 @@ function setupUserInterface() {
     DOM.adManagementPanel.style.display = isAdmin ? 'block' : 'none';
 }
 
-// Tüm arayüzü ilk kez doldurur
 function initializeUI() {
     document.getElementById('bet-date').value = getTodaysDate();
     populatePlatformOptions();
@@ -75,10 +67,11 @@ function initializeUI() {
     if (state.currentUser.id === ADMIN_USER_ID) {
         renderAdminPanels();
     }
+    // GÜNCELLEME: Ziyaretçi sayacı burada başlatılıyor
+    initializeVisitorCounter();
     updateAllUI();
 }
 
-// Veri değiştiğinde tüm arayüzü günceller
 export function updateAllUI() {
     updateDashboardStats();
     updateStatisticsPage();

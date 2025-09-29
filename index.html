@@ -22,7 +22,7 @@
     <div id="auth-container">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
             <div class="text-center mb-8">
-                <h1 class="font-montserrat font-bold text-3xl gradient-text">Kasamatik</h1>
+                <img src="assets/logo.png" alt="Kasamatik Logo" class="mx-auto h-16 w-auto mb-4">
                 <p class="text-gray-400">Akıllı Bahis Takibi</p>
             </div>
             <form id="auth-form" class="space-y-6">
@@ -85,11 +85,8 @@
         <div class="sidebar" id="sidebar">
             <div class="p-6 border-b border-white border-opacity-10 flex-shrink-0">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl">
-                        🎯
-                    </div>
+                    <img src="assets/logo.png" alt="Kasamatik Logo" class="h-10 w-auto">
                     <div class="sidebar-text">
-                        <h2 class="font-montserrat font-bold text-lg gradient-text">Kasamatik</h2>
                         <p class="text-xs text-gray-400" id="user-email-display"></p>
                     </div>
                 </div>
@@ -140,7 +137,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.5-refactor</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.6</p>
                 </div>
             </div>
         </div>
@@ -208,6 +205,21 @@
                             </div>
                         </div>
                         <div class="text-xs text-gray-400">Bahis sayısı</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-xl">
+                                    👀
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-300 font-medium text-sm">Anlık Ziyaretçi</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-white" id="visitor-counter">1257</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">Sitemizdeki aktif kullanıcı sayısı</div>
                     </div>
                 </div>
     

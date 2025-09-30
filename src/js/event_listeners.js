@@ -1,8 +1,8 @@
 import { state, updateState } from './state.js';
-import { DOM } from './utils/constants.js';
+import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // DEFAULT_PLATFORMS eklendi
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
-import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSponsor, deleteSponsor, addAd, deleteAd } from './api/database.js';
+import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js'; // Admin fonksiyonları kaldırıldı çünkü burada kullanılmıyor
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage } from './components/history.js';
@@ -279,6 +279,9 @@ async function handleClearAllDataAttempt() {
     }
 }
 
+// ==========================================================
+// ===== BAHİS AÇIKLAMASI SORUNUNU ÇÖZEN GÜNCELLEME =====
+// ==========================================================
 async function analyzeBetSlipAttempt() {
     if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
@@ -294,16 +297,24 @@ async function analyzeBetSlipAttempt() {
         const base64Data = state.currentImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
-            if (result.description) document.getElementById('description').value = result.description;
+            // GÜNCELLEME: 'matches' dizisini işleyip 'description' oluşturuyoruz
+            if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
+                const descriptionText = result.matches
+                    .map(match => `${match.matchName} (${match.bets.join(', ')})`)
+                    .join(' / ');
+                document.getElementById('description').value = descriptionText;
+            }
+
             if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
             if (result.odds) document.getElementById('odds').value = result.odds;
+            
             showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
         } else {
             throw new Error("API'den geçerli bir sonuç alınamadı.");
         }
     } catch (error) {
-        console.error('Gemini API Error:', error);
-        showNotification('Kupon okunurken bir hata oluştu.', 'error');
+        console.error('Gemini API Hatası:', error);
+        showNotification('Kupon okunurken bir hata oluştu. Lütfen API anahtarınızı kontrol edin.', 'error');
     } finally {
         geminiButton.disabled = false;
         buttonText.textContent = 'Kuponu Oku';
@@ -312,7 +323,6 @@ async function analyzeBetSlipAttempt() {
 }
 
 // EVENT LISTENER SETUP
-
 export function setupEventListeners() {
     if (state.listenersAttached) return;
 

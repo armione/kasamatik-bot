@@ -325,8 +325,6 @@ export function setupAuthEventListeners() {
 }
 
 export function setupEventListeners() {
-    if (state.listenersAttached) return;
-
     // Tarihçe Filtreleme Dinleyicileri
     const historyFilters = [
         document.getElementById('start-date-filter'), document.getElementById('end-date-filter'),
@@ -337,6 +335,9 @@ export function setupEventListeners() {
         if(filter) {
             const eventType = filter.id === 'search-filter' ? 'keyup' : 'change';
             filter.addEventListener(eventType, () => {
+                if (filter.id === 'platform-filter') {
+                    updateState({ historyPlatformFilter: filter.value });
+                }
                 updateState({ currentPage: 1 });
                 renderHistory();
             });
@@ -462,8 +463,6 @@ export function setupEventListeners() {
     document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransactionAttempt('deposit'));
     document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
     document.getElementById('close-ad-popup-btn').addEventListener('click', Modals.closeAdPopup);
-
-    updateState({ listenersAttached: true });
 }
 
 function setDateFilter(range) {

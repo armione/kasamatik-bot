@@ -14,17 +14,7 @@ export const state = {
     currentSection: 'dashboard',
     currentPage: 1,
     cashCurrentPage: 1,
-    listenersAttached: false,
-    appInitialized: false,
-
-    // Filtre durumları
-    historyStartDate: '',
-    historyEndDate: '',
-    historyPlatform: 'all',
-    historyStatus: 'all',
-    historySearch: '',
-    statsStartDate: '',
-    statsEndDate: '',
+    listenersAttached: false
 };
 
 // State'i güncellemek için yardımcı fonksiyonlar

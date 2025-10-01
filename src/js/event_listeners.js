@@ -2,13 +2,12 @@ import { state, updateState } from './state.js';
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
-import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSponsor, deleteSponsor, addAd, deleteAd } from './api/database.js';
+import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
-import { renderHistory, changeBetPage, changeCashPage } from './components/history.js';
-import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderAdminPanels } from './components/ui_helpers.js';
+import { changeBetPage, changeCashPage } from './components/history.js';
+import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
-import { renderStatistics } from './components/statistics.js';
 
 // HANDLER FUNCTIONS
 async function handleLoginAttempt() {
@@ -138,37 +137,35 @@ async function handleQuickAddSubmitAttempt(e) {
 }
 
 async function handleSaveEditAttempt() {
-    const bet = state.currentlyEditingBet;
+    const bet = state.bets.find(b => b.id === state.editingBetId);
     if (!bet) return;
 
     const status = document.getElementById('edit-status').value;
     const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
     
     let updateData = { status: status };
-
     if (status === 'won') {
         updateData.win_amount = winAmount;
         updateData.profit_loss = winAmount - bet.bet_amount;
     } else if (status === 'lost') {
         updateData.win_amount = 0;
         updateData.profit_loss = -bet.bet_amount;
-    } else { // pending
+    } else {
         updateData.win_amount = 0;
         updateData.profit_loss = 0;
     }
 
     const { data, error } = await updateBet(state.editingBetId, updateData);
     if (error) {
-        showNotification('Bahis güncellenemedi: ' + error.message, 'error');
+        showNotification('Bahis güncellenemedi.', 'error');
     } else {
         const index = state.bets.findIndex(b => b.id === state.editingBetId);
         if (index !== -1) state.bets[index] = data[0];
         updateAllUI();
         Modals.closeEditModal();
-        showNotification('✔️ Bahis başarıyla güncellendi!', 'info');
+        showNotification('✔️ Bahis güncellendi!', 'info');
     }
 }
-
 
 async function handleDeleteBetAttempt(betId) {
     if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
@@ -232,12 +229,12 @@ async function handleAddPlatformAttempt(fromModal = false) {
         } else {
             state.customPlatforms.push(data[0]);
             input.value = '';
-            populatePlatformOptions(); 
             if (fromModal) {
                 Modals.renderCustomPlatformsModal();
             } else {
                 renderCustomPlatforms();
             }
+            populatePlatformOptions();
             showNotification(`✅ ${name} platformu eklendi!`, 'success');
         }
     } else if (!name) {
@@ -254,9 +251,9 @@ async function handleRemovePlatformAttempt(platformId, platformName) {
             showNotification('Platform silinemedi.', 'error');
         } else {
             updateState({ customPlatforms: state.customPlatforms.filter(p => p.id !== platformId) });
-            populatePlatformOptions();
             renderCustomPlatforms();
             Modals.renderCustomPlatformsModal();
+            populatePlatformOptions();
             showNotification(`🗑️ ${platformName} platformu silindi`, 'error');
         }
     }
@@ -318,69 +315,6 @@ async function analyzeBetSlipAttempt() {
     }
 }
 
-async function handleSponsorFormSubmit(e) {
-    e.preventDefault();
-    const sponsorData = {
-        name: document.getElementById('sponsor-name').value,
-        logo_url: document.getElementById('sponsor-logo-url').value,
-        target_url: document.getElementById('sponsor-target-url').value,
-    };
-    const { data, error } = await addSponsor(sponsorData);
-    if (error) {
-        showNotification('Sponsor eklenemedi.', 'error');
-    } else {
-        state.sponsors.unshift(data[0]);
-        renderAdminPanels();
-        e.target.reset();
-        showNotification('Sponsor eklendi!', 'success');
-    }
-}
-
-async function handleDeleteSponsor(sponsorId) {
-    if (confirm('Bu sponsoru silmek istediğinizden emin misiniz?')) {
-        const { error } = await deleteSponsor(sponsorId);
-        if (error) {
-            showNotification('Sponsor silinemedi.', 'error');
-        } else {
-            updateState({ sponsors: state.sponsors.filter(s => s.id !== sponsorId) });
-            renderAdminPanels();
-            showNotification('Sponsor silindi.', 'info');
-        }
-    }
-}
-
-async function handleAdFormSubmit(e) {
-    e.preventDefault();
-    const adData = {
-        image_url: document.getElementById('ad-image-url').value,
-        target_url: document.getElementById('ad-target-url').value,
-        location: document.getElementById('ad-location').value,
-    };
-    const { data, error } = await addAd(adData);
-    if (error) {
-        showNotification('Reklam eklenemedi.', 'error');
-    } else {
-        state.ads.unshift(data[0]);
-        renderAdminPanels();
-        e.target.reset();
-        showNotification('Reklam eklendi!', 'success');
-    }
-}
-
-async function handleDeleteAd(adId) {
-    if (confirm('Bu reklamı silmek istediğinizden emin misiniz?')) {
-        const { error } = await deleteAd(adId);
-        if (error) {
-            showNotification('Reklam silinemedi.', 'error');
-        } else {
-            updateState({ ads: state.ads.filter(ad => ad.id !== adId) });
-            renderAdminPanels();
-            showNotification('Reklam silindi.', 'info');
-        }
-    }
-}
-
-
 export function setupAuthEventListeners() {
     DOM.loginBtn.addEventListener('click', handleLoginAttempt);
     DOM.signupBtn.addEventListener('click', handleSignUpAttempt);
@@ -392,46 +326,19 @@ export function setupAuthEventListeners() {
 export function setupEventListeners() {
     if (state.listenersAttached) return;
 
-    // Filtreleme Dinleyicileri
-    const filterInputs = {
-        'start-date-filter': 'historyStartDate',
-        'end-date-filter': 'historyEndDate',
-        'platform-filter': 'historyPlatform',
-        'status-filter': 'historyStatus',
-        'search-filter': 'historySearch'
-    };
-
-    Object.entries(filterInputs).forEach(([id, stateKey]) => {
-        const element = document.getElementById(id);
-        if (element) {
-            const eventType = id === 'search-filter' ? 'input' : 'change';
-            element.addEventListener(eventType, (e) => {
-                updateState({ [stateKey]: e.target.value, currentPage: 1 });
-                renderHistory();
-            });
-        }
-    });
-    
-    // Auth (Logout and Account Update)
-    DOM.logoutBtn.addEventListener('click', () => {
-        signOut();
-        updateState({ appInitialized: false });
-    });
+    DOM.logoutBtn.addEventListener('click', () => signOut());
     DOM.accountSettingsForm.addEventListener('submit', handleUpdatePasswordAttempt);
 
-    // Edit Modal Status Change
     document.getElementById('edit-status').addEventListener('change', (e) => {
         const status = e.target.value;
-        const winAmountSection = document.getElementById('edit-win-amount-section');
+        const winAmountSection = document.getElementById('win-amount-section');
         const winAmountInput = document.getElementById('edit-win-amount');
         const bet = state.currentlyEditingBet;
 
         if (status === 'won') {
             winAmountSection.classList.remove('hidden');
             if (bet) {
-                const betAmount = bet.bet_amount;
-                const odds = bet.odds;
-                const calculatedWin = betAmount * odds;
+                const calculatedWin = bet.bet_amount * bet.odds;
                 winAmountInput.value = calculatedWin.toFixed(2);
             }
         } else {
@@ -440,58 +347,38 @@ export function setupEventListeners() {
         }
     });
 
-    // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
     document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
     document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
-    document.getElementById('show-history-btn').addEventListener('click', () => {
-        const historyNavItem = document.querySelector('.sidebar-item[data-section="history"]');
-        showSection('history', historyNavItem);
-    });
 
-    // Form Submissions
     document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmitAttempt);
     document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmitAttempt);
-    DOM.sponsorForm.addEventListener('submit', handleSponsorFormSubmit);
-    DOM.adForm.addEventListener('submit', handleAdFormSubmit);
-    
-    // Genel tıklama yöneticisi (Event Delegation)
+
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
-        const { action, id, name, page, src, range } = target.dataset;
-        const parsedId = id ? parseInt(id, 10) : null;
-
+        const { action, id, name, page, src } = target.dataset;
         switch (action) {
-            case 'open-edit-modal': Modals.openEditModal(parsedId); break;
-            case 'delete-bet': handleDeleteBetAttempt(parsedId); break;
-            case 'remove-platform': handleRemovePlatformAttempt(parsedId, name); break;
-            case 'delete-sponsor': handleDeleteSponsor(parsedId); break;
-            case 'delete-ad': handleDeleteAd(parsedId); break;
+            case 'open-edit-modal': Modals.openEditModal(parseInt(id)); break;
+            case 'delete-bet': handleDeleteBetAttempt(parseInt(id)); break;
+            case 'remove-platform': handleRemovePlatformAttempt(parseInt(id), name); break;
             case 'changeBetPage': changeBetPage(parseInt(page)); break;
             case 'changeCashPage': changeCashPage(parseInt(page)); break;
             case 'show-image-modal': Modals.showImageModal(src); break;
-            case 'set-date-filter':
-                setDateFilter(range, 'history');
-                document.querySelectorAll('.date-filter-btn').forEach(btn => btn.classList.remove('active'));
-                target.classList.add('active');
-                break;
-            case 'set-stats-date-filter':
-                setDateFilter(range, 'stats');
-                document.querySelectorAll('.stats-date-filter-btn').forEach(btn => btn.classList.remove('active'));
-                target.classList.add('active');
-                break;
         }
     });
-    
-    // Diğer Butonlar
+
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlipAttempt);
+    document.getElementById('status-filter').addEventListener('change', () => {
+        updateState({ currentPage: 1 });
+        updateAllUI();
+    });
+    document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
     document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
     
-    // Modal Butonları
     document.getElementById('floating-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('quick-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('cash-transaction-btn').addEventListener('click', Modals.openCashTransactionModal);
@@ -500,7 +387,6 @@ export function setupEventListeners() {
     document.getElementById('close-edit-btn').addEventListener('click', Modals.closeEditModal);
     document.getElementById('save-edit-btn').addEventListener('click', handleSaveEditAttempt);
     document.getElementById('image-modal').addEventListener('click', Modals.closeImageModal);
-    document.getElementById('close-ad-popup-btn').addEventListener('click', Modals.closeAdPopup);
     
     const setupImageUpload = (type) => {
         const prefix = type === 'main' ? '' : 'quick-';
@@ -538,67 +424,6 @@ export function setupEventListeners() {
     document.getElementById('cash-transaction-close-btn').addEventListener('click', Modals.closeCashTransactionModal);
     document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransactionAttempt('deposit'));
     document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
-    
-    // Stats Date Filters
-    const statsStartDate = document.getElementById('stats-start-date-filter');
-    const statsEndDate = document.getElementById('stats-end-date-filter');
-
-    statsStartDate.addEventListener('change', () => {
-        updateState({ statsStartDate: statsStartDate.value });
-        renderStatistics();
-    });
-    statsEndDate.addEventListener('change', () => {
-        updateState({ statsEndDate: statsEndDate.value });
-        renderStatistics();
-    });
 
     updateState({ listenersAttached: true });
-}
-
-function setDateFilter(range, type) {
-    const isStats = type === 'stats';
-    const startDateKey = isStats ? 'statsStartDate' : 'historyStartDate';
-    const endDateKey = isStats ? 'statsEndDate' : 'historyEndDate';
-    const startDateInput = document.getElementById(isStats ? 'stats-start-date-filter' : 'start-date-filter');
-    const endDateInput = document.getElementById(isStats ? 'stats-end-date-filter' : 'end-date-filter');
-    
-    const today = new Date();
-    let startDate = new Date();
-    
-    if (range === 'today') {
-        // startDate is already today
-    } else if (range === 'last7') {
-        startDate.setDate(today.getDate() - 6);
-    } else if (range === 'last30') {
-        startDate.setDate(today.getDate() - 29);
-    } else if (range === 'all') {
-        startDateInput.value = '';
-        endDateInput.value = '';
-        updateState({ [startDateKey]: '', [endDateKey]: '' });
-        
-        if (isStats) {
-            renderStatistics();
-        } else {
-            renderHistory();
-        }
-        return;
-    }
-
-    const formattedStartDate = startDate.toISOString().split('T')[0];
-    const formattedEndDate = today.toISOString().split('T')[0];
-
-    startDateInput.value = formattedStartDate;
-    endDateInput.value = formattedEndDate;
-    
-    updateState({
-        [startDateKey]: formattedStartDate,
-        [endDateKey]: formattedEndDate
-    });
-
-    if (isStats) {
-        renderStatistics();
-    } else {
-        updateState({ currentPage: 1 });
-        renderHistory();
-    }
 }

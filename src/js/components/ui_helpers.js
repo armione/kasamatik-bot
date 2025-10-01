@@ -1,7 +1,6 @@
 import { state } from '../state.js';
 import { DEFAULT_PLATFORMS, DOM } from '../utils/constants.js';
-import { renderStatistics } from './statistics.js';
-import { getTodaysDate } from '../utils/helpers.js';
+import { updateCharts } from './statistics.js';
 
 export function showSection(sectionName, clickedElement) {
     document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
@@ -10,8 +9,8 @@ export function showSection(sectionName, clickedElement) {
     clickedElement?.classList.add('active');
     state.currentSection = sectionName;
     DOM.sidebar.classList.remove('mobile-open');
-    if (sectionName === 'statistics') {
-        renderStatistics();
+    if (sectionName === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
+        updateCharts();
     }
 }
 
@@ -24,47 +23,21 @@ export function toggleMobileSidebar() {
     DOM.sidebar.classList.toggle('mobile-open');
 }
 
-export function populatePlatformOptions(selectsToUpdate) {
+export function populatePlatformOptions() {
     const allPlatforms = [...DEFAULT_PLATFORMS, ...state.customPlatforms.map(p => p.name)].sort();
-    
-    // Eğer belirli select'ler verilmediyse, standart olanları kullan
-    const platformSelects = selectsToUpdate || [
-        document.getElementById('platform'), 
-        document.getElementById('quick-platform'),
-        document.getElementById('platform-filter'),
-        document.getElementById('edit-platform'),
-    ];
-
+    const platformSelects = [document.getElementById('platform'), document.getElementById('quick-platform')];
     platformSelects.forEach(select => {
         if (select) {
-            const currentVal = select.value;
-            let firstOption;
-
-            if (select.id === 'platform-filter') {
-                firstOption = '<option value="all">Tüm Platformlar</option>';
-            } else {
-                firstOption = '<option value="">Platform Seçin</option>';
-            }
-            
-            select.innerHTML = firstOption;
-           
+            select.innerHTML = '<option value="">Platform Seçin</option>';
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
                 option.value = platform;
                 option.textContent = platform;
                 select.appendChild(option);
             });
-            
-            // Eğer mevcut bir değer varsa, onu korumaya çalış
-            if (allPlatforms.includes(currentVal)) {
-                select.value = currentVal;
-            } else if (select.id === 'platform-filter') {
-                select.value = 'all';
-            }
         }
     });
 }
-
 
 export function renderCustomPlatforms() {
     const container = document.getElementById('custom-platforms-list');
@@ -148,7 +121,7 @@ export function resetForm(formId = 'bet-form') {
         form.reset();
         const dateInput = form.querySelector('input[type="date"]');
         if(dateInput) {
-            dateInput.value = getTodaysDate();
+            dateInput.value = new Date().toISOString().split('T')[0];
         }
     }
     removeImage('main');

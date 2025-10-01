@@ -1,5 +1,5 @@
 import { state, updateState } from '../state.js';
-import { removeImage, populatePlatformOptions } from './ui_helpers.js';
+import { removeImage } from './ui_helpers.js';
 
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -71,7 +71,6 @@ export function openEditModal(betId) {
 
     openModal('edit-modal');
 }
-
 
 export function closeEditModal() {
     closeModal('edit-modal');

@@ -6,34 +6,32 @@ import { setupEventListeners, setupAuthEventListeners } from './event_listeners.
 import { showNotification, getTodaysDate } from './utils/helpers.js';
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
-import { renderStatistics } from './components/statistics.js';
+import { updateStatisticsPage, updateCharts } from './components/statistics.js';
 import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels } from './components/ui_helpers.js';
 import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-let appInitialized = false; // Uygulamanın başlatılıp başlatılmadığını kontrol eden bayrak
-
+// Auth dinleyicileri sayfa yüklenir yüklenmez kuruluyor.
 document.addEventListener('DOMContentLoaded', setupAuthEventListeners);
 
 onAuthStateChange(session => {
     const user = session?.user || null;
     setCurrentUser(user);
 
-    if (user && !appInitialized) {
-        appInitialized = true; // Bayrağı hemen true yap, böylece fonksiyon tekrar girmez
+    if (user) {
         DOM.authContainer.style.display = 'none';
         DOM.appContainer.style.display = 'block';
         initializeApp();
-    } else if (!user) {
-        appInitialized = false; // Kullanıcı çıkış yaptığında bayrağı sıfırla
+    } else {
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
+        // Giriş ekranına dönüldüğünde auth formunu tekrar göster
         DOM.authForm.classList.remove('hidden');
         document.getElementById('signup-success-message').classList.add('hidden');
         updateState({
             bets: [], customPlatforms: [], sponsors: [], ads: [],
-            historyPlatformFilter: 'all'
+            listenersAttached: false
         });
     }
 });
@@ -49,7 +47,7 @@ async function initializeApp() {
     setSponsors(sponsors);
     setAds(ads);
 
-    setupEventListeners(); // Artık güvenle çağırabiliriz, çünkü initializeApp sadece bir kez çalışacak
+    setupEventListeners();
     initializeUI();
 
     showWelcomeNotification();
@@ -65,9 +63,6 @@ function setupUserInterface() {
 
 function initializeUI() {
     document.getElementById('bet-date').value = getTodaysDate();
-    document.getElementById('end-date-filter').value = getTodaysDate();
-    document.getElementById('stats-end-date-filter').value = getTodaysDate();
-
     populatePlatformOptions();
     renderCustomPlatforms();
     renderSponsorsPage();
@@ -81,10 +76,13 @@ function initializeUI() {
 
 export function updateAllUI() {
     updateDashboardStats();
-    renderStatistics();
+    updateStatisticsPage();
     renderHistory();
     renderRecentBets();
     renderCashHistory();
+    if (state.currentSection === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
+        updateCharts();
+    }
 }
 
 function showWelcomeNotification() {
@@ -92,4 +90,3 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
-

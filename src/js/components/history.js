@@ -1,84 +1,32 @@
 import { state, updateState } from '../state.js';
 import { ITEMS_PER_PAGE } from '../utils/constants.js';
 
-// --- ANA RENDER FONKSİYONU ---
+function renderPagination(type, totalPages, current, changeFnName) {
+    const containerId = type === 'bets' ? 'pagination-container' : 'cash-pagination-container';
+    const container = document.getElementById(containerId);
+    if (!container || totalPages <= 1) {
+        if (container) container.innerHTML = '';
+        return;
+    }
+    let html = `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current - 1}">←</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="pagination-btn ${i === current ? 'active' : ''}" data-action="${changeFnName}" data-page="${i}">${i}</button>`;
+    }
+    html += `<button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current + 1}">→</button>`;
+    container.innerHTML = html;
+}
+
 export function renderHistory() {
-    // 1. Tüm Filtreleri Uygula
-    const filteredBets = getFilteredBets();
-    
-    // 2. Filtrelenmiş Veriye Göre Özet Kartlarını Güncelle
-    renderHistorySummary(filteredBets);
-
-    // 3. Filtrelenmiş Listenin Sayfalanmış Halini Göster
-    renderPaginatedBetList(filteredBets);
-}
-
-// --- YARDIMCI FONKSİYONLAR ---
-
-function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
-    
-    // Filtre elemanlarından değerleri al
     const statusFilter = document.getElementById('status-filter').value;
-    const platformFilter = state.historyPlatformFilter; // DEĞİŞİKLİK: Değeri artık state'ten alıyoruz.
-    const searchFilter = document.getElementById('search-filter').value.toLowerCase();
-    const startDate = document.getElementById('start-date-filter').value;
-    const endDate = document.getElementById('end-date-filter').value;
-
-    return actualBets.filter(bet => {
-        // Durum filtresi
-        const statusMatch = statusFilter === 'all' || bet.status === statusFilter;
-        // Platform filtresi
-        const platformMatch = platformFilter === 'all' || bet.platform === platformFilter;
-        // Arama filtresi
-        const searchMatch = !searchFilter || bet.description.toLowerCase().includes(searchFilter);
-        // Tarih filtresi
-        const dateMatch = (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
-
-        return statusMatch && platformMatch && searchMatch && dateMatch;
-    });
-}
-
-function renderHistorySummary(filteredBets) {
-    const container = document.getElementById('history-summary-cards');
-    if (!container) return;
-
-    const totalInvested = filteredBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
-    const netProfit = filteredBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
-    const betCount = filteredBets.length;
-    const wonBets = filteredBets.filter(b => b.status === 'won').length;
-    const settledBets = filteredBets.filter(b => b.status !== 'pending').length;
-    const winRate = settledBets.length > 0 ? (wonBets / settledBets) * 100 : 0;
-
-    const netProfitColor = netProfit > 0 ? 'text-green-400' : netProfit < 0 ? 'text-red-400' : 'text-gray-300';
+    let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
     
-    container.innerHTML = `
-        <div class="glass-card rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold mb-1">${betCount}</div>
-            <div class="text-xs text-gray-400">Bahis Sayısı</div>
-        </div>
-        <div class="glass-card rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold mb-1">${totalInvested.toFixed(2)} ₺</div>
-            <div class="text-xs text-gray-400">Toplam Yatırım</div>
-        </div>
-        <div class="glass-card rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold mb-1 ${netProfitColor}">${netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)} ₺</div>
-            <div class="text-xs text-gray-400">Net Kar/Zarar</div>
-        </div>
-        <div class="glass-card rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold mb-1 text-green-400">${winRate.toFixed(1)}%</div>
-            <div class="text-xs text-gray-400">Kazanma Oranı</div>
-        </div>
-    `;
-}
+    updateHistoryStats(filteredBets);
 
-function renderPaginatedBetList(filteredBets) {
     const historyContainer = document.getElementById('bet-history');
-    const paginationContainer = document.getElementById('pagination-container');
-
     if (filteredBets.length === 0) {
-        historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu kriterlere uygun bahis bulunmuyor.</p></div>`;
-        paginationContainer.innerHTML = '';
+        historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu filtrede bahis bulunmuyor.</p></div>`;
+        document.getElementById('pagination-container').innerHTML = '';
         return;
     }
 
@@ -126,34 +74,19 @@ function renderPaginatedBetList(filteredBets) {
     renderPagination('bets', totalPages, state.currentPage, 'changeBetPage');
 }
 
-function renderPagination(type, totalPages, current, changeFnName) {
-    const containerId = type === 'bets' ? 'pagination-container' : 'cash-pagination-container';
-    const container = document.getElementById(containerId);
-    if (!container || totalPages <= 1) {
-        if (container) container.innerHTML = '';
-        return;
-    }
-    let html = `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current - 1}">←</button>`;
-    for (let i = 1; i <= totalPages; i++) {
-        html += `<button class="pagination-btn ${i === current ? 'active' : ''}" data-action="${changeFnName}" data-page="${i}">${i}</button>`;
-    }
-    html += `<button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current + 1}">→</button>`;
-    container.innerHTML = html;
+function updateHistoryStats(filteredBets) {
+    const els = {
+        total: document.getElementById('history-total-bets'),
+        won: document.getElementById('history-won-bets'),
+        lost: document.getElementById('history-lost-bets'),
+        pending: document.getElementById('history-pending-bets')
+    };
+    if(els.total) els.total.textContent = filteredBets.length;
+    if(els.won) els.won.textContent = filteredBets.filter(b => b.status === 'won').length;
+    if(els.lost) els.lost.textContent = filteredBets.filter(b => b.status === 'lost').length;
+    if(els.pending) els.pending.textContent = filteredBets.filter(b => b.status === 'pending').length;
 }
 
-export function changeBetPage(page) {
-    updateState({ currentPage: page });
-    renderHistory();
-    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
-}
-
-export function changeCashPage(page) {
-    updateState({ cashCurrentPage: page });
-    renderCashHistory();
-    document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
-}
-
-// Kasa geçmişi fonksiyonları (Değişiklik yok)
 export function renderCashHistory() {
     const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
     updateCashHistoryStats(cashTransactions);
@@ -200,4 +133,16 @@ function updateCashHistoryStats(transactions) {
     document.getElementById('cash-history-withdrawal').textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
     document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
     document.getElementById('cash-history-count').textContent = transactions.length;
+}
+
+export function changeBetPage(page) {
+    updateState({ currentPage: page });
+    renderHistory();
+    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+export function changeCashPage(page) {
+    updateState({ cashCurrentPage: page });
+    renderCashHistory();
+    document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }

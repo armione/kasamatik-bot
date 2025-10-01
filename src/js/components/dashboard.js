@@ -1,33 +1,18 @@
 import { state } from '../state.js';
 
 export function updateDashboardStats() {
-    // Bahis ve kasa işlemlerini ayır
-    const allBetsAndTransactions = state.bets;
-    const actualBets = allBetsAndTransactions.filter(b => b.bet_type !== 'Kasa İşlemi');
+    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    const totalProfit = actualBets.reduce((sum, bet) => sum + (bet.profit_loss > 0 ? bet.profit_loss : 0), 0);
+    const totalLoss = Math.abs(actualBets.reduce((sum, bet) => sum + (bet.profit_loss < 0 ? bet.profit_loss : 0), 0));
+    const totalBankroll = state.bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
 
-    // 1. Toplam Kasa (Mevcut Bakiye): Tüm işlemler (bahisler + para yatırma/çekme) sonrası net bakiye.
-    const totalBankroll = allBetsAndTransactions.reduce((sum, transaction) => sum + (transaction.profit_loss || 0), 0);
+    document.getElementById('total-bets').textContent = actualBets.length;
+    document.getElementById('total-profit').textContent = `+${totalProfit.toFixed(2)} ₺`;
+    document.getElementById('total-loss').textContent = `-${totalLoss.toFixed(2)} ₺`;
     
-    // 2. Net Kar/Zarar: SADECE bahislerden elde edilen toplam net kar veya zarar.
-    const netProfit = actualBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
-
-    // 3. Toplam Yatırım: SADECE bahislere yatırılan toplam para.
-    const totalStaked = actualBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
-
-    // 4. Toplam Bahis Sayısı
-    const totalBetsCount = actualBets.length;
-
-    // DOM Elementlerini Güncelle
     const bankrollEl = document.getElementById('total-bankroll');
     bankrollEl.textContent = `${totalBankroll.toFixed(2)} ₺`;
     bankrollEl.className = `text-2xl font-montserrat font-bold ${totalBankroll >= 0 ? 'text-green-400' : 'text-red-400'}`;
-
-    const netProfitEl = document.getElementById('dashboard-net-profit');
-    netProfitEl.textContent = `${netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)} ₺`;
-    netProfitEl.className = `text-2xl font-montserrat font-bold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`;
-    
-    document.getElementById('dashboard-total-staked').textContent = `${totalStaked.toFixed(2)} ₺`;
-    document.getElementById('total-bets').textContent = totalBetsCount;
 }
 
 export function renderRecentBets() {

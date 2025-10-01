@@ -1,52 +1,8 @@
 import { state } from '../state.js';
 
-/**
- * İstatistikler sayfası için tarih filtrelerini okur ve ilgili bahisleri döndürür.
- * @returns {Array} Tarihe göre filtrelenmiş bahisler dizisi.
- */
-function getFilteredStatsBets() {
-    const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
-    
-    const startDate = document.getElementById('stats-start-date-filter').value;
-    const endDate = document.getElementById('stats-end-date-filter').value;
-
-    return actualBets.filter(bet => {
-        return (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
-    });
-}
-
-/**
- * İstatistikler sayfasını filtrelenmiş verilere göre yeniden oluşturan ana fonksiyon.
- */
-export function renderStatistics() {
-    const filteredBets = getFilteredStatsBets();
-    updateStatisticsCards(filteredBets);
-    updateCharts(filteredBets);
-}
-
-/**
- * Filtrelenmiş bahis verilerine göre istatistik kartlarını günceller.
- * @param {Array} actualBets Hesaplanacak bahisler.
- */
-function updateStatisticsCards(actualBets) {
-    if (!document.getElementById('statistics')) return;
-
-    if (actualBets.length === 0) {
-        document.getElementById('stats-total-bets').textContent = '0';
-        document.getElementById('stats-bet-breakdown').textContent = `Spor: 0 | Canlı: 0`;
-        document.getElementById('stats-win-rate').textContent = `0.0%`;
-        document.getElementById('stats-win-breakdown').textContent = `Kazanan: 0 | Kaybeden: 0`;
-        document.getElementById('stats-avg-odds').textContent = '0.00';
-        document.getElementById('stats-odds-range').textContent = `En düşük: 0.00 | En yüksek: 0.00`;
-        document.getElementById('stats-roi').textContent = `0.0%`;
-        document.getElementById('stats-roi-breakdown').textContent = `Yatırım: 0.00₺ | Net kar: 0.00₺`;
-        document.getElementById('stats-roi').style.color = 'var(--success-green)';
-        document.getElementById('stats-avg-bet').textContent = `0.00₺`;
-        document.getElementById('stats-bet-range').textContent = `En düşük: 0.00₺ | En yüksek: 0.00₺`;
-        document.getElementById('stats-best-platform').textContent = '-';
-        document.getElementById('stats-platform-profit').textContent = `Kar: 0.00₺`;
-        return;
-    }
+export function updateStatisticsPage() {
+    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    if(actualBets.length === 0) return; // Veri yoksa hesaplama yapma
 
     const settledBets = actualBets.filter(b => b.status !== 'pending');
     const wonBets = settledBets.filter(b => b.status === 'won');
@@ -93,23 +49,10 @@ function updateStatisticsCards(actualBets) {
     }
 }
 
-/**
- * Filtrelenmiş bahis verilerine göre grafikleri günceller.
- * @param {Array} actualBets Çizdirilecek bahisler.
- */
-export function updateCharts(actualBets) {
+export function updateCharts() {
+    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
     const profitCtx = document.getElementById('profitChart')?.getContext('2d');
-    const platformCtx = document.getElementById('platformChart')?.getContext('2d');
-
-    if (!profitCtx || !platformCtx) return;
-
-    if (state.profitChart) state.profitChart.destroy();
-    if (state.platformChart) state.platformChart.destroy();
-
-    if (actualBets.length === 0) {
-        // Veri yoksa grafik çizme, canvas'ı boş bırak.
-        return;
-    }
+    if (!profitCtx) return;
 
     let cumulativeProfit = 0;
     const profitData = [...actualBets].reverse().map(bet => {
@@ -117,10 +60,13 @@ export function updateCharts(actualBets) {
         return cumulativeProfit;
     });
 
+    if (state.profitChart) {
+        state.profitChart.destroy();
+    }
     state.profitChart = new Chart(profitCtx, {
         type: 'line',
         data: {
-            labels: [...actualBets].reverse().map((b, i) => `${i + 1}`),
+            labels: actualBets.map((b, i) => `Bahis ${i + 1}`),
             datasets: [{
                 label: 'Kümülatif Kar/Zarar',
                 data: profitData,
@@ -140,11 +86,15 @@ export function updateCharts(actualBets) {
         }
     });
 
+    const platformCtx = document.getElementById('platformChart').getContext('2d');
     const platformCounts = actualBets.reduce((acc, bet) => {
         acc[bet.platform] = (acc[bet.platform] || 0) + 1;
         return acc;
     }, {});
 
+    if (state.platformChart) {
+        state.platformChart.destroy();
+    }
     state.platformChart = new Chart(platformCtx, {
         type: 'doughnut',
         data: {
@@ -159,15 +109,7 @@ export function updateCharts(actualBets) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-             plugins: {
-                legend: {
-                    labels: {
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    }
-                }
-            }
+            maintainAspectRatio: false
         }
     });
 }
-

@@ -137,7 +137,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.8</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.6.1</p>
                 </div>
             </div>
         </div>
@@ -169,27 +169,27 @@
                                     📈
                                 </div>
                                 <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Net Kar/Zarar</h3>
-                                    <p class="text-2xl font-montserrat font-bold" id="dashboard-net-profit">0 ₺</p>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Kar</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-green-400" id="total-profit">0 ₺</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Bahislerden elde edilen net sonuç</div>
+                        <div class="text-xs text-gray-400">Kazanılan miktar</div>
                     </div>
     
                     <div class="stat-card">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-full bg-gradient-to-r from-red-400 to-red-600 flex items-center justify-center text-xl">
-                                    💸
+                                    📉
                                 </div>
                                 <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Yatırım</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="dashboard-total-staked">0 ₺</p>
+                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Zarar</h3>
+                                    <p class="text-2xl font-montserrat font-bold text-red-400" id="total-loss">0 ₺</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Oynanan toplam bahis miktarı</div>
+                        <div class="text-xs text-gray-400">Kaybedilen miktar</div>
                     </div>
     
                     <div class="stat-card">
@@ -368,54 +368,40 @@
     
             <div id="history" class="page-section">
                 <div class="mb-8">
-                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
                         <div>
                             <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">📋 Bahis Geçmişi</h2>
                             <p class="text-gray-400 text-sm">Tüm bahis kayıtlarınızı görüntüleyin ve yönetin</p>
                         </div>
+                        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
+                            <select id="status-filter" class="input-glass px-4 py-3 rounded-lg text-gray-800">
+                                <option value="all">🔍 Tümü</option>
+                                <option value="pending">⏳ Bekleyen</option>
+                                <option value="won">✅ Kazanan</option>
+                                <option value="lost">❌ Kaybeden</option>
+                            </select>
+                            <button id="clear-all-btn" class="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                🗑️ Tüm Verileri Temizle
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="glass-card rounded-2xl p-6 mb-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 items-end">
-                            <div class="lg:col-span-2">
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Hızlı Tarih</label>
-                                <div class="flex space-x-2">
-                                    <button data-action="set-date-filter" data-range="today" class="date-filter-btn flex-1">Bugün</button>
-                                    <button data-action="set-date-filter" data-range="last7" class="date-filter-btn flex-1">Son 7 Gün</button>
-                                    <button data-action="set-date-filter" data-range="last30" class="date-filter-btn flex-1">Son 30 Gün</button>
-                                    <button data-action="set-date-filter" data-range="all" class="date-filter-btn flex-1 active">Tümü</button>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="start-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Başlangıç Tarihi</label>
-                                <input type="date" id="start-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
-                            <div>
-                                <label for="end-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Bitiş Tarihi</label>
-                                <input type="date" id="end-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
-                            <div>
-                                <label for="platform-filter" class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
-                                <select id="platform-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                    <option value="all">Tüm Platformlar</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="status-filter" class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
-                                <select id="status-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                    <option value="all">Tümü</option>
-                                    <option value="pending">⏳ Bekleyen</option>
-                                    <option value="won">✅ Kazanan</option>
-                                    <option value="lost">❌ Kaybeden</option>
-                                </select>
-                            </div>
-                            <div class="lg:col-span-2">
-                                <label for="search-filter" class="block text-gray-300 text-sm font-medium mb-2">Açıklama Ara</label>
-                                <input type="text" id="search-filter" placeholder="Maç, bahis türü vb. ara..." class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1" id="history-total-bets">0</div>
+                            <div class="text-xs text-gray-400">Toplam Bahis</div>
                         </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="history-summary-cards">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-green-400" id="history-won-bets">0</div>
+                            <div class="text-xs text-gray-400">Kazanan</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-red-400" id="history-lost-bets">0</div>
+                            <div class="text-xs text-gray-400">Kaybeden</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <div class="text-2xl mb-1 text-yellow-400" id="history-pending-bets">0</div>
+                            <div class="text-xs text-gray-400">Bekleyen</div>
                         </div>
                     </div>
                     
@@ -466,28 +452,6 @@
             <div id="statistics" class="page-section">
                 <div class="mb-8">
                     <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
-
-                    <div class="glass-card rounded-2xl p-6 mb-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                            <div class="lg:col-span-2">
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Hızlı Tarih</label>
-                                <div class="flex space-x-2">
-                                    <button data-action="set-stats-date-filter" data-range="today" class="stats-date-filter-btn flex-1">Bugün</button>
-                                    <button data-action="set-stats-date-filter" data-range="last7" class="stats-date-filter-btn flex-1">Son 7 Gün</button>
-                                    <button data-action="set-stats-date-filter" data-range="last30" class="stats-date-filter-btn flex-1">Son 30 Gün</button>
-                                    <button data-action="set-stats-date-filter" data-range="all" class="stats-date-filter-btn flex-1 active">Tümü</button>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="stats-start-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Başlangıç Tarihi</label>
-                                <input type="date" id="stats-start-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
-                            <div>
-                                <label for="stats-end-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Bitiş Tarihi</label>
-                                <input type="date" id="stats-end-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            </div>
-                        </div>
-                    </div>
                     
                     <div class="stats-grid mb-8">
                         <div class="stat-card">

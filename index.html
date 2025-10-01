@@ -152,7 +152,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.9</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.10</p>
                 </div>
             </div>
         </div>
@@ -161,80 +161,51 @@
             <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
     
             <div id="dashboard" class="page-section active">
+                <h2 class="text-2xl font-montserrat font-bold gradient-text mb-2">Genel Bakış</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-xl">
-                                    💰
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Kasa</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="total-bankroll">0 ₺</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-400">Tüm işlemler sonrası mevcut bakiye</div>
+                        <h3 class="text-gray-300 font-medium text-sm mb-2">💰 Toplam Kasa</h3>
+                        <p class="text-2xl font-montserrat font-bold text-white" id="total-bankroll">0 ₺</p>
+                        <div class="text-xs text-gray-400 mt-1">Tüm işlemler sonrası mevcut bakiye</div>
                     </div>
     
                     <div class="stat-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-xl">
-                                    💹
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Net Kar/Zarar (Bahislerden)</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="net-profit-loss">0 ₺</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-400">Sadece bahislerden gelen net sonuç</div>
+                        <h3 class="text-gray-300 font-medium text-sm mb-2">💹 Net Kar/Zarar (Bahislerden)</h3>
+                        <p class="text-2xl font-montserrat font-bold text-white" id="net-profit-loss">0 ₺</p>
+                        <div class="text-xs text-gray-400 mt-1">Sadece bahislerden gelen net sonuç</div>
                     </div>
     
                     <div class="stat-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-xl">
-                                    💸
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Yatırım (Bahislere)</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-teal-300" id="total-investment">0 ₺</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-400">Bahislere yatırılan toplam miktar</div>
+                        <h3 class="text-gray-300 font-medium text-sm mb-2">💸 Toplam Yatırım (Bahislere)</h3>
+                        <p class="text-2xl font-montserrat font-bold text-teal-300" id="total-investment">0 ₺</p>
+                        <div class="text-xs text-gray-400 mt-1">Bahislere yatırılan toplam miktar</div>
                     </div>
     
                     <div class="stat-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-xl">
-                                    🎲
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Toplam Bahis Sayısı</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="total-bets">0</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-400">Kasa işlemleri hariç</div>
+                        <h3 class="text-gray-300 font-medium text-sm mb-2">🎲 Toplam Bahis Sayısı</h3>
+                        <p class="text-2xl font-montserrat font-bold text-white" id="total-bets">0</p>
+                        <div class="text-xs text-gray-400 mt-1">Kasa işlemleri hariç</div>
                     </div>
+                </div>
 
-                    <div class="stat-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-xl">
-                                    👀
-                                </div>
-                                <div>
-                                    <h3 class="text-gray-300 font-medium text-sm">Anlık Ziyaretçi</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="visitor-counter">1257</p>
-                                </div>
-                            </div>
+                <div class="glass-card rounded-2xl p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <h2 class="text-2xl font-montserrat font-bold gradient-text mb-3 sm:mb-0">Performans Özeti</h2>
+                        <div id="performance-period-buttons" class="flex items-center space-x-2 bg-gray-900/50 rounded-lg p-1">
+                            <button data-action="set-dashboard-period" data-period="1" class="period-btn active">Bugün</button>
+                            <button data-action="set-dashboard-period" data-period="7" class="period-btn">Son 7 Gün</button>
+                            <button data-action="set-dashboard-period" data-period="30" class="period-btn">Son 30 Gün</button>
                         </div>
-                        <div class="text-xs text-gray-400">Sitemizdeki aktif kullanıcı sayısı</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Oynanan Bahis Tutarı</h3>
+                            <p class="text-2xl font-montserrat font-bold text-blue-300" id="summary-total-played">0 ₺</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Net Sonuç</h3>
+                            <p class="text-2xl font-montserrat font-bold" id="summary-net-result">0 ₺</p>
+                        </div>
                     </div>
                 </div>
     

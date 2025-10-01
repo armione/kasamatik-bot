@@ -14,7 +14,23 @@ export const state = {
     currentSection: 'dashboard',
     currentPage: 1,
     cashCurrentPage: 1,
-    listenersAttached: false
+    listenersAttached: false,
+    
+    // Filtreleme durumu
+    filters: {
+        status: 'all',
+        platform: 'all',
+        dateRange: {
+            start: null,
+            end: null
+        }
+    },
+     statsFilters: {
+        dateRange: {
+            start: null,
+            end: null
+        }
+    }
 };
 
 // State'i güncellemek için yardımcı fonksiyonlar

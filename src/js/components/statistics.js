@@ -1,8 +1,21 @@
 import { state } from '../state.js';
 
+function applyStatsFilters(bets) {
+    const { dateRange } = state.statsFilters;
+    if (!dateRange.start || !dateRange.end) {
+        return bets; // Filtre yoksa tüm bahisleri döndür
+    }
+    return bets.filter(bet => {
+        const betDate = new Date(bet.date);
+        return betDate >= dateRange.start && betDate <= dateRange.end;
+    });
+}
+
 export function updateStatisticsPage() {
-    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-    if(actualBets.length === 0) return; // Veri yoksa hesaplama yapma
+    const allActualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    const actualBets = applyStatsFilters(allActualBets);
+    
+    if(allActualBets.length === 0) return;
 
     const settledBets = actualBets.filter(b => b.status !== 'pending');
     const wonBets = settledBets.filter(b => b.status === 'won');
@@ -50,7 +63,8 @@ export function updateStatisticsPage() {
 }
 
 export function updateCharts() {
-    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    const allActualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    const actualBets = applyStatsFilters(allActualBets);
     const profitCtx = document.getElementById('profitChart')?.getContext('2d');
     if (!profitCtx) return;
 

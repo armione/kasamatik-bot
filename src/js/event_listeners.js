@@ -334,7 +334,6 @@ export function setupEventListeners() {
         document.getElementById('status-filter'),
         document.getElementById('search-filter')
     ];
-
     historyFilters.forEach(filter => {
         if(filter) {
             const eventType = filter.id === 'search-filter' ? 'keyup' : 'change';

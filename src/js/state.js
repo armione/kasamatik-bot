@@ -20,10 +20,8 @@ export const state = {
     filters: {
         status: 'all',
         platform: 'all',
-        dateRange: {
-            start: null,
-            end: null
-        }
+        searchTerm: '',
+        period: 'all', // '1', '7', '30', 'all'
     },
      statsFilters: {
         dateRange: {

@@ -18,6 +18,7 @@ export function renderHistory() {
 function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     
+    // Filtre elemanlarından değerleri al
     const statusFilter = document.getElementById('status-filter').value;
     const platformFilter = document.getElementById('platform-filter').value;
     const searchFilter = document.getElementById('search-filter').value.toLowerCase();
@@ -25,9 +26,13 @@ function getFilteredBets() {
     const endDate = document.getElementById('end-date-filter').value;
 
     return actualBets.filter(bet => {
+        // Durum filtresi
         const statusMatch = statusFilter === 'all' || bet.status === statusFilter;
+        // Platform filtresi
         const platformMatch = platformFilter === 'all' || bet.platform === platformFilter;
+        // Arama filtresi
         const searchMatch = !searchFilter || bet.description.toLowerCase().includes(searchFilter);
+        // Tarih filtresi
         const dateMatch = (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
 
         return statusMatch && platformMatch && searchMatch && dateMatch;
@@ -148,6 +153,7 @@ export function changeCashPage(page) {
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
+// Kasa geçmişi fonksiyonları (Değişiklik yok)
 export function renderCashHistory() {
     const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
     updateCashHistoryStats(cashTransactions);

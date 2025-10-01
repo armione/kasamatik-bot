@@ -27,3 +27,27 @@ export function showNotification(message, type = 'info', duration = 4000) {
 export function getTodaysDate() {
     return new Date().toISOString().split('T')[0];
 }
+
+/**
+ * Bir butonun yükleme durumunu yönetir.
+ * @param {HTMLButtonElement} button - Yükleme durumu yönetilecek buton.
+ * @param {boolean} isLoading - Yükleme durumunun aktif olup olmadığı.
+ * @param {string} [loadingText=''] - Yükleme sırasında gösterilecek metin.
+ */
+export function setButtonLoading(button, isLoading, loadingText = '') {
+    if (!button) return;
+    const textElement = button.querySelector('.btn-text');
+    const loaderElement = button.querySelector('.btn-loader');
+
+    if (isLoading) {
+        button.disabled = true;
+        if (textElement) textElement.textContent = loadingText;
+        if (loaderElement) loaderElement.classList.remove('hidden');
+    } else {
+        button.disabled = false;
+        if (textElement && button.dataset.defaultText) {
+            textElement.textContent = button.dataset.defaultText;
+        }
+        if (loaderElement) loaderElement.classList.add('hidden');
+    }
+}

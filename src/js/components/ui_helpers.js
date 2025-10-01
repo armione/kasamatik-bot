@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { DEFAULT_PLATFORMS, DOM } from '../utils/constants.js';
-import { updateCharts } from './statistics.js';
+import { renderStatistics } from './statistics.js';
+import { getTodaysDate } from '../utils/helpers.js';
 
 export function showSection(sectionName, clickedElement) {
     document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
@@ -9,8 +10,8 @@ export function showSection(sectionName, clickedElement) {
     clickedElement?.classList.add('active');
     state.currentSection = sectionName;
     DOM.sidebar.classList.remove('mobile-open');
-    if (sectionName === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
-        updateCharts();
+    if (sectionName === 'statistics') {
+        renderStatistics();
     }
 }
 
@@ -25,16 +26,28 @@ export function toggleMobileSidebar() {
 
 export function populatePlatformOptions() {
     const allPlatforms = [...DEFAULT_PLATFORMS, ...state.customPlatforms.map(p => p.name)].sort();
-    const platformSelects = [document.getElementById('platform'), document.getElementById('quick-platform')];
+    const platformSelects = [
+        document.getElementById('platform'), 
+        document.getElementById('quick-platform'),
+        document.getElementById('platform-filter') // Tarihçe sayfasındaki filtre de eklendi
+    ];
     platformSelects.forEach(select => {
         if (select) {
-            select.innerHTML = '<option value="">Platform Seçin</option>';
+            const currentVal = select.value;
+            // platform-filter için "Tüm Platformlar" seçeneği korunmalı
+            if(select.id === 'platform-filter'){
+                 select.innerHTML = '<option value="all">Tüm Platformlar</option>';
+            } else {
+                 select.innerHTML = '<option value="">Platform Seçin</option>';
+            }
+           
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
                 option.value = platform;
                 option.textContent = platform;
                 select.appendChild(option);
             });
+            select.value = currentVal;
         }
     });
 }
@@ -121,7 +134,7 @@ export function resetForm(formId = 'bet-form') {
         form.reset();
         const dateInput = form.querySelector('input[type="date"]');
         if(dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
+            dateInput.value = getTodaysDate();
         }
     }
     removeImage('main');

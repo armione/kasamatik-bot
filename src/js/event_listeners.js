@@ -1,16 +1,15 @@
 import { state, updateState } from './state.js';
-import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // DEFAULT_PLATFORMS eklendi
+import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
-import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js'; // Admin fonksiyonları kaldırıldı çünkü burada kullanılmıyor
+import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
 
-// HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
-
+// HANDLER FUNCTIONS
 async function handleLoginAttempt() {
     DOM.loginBtn.disabled = true;
     DOM.loginBtn.textContent = "Giriş yapılıyor...";
@@ -279,9 +278,6 @@ async function handleClearAllDataAttempt() {
     }
 }
 
-// ==========================================================
-// ===== BAHİS AÇIKLAMASI SORUNUNU ÇÖZEN GÜNCELLEME =====
-// ==========================================================
 async function analyzeBetSlipAttempt() {
     if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
@@ -297,17 +293,14 @@ async function analyzeBetSlipAttempt() {
         const base64Data = state.currentImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
-            // GÜNCELLEME: 'matches' dizisini işleyip 'description' oluşturuyoruz
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
                 const descriptionText = result.matches
                     .map(match => `${match.matchName} (${match.bets.join(', ')})`)
                     .join(' / ');
                 document.getElementById('description').value = descriptionText;
             }
-
             if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
             if (result.odds) document.getElementById('odds').value = result.odds;
-            
             showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
         } else {
             throw new Error("API'den geçerli bir sonuç alınamadı.");
@@ -322,60 +315,61 @@ async function analyzeBetSlipAttempt() {
     }
 }
 
-// EVENT LISTENER SETUP
-export function setupEventListeners() {
-    if (state.listenersAttached) return;
-
-    // Auth
+export function setupAuthEventListeners() {
     DOM.loginBtn.addEventListener('click', handleLoginAttempt);
     DOM.signupBtn.addEventListener('click', handleSignUpAttempt);
-    DOM.logoutBtn.addEventListener('click', () => signOut());
     DOM.forgotPasswordLink.addEventListener('click', () => Modals.openModal('password-reset-modal'));
     DOM.cancelResetBtn.addEventListener('click', () => Modals.closeModal('password-reset-modal'));
     DOM.passwordResetForm.addEventListener('submit', handlePasswordResetAttempt);
+}
+
+export function setupEventListeners() {
+    if (state.listenersAttached) return;
+
+    DOM.logoutBtn.addEventListener('click', () => signOut());
     DOM.accountSettingsForm.addEventListener('submit', handleUpdatePasswordAttempt);
 
-    // Sidebar and Navigation
+    document.getElementById('edit-status').addEventListener('change', (e) => {
+        const status = e.target.value;
+        const winAmountSection = document.getElementById('win-amount-section');
+        const winAmountInput = document.getElementById('edit-win-amount');
+        const bet = state.currentlyEditingBet;
+
+        if (status === 'won') {
+            winAmountSection.classList.remove('hidden');
+            if (bet) {
+                const calculatedWin = bet.bet_amount * bet.odds;
+                winAmountInput.value = calculatedWin.toFixed(2);
+            }
+        } else {
+            winAmountSection.classList.add('hidden');
+            winAmountInput.value = 0;
+        }
+    });
+
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
     document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
     document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
 
-    // Form Submissions
     document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmitAttempt);
     document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmitAttempt);
 
-    // Clicks on dynamically generated content (Event Delegation)
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
-
         const { action, id, name, page, src } = target.dataset;
-
         switch (action) {
-            case 'open-edit-modal':
-                Modals.openEditModal(parseInt(id));
-                break;
-            case 'delete-bet':
-                handleDeleteBetAttempt(parseInt(id));
-                break;
-            case 'remove-platform':
-                handleRemovePlatformAttempt(parseInt(id), name);
-                break;
-            case 'changeBetPage':
-                changeBetPage(parseInt(page));
-                break;
-            case 'changeCashPage':
-                changeCashPage(parseInt(page));
-                break;
-             case 'show-image-modal':
-                Modals.showImageModal(src);
-                break;
+            case 'open-edit-modal': Modals.openEditModal(parseInt(id)); break;
+            case 'delete-bet': handleDeleteBetAttempt(parseInt(id)); break;
+            case 'remove-platform': handleRemovePlatformAttempt(parseInt(id), name); break;
+            case 'changeBetPage': changeBetPage(parseInt(page)); break;
+            case 'changeCashPage': changeCashPage(parseInt(page)); break;
+            case 'show-image-modal': Modals.showImageModal(src); break;
         }
     });
 
-    // Other UI interactions
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlipAttempt);
     document.getElementById('status-filter').addEventListener('change', () => {
@@ -385,7 +379,6 @@ export function setupEventListeners() {
     document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
     document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
     
-    // Modals
     document.getElementById('floating-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('quick-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('cash-transaction-btn').addEventListener('click', Modals.openCashTransactionModal);
@@ -395,7 +388,6 @@ export function setupEventListeners() {
     document.getElementById('save-edit-btn').addEventListener('click', handleSaveEditAttempt);
     document.getElementById('image-modal').addEventListener('click', Modals.closeImageModal);
     
-    // Image Upload
     const setupImageUpload = (type) => {
         const prefix = type === 'main' ? '' : 'quick-';
         const imageInput = document.getElementById(`${prefix}image-input`);
@@ -425,12 +417,10 @@ export function setupEventListeners() {
         handleImageFile(file, type);
     });
 
-    // Platform Management
     document.getElementById('add-platform-btn').addEventListener('click', () => handleAddPlatformAttempt(false));
     document.getElementById('add-platform-modal-btn').addEventListener('click', () => handleAddPlatformAttempt(true));
     document.getElementById('close-platform-manager-btn').addEventListener('click', Modals.closePlatformManager);
     
-    // Cash Management
     document.getElementById('cash-transaction-close-btn').addEventListener('click', Modals.closeCashTransactionModal);
     document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransactionAttempt('deposit'));
     document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));

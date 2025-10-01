@@ -1,4 +1,4 @@
-import { state, updateState } from './state.js'; // HATA DÜZELTMESİ: applyFilters import'u kaldırıldı.
+import { state, updateState } from './state.js';
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
@@ -141,26 +141,17 @@ async function handleSaveEditAttempt() {
     const bet = state.currentlyEditingBet;
     if (!bet) return;
 
-    const newStatus = document.getElementById('edit-status').value;
-    const newAmount = parseFloat(document.getElementById('edit-bet-amount').value);
-    const newOdds = parseFloat(document.getElementById('edit-odds').value);
-    const newWinAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
+    const status = document.getElementById('edit-status').value;
+    const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
     
-    let updateData = {
-        platform: document.getElementById('edit-platform').value,
-        description: document.getElementById('edit-description').value,
-        bet_amount: newAmount,
-        odds: newOdds,
-        date: document.getElementById('edit-date').value,
-        status: newStatus,
-    };
-    
-    if (newStatus === 'won') {
-        updateData.win_amount = newWinAmount;
-        updateData.profit_loss = newWinAmount - newAmount;
-    } else if (newStatus === 'lost') {
+    let updateData = { status: status };
+
+    if (status === 'won') {
+        updateData.win_amount = winAmount;
+        updateData.profit_loss = winAmount - bet.bet_amount;
+    } else if (status === 'lost') {
         updateData.win_amount = 0;
-        updateData.profit_loss = -newAmount;
+        updateData.profit_loss = -bet.bet_amount;
     } else { // pending
         updateData.win_amount = 0;
         updateData.profit_loss = 0;
@@ -416,7 +407,7 @@ export function setupEventListeners() {
             const eventType = id === 'search-filter' ? 'input' : 'change';
             element.addEventListener(eventType, (e) => {
                 updateState({ [stateKey]: e.target.value, currentPage: 1 });
-                renderHistory(); // HATA DÜZELTMESİ: Gereksiz applyFilters() çağrısı kaldırıldı.
+                renderHistory();
             });
         }
     });
@@ -438,8 +429,8 @@ export function setupEventListeners() {
         if (status === 'won') {
             winAmountSection.classList.remove('hidden');
             if (bet) {
-                const betAmount = parseFloat(document.getElementById('edit-bet-amount').value) || 0;
-                const odds = parseFloat(document.getElementById('edit-odds').value) || 0;
+                const betAmount = bet.bet_amount;
+                const odds = bet.odds;
                 const calculatedWin = betAmount * odds;
                 winAmountInput.value = calculatedWin.toFixed(2);
             }
@@ -611,4 +602,3 @@ function setDateFilter(range, type) {
         renderHistory();
     }
 }
-

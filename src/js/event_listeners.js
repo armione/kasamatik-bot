@@ -16,39 +16,45 @@ let searchDebounceTimer;
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
 async function handleLoginAttempt() {
-    setButtonLoading(DOM.loginBtn, true, 'Giriş yapılıyor...');
-    const { error } = await signIn(DOM.authForm.email.value, DOM.authForm.password.value);
+    const loginBtn = DOM.get('loginBtn');
+    const authForm = DOM.get('authForm');
+    setButtonLoading(loginBtn, true, 'Giriş yapılıyor...');
+    const { error } = await signIn(authForm.email.value, authForm.password.value);
     if (error) {
         showNotification(`Giriş hatası: ${error.message}`, 'error');
     }
-    setButtonLoading(DOM.loginBtn, false);
+    setButtonLoading(loginBtn, false);
 }
 
 async function handleSignUpAttempt() {
-    setButtonLoading(DOM.signupBtn, true, 'Kayıt olunuyor...');
-    const email = DOM.authForm.email.value;
-    const { error } = await signUp(email, DOM.authForm.password.value);
+    const signupBtn = DOM.get('signupBtn');
+    const authForm = DOM.get('authForm');
+    setButtonLoading(signupBtn, true, 'Kayıt olunuyor...');
+    const email = authForm.email.value;
+    const { error } = await signUp(email, authForm.password.value);
     if (error) {
         showNotification(`Kayıt hatası: ${error.message}`, 'error');
     } else {
-        DOM.authForm.classList.add('hidden');
+        authForm.classList.add('hidden');
         document.getElementById('user-email-confirm').textContent = email;
         document.getElementById('signup-success-message').classList.remove('hidden');
     }
-    setButtonLoading(DOM.signupBtn, false);
+    setButtonLoading(signupBtn, false);
 }
 
 async function handlePasswordResetAttempt(e) {
     e.preventDefault();
-    setButtonLoading(DOM.sendResetBtn, true, 'Gönderiliyor...');
-    const { error } = await resetPasswordForEmail(DOM.passwordResetForm['reset-email'].value);
+    const sendResetBtn = DOM.get('sendResetBtn');
+    const passwordResetForm = DOM.get('passwordResetForm');
+    setButtonLoading(sendResetBtn, true, 'Gönderiliyor...');
+    const { error } = await resetPasswordForEmail(passwordResetForm['reset-email'].value);
     if (error) {
         showNotification(`Hata: ${error.message}`, 'error');
     } else {
         showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
         Modals.closeModal('password-reset-modal');
     }
-    setButtonLoading(DOM.sendResetBtn, false);
+    setButtonLoading(sendResetBtn, false);
 }
 
 async function handleUpdatePasswordAttempt(e) {
@@ -76,7 +82,7 @@ async function handleUpdatePasswordAttempt(e) {
         showNotification(`Hata: ${error.message}`, 'error');
     } else {
         showNotification('Şifreniz başarıyla güncellendi!', 'success');
-        DOM.accountSettingsForm.reset();
+        DOM.get('accountSettingsForm').reset();
     }
     setButtonLoading(updateButton, false);
 }
@@ -316,10 +322,6 @@ async function analyzeBetSlipAttempt() {
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
     if (state.listenersAttached) {
-        document.querySelectorAll('button[data-default-text]').forEach(btn => {
-            const textEl = btn.querySelector('.btn-text');
-            if (textEl) textEl.textContent = btn.dataset.defaultText;
-        });
         return;
     };
     
@@ -331,13 +333,13 @@ export function setupEventListeners() {
     });
 
     // Auth
-    DOM.loginBtn.addEventListener('click', handleLoginAttempt);
-    DOM.signupBtn.addEventListener('click', handleSignUpAttempt);
-    DOM.logoutBtn.addEventListener('click', () => signOut());
-    DOM.forgotPasswordLink.addEventListener('click', () => Modals.openModal('password-reset-modal'));
-    DOM.cancelResetBtn.addEventListener('click', () => Modals.closeModal('password-reset-modal'));
-    DOM.passwordResetForm.addEventListener('submit', handlePasswordResetAttempt);
-    DOM.accountSettingsForm.addEventListener('submit', handleUpdatePasswordAttempt);
+    DOM.get('loginBtn').addEventListener('click', handleLoginAttempt);
+    DOM.get('signupBtn').addEventListener('click', handleSignUpAttempt);
+    DOM.get('logoutBtn').addEventListener('click', () => signOut());
+    DOM.get('forgotPasswordLink').addEventListener('click', () => Modals.openModal('password-reset-modal'));
+    DOM.get('cancelResetBtn').addEventListener('click', () => Modals.closeModal('password-reset-modal'));
+    DOM.get('passwordResetForm').addEventListener('submit', handlePasswordResetAttempt);
+    DOM.get('accountSettingsForm').addEventListener('submit', handleUpdatePasswordAttempt);
 
     // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {

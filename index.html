@@ -137,7 +137,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.7</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.8</p>
                 </div>
             </div>
         </div>
@@ -466,6 +466,28 @@
             <div id="statistics" class="page-section">
                 <div class="mb-8">
                     <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
+
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                            <div class="lg:col-span-2">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Hızlı Tarih</label>
+                                <div class="flex space-x-2">
+                                    <button data-action="set-stats-date-filter" data-range="today" class="stats-date-filter-btn flex-1">Bugün</button>
+                                    <button data-action="set-stats-date-filter" data-range="last7" class="stats-date-filter-btn flex-1">Son 7 Gün</button>
+                                    <button data-action="set-stats-date-filter" data-range="last30" class="stats-date-filter-btn flex-1">Son 30 Gün</button>
+                                    <button data-action="set-stats-date-filter" data-range="all" class="stats-date-filter-btn flex-1 active">Tümü</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="stats-start-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Başlangıç Tarihi</label>
+                                <input type="date" id="stats-start-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+                            <div>
+                                <label for="stats-end-date-filter" class="block text-gray-300 text-sm font-medium mb-2">Bitiş Tarihi</label>
+                                <input type="date" id="stats-end-date-filter" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="stats-grid mb-8">
                         <div class="stat-card">

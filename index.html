@@ -152,7 +152,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.10</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.11</p>
                 </div>
             </div>
         </div>
@@ -367,49 +367,61 @@
                         </div>
                     </div>
 
-                    <div class="glass-card rounded-xl p-4 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
-                                <select id="status-filter" class="input-glass w-full px-4 py-2 rounded-lg text-gray-800">
-                                    <option value="all">Tümü</option>
-                                    <option value="pending">Bekleyen</option>
-                                    <option value="won">Kazanan</option>
-                                    <option value="lost">Kaybeden</option>
-                                </select>
+                    <div class="glass-card rounded-2xl p-6 mb-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-gray-300 text-sm font-medium mb-2">Hızlı Tarih</label>
+                                        <div id="history-period-buttons" class="flex items-center space-x-1 bg-gray-900/50 rounded-lg p-1">
+                                            <button data-action="set-history-period" data-period="1" class="period-btn">Bugün</button>
+                                            <button data-action="set-history-period" data-period="7" class="period-btn">7 Gün</button>
+                                            <button data-action="set-history-period" data-period="30" class="period-btn">30 Gün</button>
+                                            <button data-action="set-history-period" data-period="all" class="period-btn active">Tümü</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
+                                        <select id="platform-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800">
+                                            <option value="all">Tüm Platformlar</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                                        <select id="status-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800">
+                                            <option value="all">Tüm Durumlar</option>
+                                            <option value="pending">Bekleyen</option>
+                                            <option value="won">Kazanan</option>
+                                            <option value="lost">Kaybeden</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
-                                <select id="platform-filter" class="input-glass w-full px-4 py-2 rounded-lg text-gray-800">
-                                    <option value="all">Tümü</option>
-                                </select>
+                            <div class="flex flex-col">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Açıklama Ara</label>
+                                <div class="flex-grow flex">
+                                    <input type="text" id="search-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800" placeholder="Maç, bahis türü vb. ara...">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-gray-300 text-sm font-medium mb-2">Tarih Aralığı</label>
-                                <input type="text" id="date-range-filter" class="input-glass w-full px-4 py-2 rounded-lg text-gray-800" placeholder="Tarih aralığı seçin">
-                            </div>
-                            <button id="reset-filters-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
-                                🔄 Sıfırla
-                            </button>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div class="glass-card rounded-xl p-4 text-center">
-                            <div class="text-2xl mb-1" id="history-total-bets">0</div>
-                            <div class="text-xs text-gray-400">Toplam Bahis</div>
+
+                    <div class="stats-grid mb-6">
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Bahis Sayısı</h3>
+                            <p class="text-2xl font-montserrat font-bold" id="filtered-bets-count">0</p>
                         </div>
-                        <div class="glass-card rounded-xl p-4 text-center">
-                            <div class="text-2xl mb-1 text-green-400" id="history-won-bets">0</div>
-                            <div class="text-xs text-gray-400">Kazanan</div>
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Toplam Yatırım</h3>
+                            <p class="text-2xl font-montserrat font-bold text-blue-300" id="filtered-total-investment">0 ₺</p>
                         </div>
-                        <div class="glass-card rounded-xl p-4 text-center">
-                            <div class="text-2xl mb-1 text-red-400" id="history-lost-bets">0</div>
-                            <div class="text-xs text-gray-400">Kaybeden</div>
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Net Kar/Zarar</h3>
+                            <p class="text-2xl font-montserrat font-bold" id="filtered-net-profit">0 ₺</p>
                         </div>
-                        <div class="glass-card rounded-xl p-4 text-center">
-                            <div class="text-2xl mb-1 text-yellow-400" id="history-pending-bets">0</div>
-                            <div class="text-xs text-gray-400">Bekleyen</div>
+                        <div class="stat-card">
+                            <h3 class="text-gray-300 font-medium text-sm mb-2">Kazanma Oranı</h3>
+                            <p class="text-2xl font-montserrat font-bold" id="filtered-win-rate">0%</p>
                         </div>
                     </div>
                     

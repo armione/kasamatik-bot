@@ -17,8 +17,6 @@ function closeModal(modalId) {
     }
 }
 
-export { openModal, closeModal };
-
 export function openPlatformManager() {
     openModal('platform-manager-modal');
     renderCustomPlatformsModal();
@@ -53,18 +51,12 @@ export function openEditModal(betId) {
     
     updateState({ editingBetId: betId, currentlyEditingBet: bet });
 
-    const statusSelect = document.getElementById('edit-status');
-    const winAmountInput = document.getElementById('edit-win-amount');
-    const winAmountSection = document.getElementById('win-amount-section');
-
-    statusSelect.value = bet.status;
-    winAmountInput.value = bet.win_amount;
+    document.getElementById('edit-status').value = bet.status;
+    document.getElementById('edit-win-amount').value = bet.win_amount;
     
+    const winAmountSection = document.getElementById('win-amount-section');
     if (bet.status === 'won') {
         winAmountSection.classList.remove('hidden');
-        if (bet.win_amount === 0) {
-            winAmountInput.value = (bet.bet_amount * bet.odds).toFixed(2);
-        }
     } else {
         winAmountSection.classList.add('hidden');
     }

@@ -2,8 +2,9 @@ import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSpo
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
 import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
-import { setupEventListeners, setupAuthEventListeners } from './event_listeners.js'; // GÜNCELLEME
+import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
+// GÜNCELLEME: initializeVisitorCounter içe aktarıldı
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
@@ -12,9 +13,7 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-// GÜNCELLEME: Auth dinleyicileri sayfa yüklenir yüklenmez kuruluyor.
-document.addEventListener('DOMContentLoaded', setupAuthEventListeners);
-
+// Kullanıcı durumu değiştiğinde (giriş/çıkış) tetiklenir
 onAuthStateChange(session => {
     const user = session?.user || null;
     setCurrentUser(user);
@@ -26,9 +25,6 @@ onAuthStateChange(session => {
     } else {
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
-        // Giriş ekranına dönüldüğünde auth formunu tekrar göster
-        DOM.authForm.classList.remove('hidden');
-        document.getElementById('signup-success-message').classList.add('hidden');
         updateState({
             bets: [], customPlatforms: [], sponsors: [], ads: [],
             listenersAttached: false
@@ -36,6 +32,7 @@ onAuthStateChange(session => {
     }
 });
 
+// Uygulama başlatıldığında veya kullanıcı giriş yaptığında çalışır
 async function initializeApp() {
     if (!state.currentUser) return;
 
@@ -70,6 +67,7 @@ function initializeUI() {
     if (state.currentUser.id === ADMIN_USER_ID) {
         renderAdminPanels();
     }
+    // GÜNCELLEME: Ziyaretçi sayacı burada başlatılıyor
     initializeVisitorCounter();
     updateAllUI();
 }

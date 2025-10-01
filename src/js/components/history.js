@@ -1,0 +1,148 @@
+import { state, updateState } from '../state.js';
+import { ITEMS_PER_PAGE } from '../utils/constants.js';
+
+function renderPagination(type, totalPages, current, changeFnName) {
+    const containerId = type === 'bets' ? 'pagination-container' : 'cash-pagination-container';
+    const container = document.getElementById(containerId);
+    if (!container || totalPages <= 1) {
+        if (container) container.innerHTML = '';
+        return;
+    }
+    let html = `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current - 1}">←</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="pagination-btn ${i === current ? 'active' : ''}" data-action="${changeFnName}" data-page="${i}">${i}</button>`;
+    }
+    html += `<button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current + 1}">→</button>`;
+    container.innerHTML = html;
+}
+
+export function renderHistory() {
+    const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
+    const statusFilter = document.getElementById('status-filter').value;
+    let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
+    
+    updateHistoryStats(filteredBets);
+
+    const historyContainer = document.getElementById('bet-history');
+    if (filteredBets.length === 0) {
+        historyContainer.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">📝</div><p class="text-xl">Bu filtrede bahis bulunmuyor.</p></div>`;
+        document.getElementById('pagination-container').innerHTML = '';
+        return;
+    }
+
+    const totalPages = Math.ceil(filteredBets.length / ITEMS_PER_PAGE);
+    const paginatedBets = filteredBets.slice((state.currentPage - 1) * ITEMS_PER_PAGE, state.currentPage * ITEMS_PER_PAGE);
+    
+    historyContainer.innerHTML = paginatedBets.map(bet => {
+        const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
+        const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
+        const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
+        const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
+        let actionButtons = (bet.status === 'pending')
+            ? `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
+            : `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
+
+        return `
+        <div class="bet-card ${statusClass[bet.status]}">
+            <div class="flex flex-col space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg">${betTypeIcon[bet.bet_type] || '🎯'}</div>
+                        <div>
+                            <h3 class="font-bold text-white text-lg">${bet.platform}</h3>
+                            <p class="text-gray-400 text-sm">${bet.bet_type}</p>
+                        </div>
+                    </div>
+                    <span class="px-4 py-2 rounded-full text-sm font-medium ${statusClass[bet.status]}">${statusText[bet.status]}</span>
+                </div>
+                <div class="bg-gray-800 bg-opacity-30 rounded-lg p-3"><p>${bet.description}</p></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date + 'T00:00:00').toLocaleDateString('tr-TR')}</div></div>
+                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>
+                    ${bet.bet_type !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
+                    ${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div></div>` : ''}
+                </div>
+                ${bet.image_url ? `<div class="flex justify-center"><img src="${bet.image_url}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" data-action="show-image-modal" data-src="${bet.image_url}"></div>` : ''}
+                <div class="flex gap-3 pt-4 border-t border-gray-600">
+                    ${actionButtons}
+                    <button data-action="delete-bet" data-id="${bet.id}" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+    
+    renderPagination('bets', totalPages, state.currentPage, 'changeBetPage');
+}
+
+function updateHistoryStats(filteredBets) {
+    const els = {
+        total: document.getElementById('history-total-bets'),
+        won: document.getElementById('history-won-bets'),
+        lost: document.getElementById('history-lost-bets'),
+        pending: document.getElementById('history-pending-bets')
+    };
+    if(els.total) els.total.textContent = filteredBets.length;
+    if(els.won) els.won.textContent = filteredBets.filter(b => b.status === 'won').length;
+    if(els.lost) els.lost.textContent = filteredBets.filter(b => b.status === 'lost').length;
+    if(els.pending) els.pending.textContent = filteredBets.filter(b => b.status === 'pending').length;
+}
+
+export function renderCashHistory() {
+    const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
+    updateCashHistoryStats(cashTransactions);
+
+    const container = document.getElementById('cash-history-list');
+    if (cashTransactions.length === 0) {
+        container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`;
+        document.getElementById('cash-pagination-container').innerHTML = '';
+        return;
+    }
+
+    const totalPages = Math.ceil(cashTransactions.length / ITEMS_PER_PAGE);
+    const paginatedTxs = cashTransactions.slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
+    
+    container.innerHTML = paginatedTxs.map(tx => {
+        const isDeposit = tx.profit_loss > 0;
+        const amountColor = isDeposit ? 'text-green-400' : 'text-red-400';
+        const icon = isDeposit ? '📥' : '📤';
+        return `
+            <div class="bet-card">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl">${icon}</div>
+                        <div>
+                            <h3 class="font-bold text-white">${tx.description}</h3>
+                            <p class="text-sm text-gray-400">${new Date(tx.date + 'T00:00:00').toLocaleDateString('tr-TR')}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <p class="text-lg font-bold ${amountColor}">${tx.profit_loss > 0 ? '+' : ''}${tx.profit_loss.toFixed(2)} ₺</p>
+                        <button data-action="delete-bet" data-id="${tx.id}" class="px-3 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+
+    renderPagination('cash', totalPages, state.cashCurrentPage, 'changeCashPage');
+}
+
+function updateCashHistoryStats(transactions) {
+    const totalDeposit = transactions.reduce((sum, tx) => sum + (tx.profit_loss > 0 ? tx.profit_loss : 0), 0);
+    const totalWithdrawal = Math.abs(transactions.reduce((sum, tx) => sum + (tx.profit_loss < 0 ? tx.profit_loss : 0), 0));
+    document.getElementById('cash-history-deposit').textContent = `+${totalDeposit.toFixed(2)} ₺`;
+    document.getElementById('cash-history-withdrawal').textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
+    document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
+    document.getElementById('cash-history-count').textContent = transactions.length;
+}
+
+export function changeBetPage(page) {
+    updateState({ currentPage: page });
+    renderHistory();
+    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+export function changeCashPage(page) {
+    updateState({ cashCurrentPage: page });
+    renderCashHistory();
+    document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
+}

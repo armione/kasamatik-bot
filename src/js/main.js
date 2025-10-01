@@ -12,24 +12,28 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
+let appInitialized = false; // Uygulamanın başlatılıp başlatılmadığını kontrol eden bayrak
+
 document.addEventListener('DOMContentLoaded', setupAuthEventListeners);
 
 onAuthStateChange(session => {
     const user = session?.user || null;
     setCurrentUser(user);
 
-    if (user) {
+    if (user && !appInitialized) {
+        appInitialized = true; // Bayrağı hemen true yap, böylece fonksiyon tekrar girmez
         DOM.authContainer.style.display = 'none';
         DOM.appContainer.style.display = 'block';
         initializeApp();
-    } else {
+    } else if (!user) {
+        appInitialized = false; // Kullanıcı çıkış yaptığında bayrağı sıfırla
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
         DOM.authForm.classList.remove('hidden');
         document.getElementById('signup-success-message').classList.add('hidden');
         updateState({
             bets: [], customPlatforms: [], sponsors: [], ads: [],
-            listenersAttached: false
+            historyPlatformFilter: 'all'
         });
     }
 });
@@ -45,9 +49,7 @@ async function initializeApp() {
     setSponsors(sponsors);
     setAds(ads);
 
-    if (!state.listenersAttached) {
-        setupEventListeners();
-    }
+    setupEventListeners(); // Artık güvenle çağırabiliriz, çünkü initializeApp sadece bir kez çalışacak
     initializeUI();
 
     showWelcomeNotification();
@@ -90,3 +92,4 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
+

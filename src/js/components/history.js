@@ -48,7 +48,7 @@ function renderHistorySummary(filteredBets) {
     const betCount = filteredBets.length;
     const wonBets = filteredBets.filter(b => b.status === 'won').length;
     const settledBets = filteredBets.filter(b => b.status !== 'pending').length;
-    const winRate = settledBets > 0 ? (wonBets / settledBets) * 100 : 0;
+    const winRate = settledBets.length > 0 ? (wonBets / settledBets) * 100 : 0;
 
     const netProfitColor = netProfit > 0 ? 'text-green-400' : netProfit < 0 ? 'text-red-400' : 'text-gray-300';
     

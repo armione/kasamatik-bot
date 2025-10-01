@@ -14,7 +14,7 @@ export const state = {
     currentSection: 'dashboard',
     currentPage: 1,
     cashCurrentPage: 1,
-    listenersAttached: false
+    historyPlatformFilter: 'all', // Platform filtresinin durumunu saklamak için eklendi
 };
 
 // State'i güncellemek için yardımcı fonksiyonlar
@@ -41,3 +41,4 @@ export function setAds(newAds) {
 export function updateState(newState) {
     Object.assign(state, newState);
 }
+

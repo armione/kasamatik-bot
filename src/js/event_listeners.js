@@ -1,4 +1,4 @@
-import { state, updateState } from './state.js'; // GÜNCELLEME: applyFilters buradan kaldırıldı.
+import { state, updateState } from './state.js'; // HATA DÜZELTMESİ: applyFilters import'u kaldırıldı.
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
@@ -611,3 +611,4 @@ function setDateFilter(range, type) {
         renderHistory();
     }
 }
+

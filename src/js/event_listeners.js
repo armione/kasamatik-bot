@@ -11,6 +11,8 @@ import * as Modals from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
 import { updatePerformanceSummary } from './components/dashboard.js';
 
+let searchDebounceTimer;
+
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
 async function handleLoginAttempt() {
@@ -315,7 +317,8 @@ async function analyzeBetSlipAttempt() {
 export function setupEventListeners() {
     if (state.listenersAttached) {
         document.querySelectorAll('button[data-default-text]').forEach(btn => {
-            btn.querySelector('.btn-text').textContent = btn.dataset.defaultText;
+            const textEl = btn.querySelector('.btn-text');
+            if (textEl) textEl.textContent = btn.dataset.defaultText;
         });
         return;
     };
@@ -377,6 +380,13 @@ export function setupEventListeners() {
                 updateState({ dashboardPeriod: parseInt(period) });
                 updatePerformanceSummary();
                 break;
+            case 'set-history-period':
+                updateState({ filters: { ...state.filters, period: period === 'all' ? 'all' : parseInt(period) }, currentPage: 1 });
+                document.querySelectorAll('#history-period-buttons .period-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.period === period);
+                });
+                renderHistory();
+                break;
         }
     });
 
@@ -391,13 +401,13 @@ export function setupEventListeners() {
         updateState({ currentPage: 1 });
         renderHistory();
     });
-    document.getElementById('reset-filters-btn').addEventListener('click', () => {
-        state.filters = { status: 'all', platform: 'all', dateRange: { start: null, end: null }};
-        document.getElementById('status-filter').value = 'all';
-        document.getElementById('platform-filter').value = 'all';
-        flatpickr("#date-range-filter").clear();
-        updateState({ currentPage: 1 });
-        renderHistory();
+     document.getElementById('search-filter').addEventListener('input', (e) => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            state.filters.searchTerm = e.target.value;
+            updateState({ currentPage: 1 });
+            renderHistory();
+        }, 300);
     });
 
      document.getElementById('stats-reset-filters-btn').addEventListener('click', () => {

@@ -4,7 +4,7 @@ import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
-import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
+import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter, updatePerformanceSummary } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
 import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels } from './components/ui_helpers.js';
@@ -125,6 +125,7 @@ function initializeUI() {
 
 export function updateAllUI() {
     updateDashboardStats();
+    updatePerformanceSummary();
     updateStatisticsPage();
     renderHistory();
     renderRecentBets();

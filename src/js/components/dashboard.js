@@ -1,19 +1,31 @@
 import { state } from '../state.js';
 
 export function updateDashboardStats() {
+    // Kasa işlemleri hariç, sadece gerçek bahisleri alıyoruz
     const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-    const totalProfit = actualBets.reduce((sum, bet) => sum + (bet.profit_loss > 0 ? bet.profit_loss : 0), 0);
-    const totalLoss = Math.abs(actualBets.reduce((sum, bet) => sum + (bet.profit_loss < 0 ? bet.profit_loss : 0), 0));
-    const totalBankroll = state.bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
-
-    document.getElementById('total-bets').textContent = actualBets.length;
-    document.getElementById('total-profit').textContent = `+${totalProfit.toFixed(2)} ₺`;
-    document.getElementById('total-loss').textContent = `-${totalLoss.toFixed(2)} ₺`;
     
+    // Tüm bahisler ve kasa işlemleri dahil edilerek toplam kasa hesaplanır
+    const totalBankroll = state.bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
+    
+    // Sadece bahislerden gelen net kar/zarar hesaplanır
+    const netProfitLoss = actualBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
+
+    // Sadece bahislere yatırılan toplam miktar hesaplanır
+    const totalInvestment = actualBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
+
+    // İlgili DOM elementlerini güncelliyoruz
+    document.getElementById('total-bets').textContent = actualBets.length;
+    document.getElementById('total-investment').textContent = `${totalInvestment.toFixed(2)} ₺`;
+
     const bankrollEl = document.getElementById('total-bankroll');
     bankrollEl.textContent = `${totalBankroll.toFixed(2)} ₺`;
     bankrollEl.className = `text-2xl font-montserrat font-bold ${totalBankroll >= 0 ? 'text-green-400' : 'text-red-400'}`;
+    
+    const netProfitLossEl = document.getElementById('net-profit-loss');
+    netProfitLossEl.textContent = `${netProfitLoss >= 0 ? '+' : ''}${netProfitLoss.toFixed(2)} ₺`;
+    netProfitLossEl.className = `text-2xl font-montserrat font-bold ${netProfitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`;
 }
+
 
 export function renderRecentBets() {
     const container = document.getElementById('recent-bets');
@@ -92,3 +104,4 @@ export function initializeVisitorCounter() {
         localStorage.setItem('visitorCount', visitorCount);
     }, updateInterval);
 }
+

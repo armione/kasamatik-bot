@@ -51,21 +51,3 @@ export function setAds(newAds) {
 export function updateState(newState) {
     Object.assign(state, newState);
 }
-
-// HATA DÜZELTMESİ: Silinen applyFilters fonksiyonu geri eklendi.
-/**
- * Bahis geçmişi için filtrelenmiş bahisleri döndürür.
- * @returns {Array} Filtrelenmiş bahisler dizisi.
- */
-export function applyFilters() {
-    const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
-    
-    return actualBets.filter(bet => {
-        const statusMatch = state.historyStatus === 'all' || bet.status === state.historyStatus;
-        const platformMatch = state.historyPlatform === 'all' || bet.platform === state.historyPlatform;
-        const searchMatch = !state.historySearch || bet.description.toLowerCase().includes(state.historySearch.toLowerCase());
-        const dateMatch = (!state.historyStartDate || bet.date >= state.historyStartDate) && (!state.historyEndDate || bet.date <= state.historyEndDate);
-
-        return statusMatch && platformMatch && searchMatch && dateMatch;
-    });
-}

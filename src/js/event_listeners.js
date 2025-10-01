@@ -6,6 +6,7 @@ import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBets
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { renderHistory, changeBetPage, changeCashPage } from './components/history.js';
+import { renderStatistics } from './components/statistics.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
 
@@ -326,12 +327,10 @@ export function setupAuthEventListeners() {
 export function setupEventListeners() {
     if (state.listenersAttached) return;
 
-    // Filtreleme Dinleyicileri
+    // Tarihçe Filtreleme Dinleyicileri
     const historyFilters = [
-        document.getElementById('start-date-filter'),
-        document.getElementById('end-date-filter'),
-        document.getElementById('platform-filter'),
-        document.getElementById('status-filter'),
+        document.getElementById('start-date-filter'), document.getElementById('end-date-filter'),
+        document.getElementById('platform-filter'), document.getElementById('status-filter'),
         document.getElementById('search-filter')
     ];
     historyFilters.forEach(filter => {
@@ -343,8 +342,16 @@ export function setupEventListeners() {
             });
         }
     });
+    
+    // İstatistik Filtreleme Dinleyicileri
+    const statsFilters = [
+        document.getElementById('stats-start-date-filter'), document.getElementById('stats-end-date-filter')
+    ];
+    statsFilters.forEach(filter => {
+        if (filter) filter.addEventListener('change', renderStatistics);
+    });
 
-    // Auth (Logout and Account Update)
+    // Auth (Çıkış ve Hesap Güncelleme)
     DOM.logoutBtn.addEventListener('click', () => signOut());
     DOM.accountSettingsForm.addEventListener('submit', handleUpdatePasswordAttempt);
 
@@ -366,14 +373,14 @@ export function setupEventListeners() {
         }
     });
 
-    // Sidebar and Navigation
+    // Sidebar ve Navigasyon
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
     document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
     document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
 
-    // Form Submissions
+    // Form Gönderimleri
     document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmitAttempt);
     document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmitAttempt);
 
@@ -393,6 +400,11 @@ export function setupEventListeners() {
             case 'set-date-filter':
                 setDateFilter(range);
                 document.querySelectorAll('.date-filter-btn').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+                break;
+            case 'set-stats-date-filter':
+                setStatsDateFilter(range);
+                document.querySelectorAll('.stats-date-filter-btn').forEach(btn => btn.classList.remove('active'));
                 target.classList.add('active');
                 break;
         }
@@ -449,6 +461,7 @@ export function setupEventListeners() {
     document.getElementById('cash-transaction-close-btn').addEventListener('click', Modals.closeCashTransactionModal);
     document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransactionAttempt('deposit'));
     document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
+    document.getElementById('close-ad-popup-btn').addEventListener('click', Modals.closeAdPopup);
 
     updateState({ listenersAttached: true });
 }
@@ -478,3 +491,29 @@ function setDateFilter(range) {
     updateState({ currentPage: 1 });
     renderHistory();
 }
+
+function setStatsDateFilter(range) {
+    const startDateInput = document.getElementById('stats-start-date-filter');
+    const endDateInput = document.getElementById('stats-end-date-filter');
+    const today = new Date();
+    
+    endDateInput.value = today.toISOString().split('T')[0];
+
+    if (range === 'today') {
+        startDateInput.value = today.toISOString().split('T')[0];
+    } else if (range === 'last7') {
+        const last7 = new Date();
+        last7.setDate(today.getDate() - 6);
+        startDateInput.value = last7.toISOString().split('T')[0];
+    } else if (range === 'last30') {
+        const last30 = new Date();
+        last30.setDate(today.getDate() - 29);
+        startDateInput.value = last30.toISOString().split('T')[0];
+    } else if (range === 'all') {
+        startDateInput.value = '';
+        endDateInput.value = '';
+    }
+
+    renderStatistics();
+}
+

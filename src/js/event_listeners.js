@@ -1,4 +1,4 @@
-import { state, updateState, applyFilters } from './state.js';
+import { state, updateState } from './state.js'; // GÜNCELLEME: applyFilters buradan kaldırıldı.
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
 import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
@@ -8,7 +8,7 @@ import { updateAllUI } from './main.js';
 import { renderHistory, changeBetPage, changeCashPage } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderAdminPanels } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
-import { renderStatistics } from './components/statistics.js'; // GÜNCELLEME: updateStatisticsPage -> renderStatistics
+import { renderStatistics } from './components/statistics.js';
 
 // HANDLER FUNCTIONS
 async function handleLoginAttempt() {
@@ -554,11 +554,11 @@ export function setupEventListeners() {
 
     statsStartDate.addEventListener('change', () => {
         updateState({ statsStartDate: statsStartDate.value });
-        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
+        renderStatistics();
     });
     statsEndDate.addEventListener('change', () => {
         updateState({ statsEndDate: statsEndDate.value });
-        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
+        renderStatistics();
     });
 
     updateState({ listenersAttached: true });
@@ -586,7 +586,7 @@ function setDateFilter(range, type) {
         updateState({ [startDateKey]: '', [endDateKey]: '' });
         
         if (isStats) {
-            renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
+            renderStatistics();
         } else {
             renderHistory();
         }
@@ -605,7 +605,7 @@ function setDateFilter(range, type) {
     });
 
     if (isStats) {
-        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
+        renderStatistics();
     } else {
         updateState({ currentPage: 1 });
         renderHistory();

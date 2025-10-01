@@ -53,9 +53,9 @@ export function openEditModal(betId) {
     
     updateState({ editingBetId: betId, currentlyEditingBet: bet });
 
-    // Populate platform options for the edit modal
+    // Populate platform options specifically for the edit modal's select element
     const platformSelect = document.getElementById('edit-platform');
-    populatePlatformOptions([platformSelect]); // Pass select element in an array
+    populatePlatformOptions([platformSelect]);
     
     // Set form values from the bet object
     platformSelect.value = bet.platform;
@@ -74,7 +74,7 @@ export function openEditModal(betId) {
     if (bet.status === 'won') {
         winAmountSection.classList.remove('hidden');
         // If win_amount is 0 for a won bet, calculate it
-        if (bet.win_amount === 0) {
+        if (bet.win_amount === 0 && bet.bet_amount && bet.odds) {
             winAmountInput.value = (bet.bet_amount * bet.odds).toFixed(2);
         }
     } else {

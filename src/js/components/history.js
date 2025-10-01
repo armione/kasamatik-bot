@@ -18,7 +18,6 @@ export function renderHistory() {
 function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     
-    // Filtre elemanlarından değerleri al
     const statusFilter = document.getElementById('status-filter').value;
     const platformFilter = document.getElementById('platform-filter').value;
     const searchFilter = document.getElementById('search-filter').value.toLowerCase();
@@ -26,13 +25,9 @@ function getFilteredBets() {
     const endDate = document.getElementById('end-date-filter').value;
 
     return actualBets.filter(bet => {
-        // Durum filtresi
         const statusMatch = statusFilter === 'all' || bet.status === statusFilter;
-        // Platform filtresi
         const platformMatch = platformFilter === 'all' || bet.platform === platformFilter;
-        // Arama filtresi
         const searchMatch = !searchFilter || bet.description.toLowerCase().includes(searchFilter);
-        // Tarih filtresi
         const dateMatch = (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
 
         return statusMatch && platformMatch && searchMatch && dateMatch;
@@ -153,7 +148,50 @@ export function changeCashPage(page) {
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Kasa geçmişi fonksiyonları (Değişiklik yok)
 export function renderCashHistory() {
-    // ...
+    const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
+    updateCashHistoryStats(cashTransactions);
+
+    const container = document.getElementById('cash-history-list');
+    if (cashTransactions.length === 0) {
+        container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">💸</div><p class="text-xl">Henüz kasa işlemi bulunmuyor.</p></div>`;
+        document.getElementById('cash-pagination-container').innerHTML = '';
+        return;
+    }
+
+    const totalPages = Math.ceil(cashTransactions.length / ITEMS_PER_PAGE);
+    const paginatedTxs = cashTransactions.slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
+    
+    container.innerHTML = paginatedTxs.map(tx => {
+        const isDeposit = tx.profit_loss > 0;
+        const amountColor = isDeposit ? 'text-green-400' : 'text-red-400';
+        const icon = isDeposit ? '📥' : '📤';
+        return `
+            <div class="bet-card">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl">${icon}</div>
+                        <div>
+                            <h3 class="font-bold text-white">${tx.description}</h3>
+                            <p class="text-sm text-gray-400">${new Date(tx.date + 'T00:00:00').toLocaleDateString('tr-TR')}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <p class="text-lg font-bold ${amountColor}">${tx.profit_loss > 0 ? '+' : ''}${tx.profit_loss.toFixed(2)} ₺</p>
+                        <button data-action="delete-bet" data-id="${tx.id}" class="px-3 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+
+    renderPagination('cash', totalPages, state.cashCurrentPage, 'changeCashPage');
+}
+
+function updateCashHistoryStats(transactions) {
+    const totalDeposit = transactions.reduce((sum, tx) => sum + (tx.profit_loss > 0 ? tx.profit_loss : 0), 0);
+    const totalWithdrawal = Math.abs(transactions.reduce((sum, tx) => sum + (tx.profit_loss < 0 ? tx.profit_loss : 0), 0));
+    document.getElementById('cash-history-deposit').textContent = `+${totalDeposit.toFixed(2)} ₺`;
+    document.getElementById('cash-history-withdrawal').textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
+    document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
+    document.getElementById('cash-history-count').textContent = transactions.length;
 }

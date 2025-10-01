@@ -12,13 +12,6 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-const loadingOverlay = document.getElementById('loading-overlay');
-function toggleLoading(show) {
-    if (loadingOverlay) {
-        loadingOverlay.style.display = show ? 'flex' : 'none';
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // DOM tamamen yüklendiğinde, olay dinleyicilerini ve kimlik doğrulama kontrolünü başlat.
     // Bu, `constants.js` dosyasındaki hatayı temelden çözer.
@@ -26,6 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChange(handleAuthStateChange);
 });
 
+const loadingOverlay = document.getElementById('loading-overlay');
+function toggleLoading(show) {
+    if (loadingOverlay) {
+        loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+}
 
 async function handleAuthStateChange(session) {
     toggleLoading(true);

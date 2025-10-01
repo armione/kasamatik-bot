@@ -4,7 +4,6 @@ import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
-// GÜNCELLEME: initializeVisitorCounter içe aktarıldı
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
@@ -12,6 +11,12 @@ import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSpon
 import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
+
+// Yükleme animasyonunu göster/gizle
+const loadingOverlay = document.getElementById('loading-overlay');
+function toggleLoading(show) {
+    loadingOverlay.style.display = show ? 'flex' : 'none';
+}
 
 // Kullanıcı durumu değiştiğinde (giriş/çıkış) tetiklenir
 onAuthStateChange(session => {
@@ -29,6 +34,7 @@ onAuthStateChange(session => {
             bets: [], customPlatforms: [], sponsors: [], ads: [],
             listenersAttached: false
         });
+        toggleLoading(false); // Kullanıcı yoksa yükleme ekranını gizle
     }
 });
 
@@ -36,19 +42,30 @@ onAuthStateChange(session => {
 async function initializeApp() {
     if (!state.currentUser) return;
 
+    toggleLoading(true); // Veri yüklenirken animasyonu göster
+
     setupUserInterface();
     
-    const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
-    setBets(bets);
-    setCustomPlatforms(platforms);
-    setSponsors(sponsors);
-    setAds(ads);
+    try {
+        const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
+        setBets(bets);
+        setCustomPlatforms(platforms);
+        setSponsors(sponsors);
+        setAds(ads);
 
-    setupEventListeners();
-    initializeUI();
-
-    showWelcomeNotification();
-    showLoginAdPopup();
+        if (!state.listenersAttached) {
+            setupEventListeners();
+        }
+        
+        initializeUI();
+        showWelcomeNotification();
+        showLoginAdPopup();
+    } catch (error) {
+        console.error("Uygulama başlatılırken hata:", error);
+        showNotification("Veriler yüklenirken bir hata oluştu.", "error");
+    } finally {
+        toggleLoading(false); // Veri yüklendikten sonra animasyonu gizle
+    }
 }
 
 function setupUserInterface() {
@@ -67,7 +84,6 @@ function initializeUI() {
     if (state.currentUser.id === ADMIN_USER_ID) {
         renderAdminPanels();
     }
-    // GÜNCELLEME: Ziyaretçi sayacı burada başlatılıyor
     initializeVisitorCounter();
     updateAllUI();
 }

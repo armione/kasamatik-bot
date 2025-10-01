@@ -2,7 +2,7 @@ import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSpo
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
 import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
-import { setupEventListeners, setupAuthEventListeners } from './event_listeners.js';
+import { setupEventListeners, setupAuthEventListeners } from './event_listeners.js'; // GÜNCELLEME
 import { showNotification, getTodaysDate } from './utils/helpers.js';
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
@@ -12,7 +12,7 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-// Auth dinleyicileri sayfa yüklenir yüklenmez kuruluyor.
+// GÜNCELLEME: Auth dinleyicileri sayfa yüklenir yüklenmez kuruluyor.
 document.addEventListener('DOMContentLoaded', setupAuthEventListeners);
 
 onAuthStateChange(session => {

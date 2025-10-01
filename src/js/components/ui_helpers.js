@@ -8,19 +8,19 @@ export function showSection(sectionName, clickedElement) {
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => item.classList.remove('active'));
     clickedElement?.classList.add('active');
     state.currentSection = sectionName;
-    DOM.sidebar.classList.remove('mobile-open');
+    DOM.get('sidebar').classList.remove('mobile-open');
     if (sectionName === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
         updateCharts();
     }
 }
 
 export function toggleSidebar() {
-    DOM.sidebar.classList.toggle('collapsed');
-    DOM.mainContent.classList.toggle('expanded');
+    DOM.get('sidebar').classList.toggle('collapsed');
+    DOM.get('mainContent').classList.toggle('expanded');
 }
 
 export function toggleMobileSidebar() {
-    DOM.sidebar.classList.toggle('mobile-open');
+    DOM.get('sidebar').classList.toggle('mobile-open');
 }
 
 export function populatePlatformOptions() {
@@ -32,7 +32,7 @@ export function populatePlatformOptions() {
     ];
     platformSelects.forEach(select => {
         if (select) {
-            const currentVal = select.value;
+            const currentValue = select.value;
             select.innerHTML = `<option value="all">${select.id === 'platform-filter' ? 'Tüm Platformlar' : 'Platform Seçin'}</option>`;
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
@@ -40,8 +40,11 @@ export function populatePlatformOptions() {
                 option.textContent = platform;
                 select.appendChild(option);
             });
-            if(select.id !== 'platform-filter') select.querySelector('option[value="all"]').remove();
-            select.value = currentVal;
+             if (allPlatforms.includes(currentValue)) {
+                select.value = currentValue;
+            } else if (select.id !== 'platform-filter') {
+                select.value = 'all';
+            }
         }
     });
 }
@@ -62,12 +65,13 @@ export function renderCustomPlatforms() {
 }
 
 export function renderSponsorsPage() {
-    if (!DOM.sponsorsGridContainer) return;
+    const sponsorsGridContainer = DOM.get('sponsorsGridContainer');
+    if (!sponsorsGridContainer) return;
     if (state.sponsors.length === 0) {
-        DOM.sponsorsGridContainer.innerHTML = `<div class="text-center py-16 text-gray-400 col-span-full"><div class="text-6xl mb-4">🏆</div><p class="text-xl">Henüz sponsor bulunmuyor.</p></div>`;
+        sponsorsGridContainer.innerHTML = `<div class="text-center py-16 text-gray-400 col-span-full"><div class="text-6xl mb-4">🏆</div><p class="text-xl">Henüz sponsor bulunmuyor.</p></div>`;
         return;
     }
-    DOM.sponsorsGridContainer.innerHTML = state.sponsors.map(s => `
+    sponsorsGridContainer.innerHTML = state.sponsors.map(s => `
         <a href="${s.target_url}" target="_blank" rel="noopener noreferrer" class="sponsor-card glass-card rounded-2xl block p-4">
             <div class="h-40 flex items-center justify-center rounded-xl overflow-hidden mb-4 bg-black bg-opacity-20">
                 <img src="${s.logo_url}" alt="${s.name} Logosu" class="max-h-full max-w-full object-contain">
@@ -83,12 +87,13 @@ export function renderAdminPanels() {
 }
 
 function renderSponsorManagementList() {
-    if (!DOM.sponsorsListContainer) return;
+    const sponsorsListContainer = DOM.get('sponsorsListContainer');
+    if (!sponsorsListContainer) return;
     if (state.sponsors.length === 0) {
-        DOM.sponsorsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz sponsor eklenmemiş.</p>';
+        sponsorsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz sponsor eklenmemiş.</p>';
         return;
     }
-    DOM.sponsorsListContainer.innerHTML = state.sponsors.map(s => `
+    sponsorsListContainer.innerHTML = state.sponsors.map(s => `
         <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
             <div class="flex items-center space-x-3">
                 <img src="${s.logo_url}" class="w-10 h-10 object-contain rounded-md bg-white p-1">
@@ -103,12 +108,13 @@ function renderSponsorManagementList() {
 }
 
 function renderAdManagementList() {
-    if (!DOM.adsListContainer) return;
+    const adsListContainer = DOM.get('adsListContainer');
+    if (!adsListContainer) return;
     if (state.ads.length === 0) {
-        DOM.adsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz reklam eklenmemiş.</p>';
+        adsListContainer.innerHTML = '<p class="text-gray-400 text-sm">Henüz reklam eklenmemiş.</p>';
         return;
     }
-    DOM.adsListContainer.innerHTML = state.ads.map(ad => `
+    adsListContainer.innerHTML = state.ads.map(ad => `
         <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 p-3 rounded-lg">
             <div class="flex items-center space-x-3">
                 <img src="${ad.image_url}" class="w-16 h-10 object-cover rounded-md">
@@ -165,3 +171,4 @@ export function removeImage(type) {
     document.getElementById(`${prefix}image-preview`).classList.add('hidden');
     document.getElementById(`${prefix}image-input`).value = '';
 }
+

@@ -334,6 +334,28 @@ body {
     transform: scale(1.05);
 }
 
+.period-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.period-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.period-btn.active {
+    background: linear-gradient(135deg, var(--primary-blue), #6366f1);
+    color: white;
+    box-shadow: 0 4px 15px rgba(139, 179, 240, 0.2);
+}
+
+
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
@@ -513,3 +535,4 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+

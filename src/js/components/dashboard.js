@@ -64,31 +64,3 @@ export function renderDashboardBannerAd() {
         dashboardAdBanner.style.display = 'none';
     }
 }
-
-// YENİ FONKSİYON: Ziyaretçi Sayacı
-export function initializeVisitorCounter() {
-    const counterElement = document.getElementById('visitor-counter');
-    if (!counterElement) return;
-
-    let visitorCount = localStorage.getItem('visitorCount');
-
-    const baseCount = 1200;
-    const minIncrement = 1;
-    const maxIncrement = 3;
-    const updateInterval = 3000; // 3 saniyede bir
-
-    if (!visitorCount || isNaN(visitorCount)) {
-        visitorCount = baseCount + Math.floor(Math.random() * 50);
-    } else {
-        visitorCount = parseInt(visitorCount);
-    }
-
-    counterElement.textContent = visitorCount;
-
-    setInterval(() => {
-        const increment = Math.floor(Math.random() * (maxIncrement - minIncrement + 1)) + minIncrement;
-        visitorCount += increment;
-        counterElement.textContent = visitorCount;
-        localStorage.setItem('visitorCount', visitorCount);
-    }, updateInterval);
-}

@@ -24,22 +24,29 @@ export function toggleMobileSidebar() {
     DOM.sidebar.classList.toggle('mobile-open');
 }
 
-export function populatePlatformOptions() {
+export function populatePlatformOptions(selectsToUpdate) {
     const allPlatforms = [...DEFAULT_PLATFORMS, ...state.customPlatforms.map(p => p.name)].sort();
-    const platformSelects = [
+    
+    // Eğer belirli select'ler verilmediyse, standart olanları kullan
+    const platformSelects = selectsToUpdate || [
         document.getElementById('platform'), 
         document.getElementById('quick-platform'),
-        document.getElementById('platform-filter') // Tarihçe sayfasındaki filtre de eklendi
+        document.getElementById('platform-filter'),
+        document.getElementById('edit-platform'),
     ];
+
     platformSelects.forEach(select => {
         if (select) {
             const currentVal = select.value;
-            // platform-filter için "Tüm Platformlar" seçeneği korunmalı
-            if(select.id === 'platform-filter'){
-                 select.innerHTML = '<option value="all">Tüm Platformlar</option>';
+            let firstOption;
+
+            if (select.id === 'platform-filter') {
+                firstOption = '<option value="all">Tüm Platformlar</option>';
             } else {
-                 select.innerHTML = '<option value="">Platform Seçin</option>';
+                firstOption = '<option value="">Platform Seçin</option>';
             }
+            
+            select.innerHTML = firstOption;
            
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
@@ -47,10 +54,17 @@ export function populatePlatformOptions() {
                 option.textContent = platform;
                 select.appendChild(option);
             });
-            select.value = currentVal;
+            
+            // Eğer mevcut bir değer varsa, onu korumaya çalış
+            if (allPlatforms.includes(currentVal)) {
+                select.value = currentVal;
+            } else if (select.id === 'platform-filter') {
+                select.value = 'all';
+            }
         }
     });
 }
+
 
 export function renderCustomPlatforms() {
     const container = document.getElementById('custom-platforms-list');

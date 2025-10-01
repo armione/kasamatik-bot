@@ -5,9 +5,10 @@ import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } fr
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
-import { changeBetPage, changeCashPage } from './components/history.js';
+import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
+import { updateStatisticsPage } from './components/statistics.js';
 
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
@@ -312,14 +313,12 @@ async function analyzeBetSlipAttempt() {
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
     if (state.listenersAttached) {
-        // Butonların metinlerini sıfırla (eğer önceden event listener eklenmişse)
         document.querySelectorAll('button[data-default-text]').forEach(btn => {
             btn.querySelector('.btn-text').textContent = btn.dataset.defaultText;
         });
         return;
     };
     
-    // Butonların orijinal metinlerini sakla
     document.querySelectorAll('button').forEach(button => {
         const textElement = button.querySelector('.btn-text');
         if (textElement) {
@@ -376,13 +375,35 @@ export function setupEventListeners() {
         }
     });
 
-    // Other UI interactions
+    // Filtreleme
+    document.getElementById('status-filter').addEventListener('change', (e) => {
+        state.filters.status = e.target.value;
+        updateState({ currentPage: 1 });
+        renderHistory();
+    });
+    document.getElementById('platform-filter').addEventListener('change', (e) => {
+        state.filters.platform = e.target.value;
+        updateState({ currentPage: 1 });
+        renderHistory();
+    });
+    document.getElementById('reset-filters-btn').addEventListener('click', () => {
+        state.filters = { status: 'all', platform: 'all', dateRange: { start: null, end: null }};
+        document.getElementById('status-filter').value = 'all';
+        document.getElementById('platform-filter').value = 'all';
+        flatpickr("#date-range-filter").clear();
+        updateState({ currentPage: 1 });
+        renderHistory();
+    });
+
+     document.getElementById('stats-reset-filters-btn').addEventListener('click', () => {
+        state.statsFilters.dateRange = { start: null, end: null };
+        flatpickr("#stats-date-range-filter").clear();
+        updateStatisticsPage();
+    });
+    
+    // Diğer UI etkileşimleri
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlipAttempt);
-    document.getElementById('status-filter').addEventListener('change', () => {
-        updateState({ currentPage: 1 });
-        updateAllUI();
-    });
     document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
     document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
     
@@ -438,3 +459,4 @@ export function setupEventListeners() {
 
     updateState({ listenersAttached: true });
 }
+

@@ -9,31 +9,43 @@ export const ADMIN_USER_ID = 'fbf57686-1ec6-4ef0-9ee1-b908d3fae274';
 export const ITEMS_PER_PAGE = 10;
 export const DEFAULT_PLATFORMS = [ "Bilyoner", "Misli", "Nesine", "Tuttur" ];
 
-// DOM Elementleri
+// DOM Seçicileri (Selectors)
+// NOT: Bu yapı, elementler henüz DOM'a yüklenmeden önce script'in çalışması sorununu çözer.
+// Elementlere doğrudan referans vermek yerine, ihtiyaç duyulduğunda `document.querySelector` ile
+// erişmek için seçicileri burada saklıyoruz.
+export const SELECTORS = {
+    authContainer: '#auth-container',
+    appContainer: '#app-container',
+    authForm: '#auth-form',
+    loginBtn: '#login-btn',
+    signupBtn: '#signup-btn',
+    logoutBtn: '#logout-btn',
+    userEmailDisplay: '#user-email-display',
+    forgotPasswordLink: '#forgot-password-link',
+    passwordResetModal: '#password-reset-modal',
+    passwordResetForm: '#password-reset-form',
+    cancelResetBtn: '#cancel-reset-btn',
+    sendResetBtn: '#send-reset-btn',
+    sponsorForm: '#sponsor-form',
+    sponsorsListContainer: '#sponsors-list',
+    sponsorsGridContainer: '#sponsors-grid',
+    sponsorManagementPanel: '#sponsor-management-panel',
+    adManagementPanel: '#ad-management-panel',
+    adForm: '#ad-form',
+    adsListContainer: '#ads-list',
+    adPopupModal: '#ad-popup-modal',
+    closeAdPopupBtn: '#close-ad-popup-btn',
+    dashboardAdBanner: '#dashboard-ad-banner',
+    accountSettingsForm: '#account-settings-form',
+    sidebar: '#sidebar',
+    mainContent: '#main-content'
+};
+
+// DOM Elementlerine Dinamik Erişim Sağlayan Obje
+// Bu yapı, SELECTORS'daki seçicileri kullanarak DOM elementlerini dinamik olarak bulur.
+// Örnek kullanım: DOM.authContainer yerine DOM.get('authContainer')
 export const DOM = {
-    authContainer: document.getElementById('auth-container'),
-    appContainer: document.getElementById('app-container'),
-    authForm: document.getElementById('auth-form'),
-    loginBtn: document.getElementById('login-btn'),
-    signupBtn: document.getElementById('signup-btn'),
-    logoutBtn: document.getElementById('logout-btn'),
-    userEmailDisplay: document.getElementById('user-email-display'),
-    forgotPasswordLink: document.getElementById('forgot-password-link'),
-    passwordResetModal: document.getElementById('password-reset-modal'),
-    passwordResetForm: document.getElementById('password-reset-form'),
-    cancelResetBtn: document.getElementById('cancel-reset-btn'),
-    sendResetBtn: document.getElementById('send-reset-btn'),
-    sponsorForm: document.getElementById('sponsor-form'),
-    sponsorsListContainer: document.getElementById('sponsors-list'),
-    sponsorsGridContainer: document.getElementById('sponsors-grid'),
-    sponsorManagementPanel: document.getElementById('sponsor-management-panel'),
-    adManagementPanel: document.getElementById('ad-management-panel'),
-    adForm: document.getElementById('ad-form'),
-    adsListContainer: document.getElementById('ads-list'),
-    adPopupModal: document.getElementById('ad-popup-modal'),
-    closeAdPopupBtn: document.getElementById('close-ad-popup-btn'),
-    dashboardAdBanner: document.getElementById('dashboard-ad-banner'),
-    accountSettingsForm: document.getElementById('account-settings-form'),
-    sidebar: document.getElementById('sidebar'),
-    mainContent: document.getElementById('main-content')
+    get(key) {
+        return document.querySelector(SELECTORS[key]);
+    }
 };

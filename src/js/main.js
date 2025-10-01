@@ -12,21 +12,31 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-// Yükleme animasyonunu göster/gizle
 const loadingOverlay = document.getElementById('loading-overlay');
 function toggleLoading(show) {
-    loadingOverlay.style.display = show ? 'flex' : 'none';
+    if (loadingOverlay) {
+        loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
 }
 
-// Kullanıcı durumu değiştiğinde (giriş/çıkış) tetiklenir
-onAuthStateChange(session => {
+// Sayfa ilk yüklendiğinde loading ekranını göster
+document.addEventListener('DOMContentLoaded', () => {
+    toggleLoading(true);
+});
+
+onAuthStateChange(async (session) => {
     const user = session?.user || null;
+    
+    // Eğer mevcut kullanıcı durumu ile yeni durum aynı ise (ör: sayfa yenileme) tekrar işlem yapma
+    if (user?.id === state.currentUser?.id) {
+        toggleLoading(false); // Her ihtimale karşı yüklemeyi gizle
+        return;
+    }
+    
     setCurrentUser(user);
 
     if (user) {
-        DOM.authContainer.style.display = 'none';
-        DOM.appContainer.style.display = 'block';
-        initializeApp();
+        await initializeApp();
     } else {
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
@@ -34,18 +44,15 @@ onAuthStateChange(session => {
             bets: [], customPlatforms: [], sponsors: [], ads: [],
             listenersAttached: false
         });
-        toggleLoading(false); // Kullanıcı yoksa yükleme ekranını gizle
+        toggleLoading(false);
     }
 });
 
-// Uygulama başlatıldığında veya kullanıcı giriş yaptığında çalışır
 async function initializeApp() {
     if (!state.currentUser) return;
 
-    toggleLoading(true); // Veri yüklenirken animasyonu göster
+    toggleLoading(true);
 
-    setupUserInterface();
-    
     try {
         const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
         setBets(bets);
@@ -53,18 +60,19 @@ async function initializeApp() {
         setSponsors(sponsors);
         setAds(ads);
 
-        if (!state.listenersAttached) {
-            setupEventListeners();
-        }
-        
+        setupEventListeners();
         initializeUI();
+
+        DOM.authContainer.style.display = 'none';
+        DOM.appContainer.style.display = 'block';
+
         showWelcomeNotification();
         showLoginAdPopup();
     } catch (error) {
         console.error("Uygulama başlatılırken hata:", error);
         showNotification("Veriler yüklenirken bir hata oluştu.", "error");
     } finally {
-        toggleLoading(false); // Veri yüklendikten sonra animasyonu gizle
+        toggleLoading(false);
     }
 }
 
@@ -77,6 +85,7 @@ function setupUserInterface() {
 
 function initializeUI() {
     document.getElementById('bet-date').value = getTodaysDate();
+    setupUserInterface();
     populatePlatformOptions();
     renderCustomPlatforms();
     renderSponsorsPage();
@@ -104,3 +113,4 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
+

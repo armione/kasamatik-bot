@@ -1,10 +1,10 @@
-import { state, updateState, applyFilters } from '../state.js';
+import { state, updateState } from '../state.js';
 import { ITEMS_PER_PAGE } from '../utils/constants.js';
 
 // --- ANA RENDER FONKSİYONU ---
 export function renderHistory() {
     // 1. Filtreleri state üzerinden uygula
-    const filteredBets = applyFilters();
+    const filteredBets = getFilteredBets();
     
     // 2. Filtrelenmiş Veriye Göre Özet Kartlarını Güncelle
     renderHistorySummary(filteredBets);
@@ -14,6 +14,21 @@ export function renderHistory() {
 }
 
 // --- YARDIMCI FONKSİYONLAR ---
+
+// GÜNCELLEME: Bu fonksiyon artık `state.js` yerine doğrudan bu dosyada yer alıyor.
+function getFilteredBets() {
+    const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
+    
+    return actualBets.filter(bet => {
+        const statusMatch = state.historyStatus === 'all' || bet.status === state.historyStatus;
+        const platformMatch = state.historyPlatform === 'all' || bet.platform === state.historyPlatform;
+        const searchMatch = !state.historySearch || bet.description.toLowerCase().includes(state.historySearch.toLowerCase());
+        const dateMatch = (!state.historyStartDate || bet.date >= state.historyStartDate) && (!state.historyEndDate || bet.date <= state.historyEndDate);
+
+        return statusMatch && platformMatch && searchMatch && dateMatch; // HATA DÜZELTMESİ: `date` -> `dateMatch`
+    });
+}
+
 
 function renderHistorySummary(filteredBets) {
     const container = document.getElementById('history-summary-cards');
@@ -67,7 +82,6 @@ function renderPaginatedBetList(filteredBets) {
         const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
         const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
         
-        // Buton metni ve rengi, bahis durumuna göre dinamik olarak belirleniyor.
         const editButtonText = bet.status === 'pending' ? 'Sonuçlandır' : 'Düzenle';
         const editButtonClass = bet.status === 'pending' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700';
 
@@ -130,7 +144,7 @@ export function changeCashPage(page) {
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Kasa geçmişi fonksiyonları (Değişiklik yok)
+// Kasa geçmişi fonksiyonları
 export function renderCashHistory() {
     const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
     updateCashHistoryStats(cashTransactions);
@@ -143,7 +157,7 @@ export function renderCashHistory() {
     }
 
     const totalPages = Math.ceil(cashTransactions.length / ITEMS_PER_PAGE);
-    const paginatedTxs = cashTransactions.slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
+    const paginatedTxs = [...cashTransactions].reverse().slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
     
     container.innerHTML = paginatedTxs.map(tx => {
         const isDeposit = tx.profit_loss > 0;

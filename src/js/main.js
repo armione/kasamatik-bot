@@ -20,13 +20,18 @@ function toggleLoading(show) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    toggleLoading(true);
+    // DOM tamamen yüklendiğinde, olay dinleyicilerini ve kimlik doğrulama kontrolünü başlat.
+    // Bu, `constants.js` dosyasındaki hatayı temelden çözer.
+    setupEventListeners();
+    onAuthStateChange(handleAuthStateChange);
 });
 
-onAuthStateChange(async (session) => {
+
+async function handleAuthStateChange(session) {
+    toggleLoading(true);
     const user = session?.user || null;
-    
-    if (user?.id === state.currentUser?.id) {
+
+    if (user?.id === state.currentUser?.id && DOM.get('appContainer').style.display === 'block') {
         toggleLoading(false);
         return;
     }
@@ -36,19 +41,18 @@ onAuthStateChange(async (session) => {
     if (user) {
         await initializeApp();
     } else {
-        DOM.authContainer.style.display = 'flex';
-        DOM.appContainer.style.display = 'none';
+        DOM.get('authContainer').style.display = 'flex';
+        DOM.get('appContainer').style.display = 'none';
         updateState({
             bets: [], customPlatforms: [], sponsors: [], ads: [],
-            listenersAttached: false
         });
         toggleLoading(false);
     }
-});
+}
+
 
 async function initializeApp() {
     if (!state.currentUser) return;
-    toggleLoading(true);
 
     try {
         const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
@@ -56,12 +60,11 @@ async function initializeApp() {
         setCustomPlatforms(platforms);
         setSponsors(sponsors);
         setAds(ads);
-
-        setupEventListeners();
+        
         initializeUI();
 
-        DOM.authContainer.style.display = 'none';
-        DOM.appContainer.style.display = 'block';
+        DOM.get('authContainer').style.display = 'none';
+        DOM.get('appContainer').style.display = 'block';
 
         showWelcomeNotification();
         showLoginAdPopup();
@@ -74,19 +77,7 @@ async function initializeApp() {
 }
 
 function initializeDatePickers() {
-    const dateRangeConfig = {
-        mode: "range",
-        dateFormat: "Y-m-d",
-        onChange: function(selectedDates) {
-            if (selectedDates.length === 2) {
-                state.filters.dateRange.start = selectedDates[0];
-                state.filters.dateRange.end = selectedDates[1];
-                updateState({ currentPage: 1 });
-                renderHistory();
-            }
-        }
-    };
-     const statsDateRangeConfig = {
+    const statsDateRangeConfig = {
         mode: "range",
         dateFormat: "Y-m-d",
         onChange: function(selectedDates) {
@@ -97,15 +88,14 @@ function initializeDatePickers() {
             }
         }
     };
-    flatpickr("#date-range-filter", dateRangeConfig);
     flatpickr("#stats-date-range-filter", statsDateRangeConfig);
 }
 
 function setupUserInterface() {
-    DOM.userEmailDisplay.textContent = state.currentUser.email;
+    DOM.get('userEmailDisplay').textContent = state.currentUser.email;
     const isAdmin = state.currentUser.id === ADMIN_USER_ID;
-    DOM.sponsorManagementPanel.style.display = isAdmin ? 'block' : 'none';
-    DOM.adManagementPanel.style.display = isAdmin ? 'block' : 'none';
+    DOM.get('sponsorManagementPanel').style.display = isAdmin ? 'block' : 'none';
+    DOM.get('adManagementPanel').style.display = isAdmin ? 'block' : 'none';
 }
 
 function initializeUI() {
@@ -119,7 +109,7 @@ function initializeUI() {
         renderAdminPanels();
     }
     initializeVisitorCounter();
-    initializeDatePickers(); // Tarih seçicileri başlat
+    initializeDatePickers();
     updateAllUI();
 }
 

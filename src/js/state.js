@@ -30,7 +30,10 @@ export const state = {
             start: null,
             end: null
         }
-    }
+    },
+
+    // Dashboard performans özeti periyodu
+    dashboardPeriod: 1 // 1: Bugün, 7: Son 7 gün, 30: Son 30 gün
 };
 
 // State'i güncellemek için yardımcı fonksiyonlar
@@ -57,3 +60,4 @@ export function setAds(newAds) {
 export function updateState(newState) {
     Object.assign(state, newState);
 }
+

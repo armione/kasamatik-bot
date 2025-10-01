@@ -1,8 +1,8 @@
 import { state, updateState } from './state.js';
-import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // DEFAULT_PLATFORMS eklendi
-import { showNotification } from './utils/helpers.js';
+import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js';
+import { showNotification, setButtonLoading } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
-import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js'; // Admin fonksiyonları kaldırıldı çünkü burada kullanılmıyor
+import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage } from './components/history.js';
@@ -12,19 +12,16 @@ import * as Modals from './components/modals.js';
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
 async function handleLoginAttempt() {
-    DOM.loginBtn.disabled = true;
-    DOM.loginBtn.textContent = "Giriş yapılıyor...";
+    setButtonLoading(DOM.loginBtn, true, 'Giriş yapılıyor...');
     const { error } = await signIn(DOM.authForm.email.value, DOM.authForm.password.value);
     if (error) {
         showNotification(`Giriş hatası: ${error.message}`, 'error');
     }
-    DOM.loginBtn.disabled = false;
-    DOM.loginBtn.textContent = "Giriş Yap";
+    setButtonLoading(DOM.loginBtn, false);
 }
 
 async function handleSignUpAttempt() {
-    DOM.signupBtn.disabled = true;
-    DOM.signupBtn.textContent = "Kayıt olunuyor...";
+    setButtonLoading(DOM.signupBtn, true, 'Kayıt olunuyor...');
     const email = DOM.authForm.email.value;
     const { error } = await signUp(email, DOM.authForm.password.value);
     if (error) {
@@ -34,14 +31,12 @@ async function handleSignUpAttempt() {
         document.getElementById('user-email-confirm').textContent = email;
         document.getElementById('signup-success-message').classList.remove('hidden');
     }
-    DOM.signupBtn.disabled = false;
-    DOM.signupBtn.textContent = "Kayıt Ol";
+    setButtonLoading(DOM.signupBtn, false);
 }
 
 async function handlePasswordResetAttempt(e) {
     e.preventDefault();
-    DOM.sendResetBtn.disabled = true;
-    DOM.sendResetBtn.textContent = "Gönderiliyor...";
+    setButtonLoading(DOM.sendResetBtn, true, 'Gönderiliyor...');
     const { error } = await resetPasswordForEmail(DOM.passwordResetForm['reset-email'].value);
     if (error) {
         showNotification(`Hata: ${error.message}`, 'error');
@@ -49,8 +44,7 @@ async function handlePasswordResetAttempt(e) {
         showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
         Modals.closeModal('password-reset-modal');
     }
-    DOM.sendResetBtn.disabled = false;
-    DOM.sendResetBtn.textContent = "Gönder";
+    setButtonLoading(DOM.sendResetBtn, false);
 }
 
 async function handleUpdatePasswordAttempt(e) {
@@ -72,8 +66,7 @@ async function handleUpdatePasswordAttempt(e) {
         return;
     }
 
-    updateButton.disabled = true;
-    updateButton.textContent = 'Güncelleniyor...';
+    setButtonLoading(updateButton, true, 'Güncelleniyor...');
     const { error } = await updateUserPassword(newPassword);
     if (error) {
         showNotification(`Hata: ${error.message}`, 'error');
@@ -81,12 +74,14 @@ async function handleUpdatePasswordAttempt(e) {
         showNotification('Şifreniz başarıyla güncellendi!', 'success');
         DOM.accountSettingsForm.reset();
     }
-    updateButton.disabled = false;
-    updateButton.textContent = 'Şifreyi Güncelle';
+    setButtonLoading(updateButton, false);
 }
 
 async function handleBetFormSubmitAttempt(e) {
     e.preventDefault();
+    const addButton = document.getElementById('add-bet-btn');
+    setButtonLoading(addButton, true, 'Ekleniyor...');
+    
     const newBetData = {
         user_id: state.currentUser.id,
         platform: document.getElementById('platform').value,
@@ -109,6 +104,7 @@ async function handleBetFormSubmitAttempt(e) {
         resetForm();
         showNotification('🎯 Yeni bahis başarıyla eklendi!', 'success');
     }
+    setButtonLoading(addButton, false);
 }
 
 async function handleQuickAddSubmitAttempt(e) {
@@ -279,25 +275,18 @@ async function handleClearAllDataAttempt() {
     }
 }
 
-// ==========================================================
-// ===== BAHİS AÇIKLAMASI SORUNUNU ÇÖZEN GÜNCELLEME =====
-// ==========================================================
 async function analyzeBetSlipAttempt() {
     if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
     const geminiButton = document.getElementById('gemini-analyze-btn');
-    const buttonText = document.getElementById('gemini-button-text');
-    const buttonIcon = document.getElementById('gemini-button-icon');
-    geminiButton.disabled = true;
-    buttonText.textContent = 'Okunuyor...';
-    buttonIcon.innerHTML = '🧠';
+    setButtonLoading(geminiButton, true);
+    
     try {
         const base64Data = state.currentImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
-            // GÜNCELLEME: 'matches' dizisini işleyip 'description' oluşturuyoruz
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
                 const descriptionText = result.matches
                     .map(match => `${match.matchName} (${match.bets.join(', ')})`)
@@ -316,15 +305,27 @@ async function analyzeBetSlipAttempt() {
         console.error('Gemini API Hatası:', error);
         showNotification('Kupon okunurken bir hata oluştu. Lütfen API anahtarınızı kontrol edin.', 'error');
     } finally {
-        geminiButton.disabled = false;
-        buttonText.textContent = 'Kuponu Oku';
-        buttonIcon.innerHTML = '✨';
+        setButtonLoading(geminiButton, false);
     }
 }
 
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
-    if (state.listenersAttached) return;
+    if (state.listenersAttached) {
+        // Butonların metinlerini sıfırla (eğer önceden event listener eklenmişse)
+        document.querySelectorAll('button[data-default-text]').forEach(btn => {
+            btn.querySelector('.btn-text').textContent = btn.dataset.defaultText;
+        });
+        return;
+    };
+    
+    // Butonların orijinal metinlerini sakla
+    document.querySelectorAll('button').forEach(button => {
+        const textElement = button.querySelector('.btn-text');
+        if (textElement) {
+            button.dataset.defaultText = textElement.textContent;
+        }
+    });
 
     // Auth
     DOM.loginBtn.addEventListener('click', handleLoginAttempt);

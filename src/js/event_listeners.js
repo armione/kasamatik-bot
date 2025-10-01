@@ -4,11 +4,11 @@ import { showNotification } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSponsor, deleteSponsor, addAd, deleteAd } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
-import { updateAllUI, initializeApp } from './main.js';
+import { updateAllUI } from './main.js';
 import { renderHistory, changeBetPage, changeCashPage } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderAdminPanels } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
-import { updateStatisticsPage } from './components/statistics.js';
+import { renderStatistics } from './components/statistics.js'; // GÜNCELLEME: updateStatisticsPage -> renderStatistics
 
 // HANDLER FUNCTIONS
 async function handleLoginAttempt() {
@@ -416,7 +416,6 @@ export function setupEventListeners() {
             const eventType = id === 'search-filter' ? 'input' : 'change';
             element.addEventListener(eventType, (e) => {
                 updateState({ [stateKey]: e.target.value, currentPage: 1 });
-                applyFilters();
                 renderHistory();
             });
         }
@@ -555,11 +554,11 @@ export function setupEventListeners() {
 
     statsStartDate.addEventListener('change', () => {
         updateState({ statsStartDate: statsStartDate.value });
-        updateStatisticsPage();
+        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
     });
     statsEndDate.addEventListener('change', () => {
         updateState({ statsEndDate: statsEndDate.value });
-        updateStatisticsPage();
+        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
     });
 
     updateState({ listenersAttached: true });
@@ -587,9 +586,8 @@ function setDateFilter(range, type) {
         updateState({ [startDateKey]: '', [endDateKey]: '' });
         
         if (isStats) {
-            updateStatisticsPage();
+            renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
         } else {
-            applyFilters();
             renderHistory();
         }
         return;
@@ -607,11 +605,9 @@ function setDateFilter(range, type) {
     });
 
     if (isStats) {
-        updateStatisticsPage();
+        renderStatistics(); // GÜNCELLEME: updateStatisticsPage -> renderStatistics
     } else {
         updateState({ currentPage: 1 });
-        applyFilters();
         renderHistory();
     }
 }
-

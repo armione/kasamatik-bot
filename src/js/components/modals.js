@@ -53,28 +53,16 @@ export function openEditModal(betId) {
     
     updateState({ editingBetId: betId, currentlyEditingBet: bet });
 
-    // Populate platform options specifically for the edit modal's select element
-    const platformSelect = document.getElementById('edit-platform');
-    populatePlatformOptions([platformSelect]);
-    
-    // Set form values from the bet object
-    platformSelect.value = bet.platform;
-    document.getElementById('edit-description').value = bet.description;
-    document.getElementById('edit-bet-amount').value = bet.bet_amount;
-    document.getElementById('edit-odds').value = bet.odds;
-    document.getElementById('edit-date').value = bet.date;
-    
     const statusSelect = document.getElementById('edit-status');
     const winAmountInput = document.getElementById('edit-win-amount');
-    const winAmountSection = document.getElementById('edit-win-amount-section');
+    const winAmountSection = document.getElementById('win-amount-section');
 
     statusSelect.value = bet.status;
     winAmountInput.value = bet.win_amount;
     
     if (bet.status === 'won') {
         winAmountSection.classList.remove('hidden');
-        // If win_amount is 0 for a won bet, calculate it
-        if (bet.win_amount === 0 && bet.bet_amount && bet.odds) {
+        if (bet.win_amount === 0) {
             winAmountInput.value = (bet.bet_amount * bet.odds).toFixed(2);
         }
     } else {
@@ -88,7 +76,6 @@ export function openEditModal(betId) {
 export function closeEditModal() {
     closeModal('edit-modal');
     updateState({ editingBetId: null, currentlyEditingBet: null });
-    document.getElementById('edit-form').reset();
 }
 
 export function showImageModal(imageSrc) {

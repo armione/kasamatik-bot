@@ -9,6 +9,7 @@ import { changeBetPage, changeCashPage, renderHistory } from './components/histo
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
+import { updatePerformanceSummary } from './components/dashboard.js';
 
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
@@ -351,7 +352,7 @@ export function setupEventListeners() {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
-        const { action, id, name, page, src } = target.dataset;
+        const { action, id, name, page, src, period } = target.dataset;
 
         switch (action) {
             case 'open-edit-modal':
@@ -371,6 +372,10 @@ export function setupEventListeners() {
                 break;
              case 'show-image-modal':
                 Modals.showImageModal(src);
+                break;
+            case 'set-dashboard-period':
+                updateState({ dashboardPeriod: parseInt(period) });
+                updatePerformanceSummary();
                 break;
         }
     });

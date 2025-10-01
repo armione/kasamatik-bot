@@ -170,26 +170,26 @@
                                 </div>
                                 <div>
                                     <h3 class="text-gray-300 font-medium text-sm">Net Kar/Zarar</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-green-400" id="dashboard-net-profit">0 ₺</p>
+                                    <p class="text-2xl font-montserrat font-bold" id="net-profit-loss">0 ₺</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Genel performansınız</div>
+                        <div class="text-xs text-gray-400">Bahislerden elde edilen net sonuç</div>
                     </div>
     
                     <div class="stat-card">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-400 to-sky-500 flex items-center justify-center text-xl">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-red-400 to-red-600 flex items-center justify-center text-xl">
                                     💸
                                 </div>
                                 <div>
                                     <h3 class="text-gray-300 font-medium text-sm">Toplam Yatırım</h3>
-                                    <p class="text-2xl font-montserrat font-bold text-white" id="dashboard-total-staked">0 ₺</p>
+                                    <p class="text-2xl font-montserrat font-bold text-white" id="total-investment">0 ₺</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-xs text-gray-400">Yapılan toplam bahis tutarı</div>
+                        <div class="text-xs text-gray-400">Oynanan toplam bahis miktarı</div>
                     </div>
     
                     <div class="stat-card">
@@ -906,34 +906,58 @@
         </div>
     
         <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
-            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Güncelle</h3>
-                
-                <div class="space-y-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-lg">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-6">✏️ Bahis Düzenle</h3>
+                <form id="edit-form" class="space-y-4">
+                    
                     <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                        <label for="edit-platform" class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
+                        <select id="edit-platform" required class="input-glass w-full p-3 rounded-lg text-gray-800"></select>
+                    </div>
+
+                    <div>
+                        <label for="edit-description" class="block text-gray-300 text-sm font-medium mb-2">Bahis Açıklaması</label>
+                        <input type="text" id="edit-description" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="edit-bet-amount" class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
+                            <input type="number" id="edit-bet-amount" min="0" step="0.01" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
+                        <div>
+                            <label for="edit-odds" class="block text-gray-300 text-sm font-medium mb-2">Oran</label>
+                            <input type="number" id="edit-odds" min="1" step="0.01" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
+                        <div>
+                            <label for="edit-date" class="block text-gray-300 text-sm font-medium mb-2">Tarih</label>
+                            <input type="date" id="edit-date" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="edit-status" class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
                         <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            <option value="pending">Bekleyen</option>
-                            <option value="won">Kazandı</option>
-                            <option value="lost">Kaybetti</option>
+                            <option value="pending">⏳ Bekleyen</option>
+                            <option value="won">✅ Kazandı</option>
+                            <option value="lost">❌ Kaybetti</option>
                         </select>
                     </div>
                     
-                    <div id="win-amount-section" class="hidden">
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Kazanç Miktarı (₺)</label>
-                        <input type="number" id="edit-win-amount" min="0" step="0.01" 
-                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    <div id="edit-win-amount-section" class="hidden">
+                        <label for="edit-win-amount" class="block text-gray-300 text-sm font-medium mb-2">Kazanç Miktarı (₺)</label>
+                        <input type="number" id="edit-win-amount" min="0" step="0.01" class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
-                </div>
     
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button id="close-edit-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        İptal
-                    </button>
-                    <button id="save-edit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        Kaydet
-                    </button>
-                </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="close-edit-btn" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            İptal
+                        </button>
+                        <button type="button" id="save-edit-btn" class="gradient-button px-8 py-3 rounded-lg text-white">
+                            Kaydet
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     

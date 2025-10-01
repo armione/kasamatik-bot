@@ -19,7 +19,6 @@ function toggleLoading(show) {
     }
 }
 
-// Sayfa ilk yüklendiğinde loading ekranını göster
 document.addEventListener('DOMContentLoaded', () => {
     toggleLoading(true);
 });
@@ -27,9 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChange(async (session) => {
     const user = session?.user || null;
     
-    // Eğer mevcut kullanıcı durumu ile yeni durum aynı ise (ör: sayfa yenileme) tekrar işlem yapma
     if (user?.id === state.currentUser?.id) {
-        toggleLoading(false); // Her ihtimale karşı yüklemeyi gizle
+        toggleLoading(false);
         return;
     }
     
@@ -50,7 +48,6 @@ onAuthStateChange(async (session) => {
 
 async function initializeApp() {
     if (!state.currentUser) return;
-
     toggleLoading(true);
 
     try {
@@ -76,6 +73,34 @@ async function initializeApp() {
     }
 }
 
+function initializeDatePickers() {
+    const dateRangeConfig = {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                state.filters.dateRange.start = selectedDates[0];
+                state.filters.dateRange.end = selectedDates[1];
+                updateState({ currentPage: 1 });
+                renderHistory();
+            }
+        }
+    };
+     const statsDateRangeConfig = {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                state.statsFilters.dateRange.start = selectedDates[0];
+                state.statsFilters.dateRange.end = selectedDates[1];
+                updateStatisticsPage();
+            }
+        }
+    };
+    flatpickr("#date-range-filter", dateRangeConfig);
+    flatpickr("#stats-date-range-filter", statsDateRangeConfig);
+}
+
 function setupUserInterface() {
     DOM.userEmailDisplay.textContent = state.currentUser.email;
     const isAdmin = state.currentUser.id === ADMIN_USER_ID;
@@ -94,6 +119,7 @@ function initializeUI() {
         renderAdminPanels();
     }
     initializeVisitorCounter();
+    initializeDatePickers(); // Tarih seçicileri başlat
     updateAllUI();
 }
 

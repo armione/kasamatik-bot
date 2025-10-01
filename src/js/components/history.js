@@ -16,10 +16,25 @@ function renderPagination(type, totalPages, current, changeFnName) {
     container.innerHTML = html;
 }
 
+function applyFilters(bets) {
+    const { status, platform, dateRange } = state.filters;
+    return bets.filter(bet => {
+        const statusMatch = status === 'all' || bet.status === status;
+        const platformMatch = platform === 'all' || bet.platform === platform;
+        
+        let dateMatch = true;
+        if (dateRange.start && dateRange.end) {
+            const betDate = new Date(bet.date);
+            dateMatch = betDate >= dateRange.start && betDate <= dateRange.end;
+        }
+        
+        return statusMatch && platformMatch && dateMatch;
+    });
+}
+
 export function renderHistory() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
-    const statusFilter = document.getElementById('status-filter').value;
-    let filteredBets = actualBets.filter(bet => statusFilter === 'all' || bet.status === statusFilter);
+    let filteredBets = applyFilters(actualBets);
     
     updateHistoryStats(filteredBets);
 

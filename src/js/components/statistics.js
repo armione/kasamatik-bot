@@ -1,29 +1,13 @@
 import { state } from '../state.js';
 
-function getFilteredStatsBets() {
-    const startDate = document.getElementById('stats-start-date-filter').value;
-    const endDate = document.getElementById('stats-end-date-filter').value;
-    
-    return state.bets.filter(bet => {
-        const dateMatch = (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
-        return dateMatch;
-    });
-}
-
-export function handleStatsUpdate() {
-    const filteredBets = getFilteredStatsBets();
-    updateStatisticsPage(filteredBets);
-    updateCharts(filteredBets);
-}
-
-function updateStatisticsPage(bets) {
-    const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-    
-    document.getElementById('stats-total-bets').textContent = actualBets.length;
+export function updateStatisticsPage() {
+    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+    if(actualBets.length === 0) return; // Veri yoksa hesaplama yapma
 
     const settledBets = actualBets.filter(b => b.status !== 'pending');
     const wonBets = settledBets.filter(b => b.status === 'won');
     
+    document.getElementById('stats-total-bets').textContent = actualBets.length;
     const sportsBetsCount = actualBets.filter(b => b.bet_type === 'Spor Bahis').length;
     const liveBetsCount = actualBets.filter(b => b.bet_type === 'Canlı Bahis').length;
     document.getElementById('stats-bet-breakdown').textContent = `Spor: ${sportsBetsCount} | Canlı: ${liveBetsCount}`;
@@ -65,8 +49,8 @@ function updateStatisticsPage(bets) {
     }
 }
 
-function updateCharts(bets) {
-    const actualBets = bets.filter(b => b.bet_type !== 'Kasa İşlemi');
+export function updateCharts() {
+    const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
     const profitCtx = document.getElementById('profitChart')?.getContext('2d');
     if (!profitCtx) return;
 
@@ -82,7 +66,7 @@ function updateCharts(bets) {
     state.profitChart = new Chart(profitCtx, {
         type: 'line',
         data: {
-            labels: actualBets.map((b, i) => `${i + 1}`),
+            labels: actualBets.map((b, i) => `Bahis ${i + 1}`),
             datasets: [{
                 label: 'Kümülatif Kar/Zarar',
                 data: profitData,
@@ -125,14 +109,7 @@ function updateCharts(bets) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    }
-                }
-            }
+            maintainAspectRatio: false
         }
     });
 }

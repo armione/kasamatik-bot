@@ -15,6 +15,7 @@ export function renderHistory() {
 
 // --- YARDIMCI FONKSİYONLAR ---
 
+// GÜNCELLEME: Bu fonksiyon artık `state.js` yerine doğrudan bu dosyada yer alıyor ve state'i okuyor.
 function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     
@@ -191,3 +192,4 @@ function updateCashHistoryStats(transactions) {
     document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
     document.getElementById('cash-history-count').textContent = transactions.length;
 }
+

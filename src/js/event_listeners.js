@@ -5,7 +5,7 @@ import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } fr
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
-import { changeBetPage, changeCashPage } from './components/history.js';
+import { renderHistory, changeBetPage, changeCashPage } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage } from './components/ui_helpers.js';
 import * as Modals from './components/modals.js';
 
@@ -326,6 +326,26 @@ export function setupAuthEventListeners() {
 export function setupEventListeners() {
     if (state.listenersAttached) return;
 
+    // Filtreleme Dinleyicileri
+    const historyFilters = [
+        document.getElementById('start-date-filter'),
+        document.getElementById('end-date-filter'),
+        document.getElementById('platform-filter'),
+        document.getElementById('status-filter'),
+        document.getElementById('search-filter')
+    ];
+
+    historyFilters.forEach(filter => {
+        if(filter) {
+            const eventType = filter.id === 'search-filter' ? 'keyup' : 'change';
+            filter.addEventListener(eventType, () => {
+                updateState({ currentPage: 1 });
+                renderHistory();
+            });
+        }
+    });
+
+    // Auth (Logout and Account Update)
     DOM.logoutBtn.addEventListener('click', () => signOut());
     DOM.accountSettingsForm.addEventListener('submit', handleUpdatePasswordAttempt);
 
@@ -347,19 +367,23 @@ export function setupEventListeners() {
         }
     });
 
+    // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
     document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
     document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
 
+    // Form Submissions
     document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmitAttempt);
     document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmitAttempt);
 
+    // Genel tıklama yöneticisi (Event Delegation)
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
-        const { action, id, name, page, src } = target.dataset;
+        const { action, id, name, page, src, range } = target.dataset;
+
         switch (action) {
             case 'open-edit-modal': Modals.openEditModal(parseInt(id)); break;
             case 'delete-bet': handleDeleteBetAttempt(parseInt(id)); break;
@@ -367,18 +391,20 @@ export function setupEventListeners() {
             case 'changeBetPage': changeBetPage(parseInt(page)); break;
             case 'changeCashPage': changeCashPage(parseInt(page)); break;
             case 'show-image-modal': Modals.showImageModal(src); break;
+            case 'set-date-filter':
+                setDateFilter(range);
+                document.querySelectorAll('.date-filter-btn').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+                break;
         }
     });
-
+    
+    // Diğer Butonlar
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('gemini-analyze-btn').addEventListener('click', analyzeBetSlipAttempt);
-    document.getElementById('status-filter').addEventListener('change', () => {
-        updateState({ currentPage: 1 });
-        updateAllUI();
-    });
-    document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
     document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
     
+    // Modal Butonları
     document.getElementById('floating-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('quick-add-btn').addEventListener('click', Modals.openQuickAddModal);
     document.getElementById('cash-transaction-btn').addEventListener('click', Modals.openCashTransactionModal);
@@ -426,4 +452,30 @@ export function setupEventListeners() {
     document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
 
     updateState({ listenersAttached: true });
+}
+
+function setDateFilter(range) {
+    const startDateInput = document.getElementById('start-date-filter');
+    const endDateInput = document.getElementById('end-date-filter');
+    const today = new Date();
+    
+    endDateInput.value = today.toISOString().split('T')[0];
+
+    if (range === 'today') {
+        startDateInput.value = today.toISOString().split('T')[0];
+    } else if (range === 'last7') {
+        const last7 = new Date();
+        last7.setDate(today.getDate() - 6);
+        startDateInput.value = last7.toISOString().split('T')[0];
+    } else if (range === 'last30') {
+        const last30 = new Date();
+        last30.setDate(today.getDate() - 29);
+        startDateInput.value = last30.toISOString().split('T')[0];
+    } else if (range === 'all') {
+        startDateInput.value = '';
+        endDateInput.value = '';
+    }
+
+    updateState({ currentPage: 1 });
+    renderHistory();
 }

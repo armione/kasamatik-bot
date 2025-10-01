@@ -2,17 +2,16 @@ import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSpo
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
 import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
-import { setupEventListeners, setupAuthEventListeners } from './event_listeners.js'; // GÜNCELLEME
+import { setupEventListeners, setupAuthEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
-import { updateStatisticsPage, updateCharts } from './components/statistics.js';
+import { renderStatistics } from './components/statistics.js';
 import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels } from './components/ui_helpers.js';
 import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
-// GÜNCELLEME: Auth dinleyicileri sayfa yüklenir yüklenmez kuruluyor.
 document.addEventListener('DOMContentLoaded', setupAuthEventListeners);
 
 onAuthStateChange(session => {
@@ -26,7 +25,6 @@ onAuthStateChange(session => {
     } else {
         DOM.authContainer.style.display = 'flex';
         DOM.appContainer.style.display = 'none';
-        // Giriş ekranına dönüldüğünde auth formunu tekrar göster
         DOM.authForm.classList.remove('hidden');
         document.getElementById('signup-success-message').classList.add('hidden');
         updateState({
@@ -47,7 +45,9 @@ async function initializeApp() {
     setSponsors(sponsors);
     setAds(ads);
 
-    setupEventListeners();
+    if (!state.listenersAttached) {
+        setupEventListeners();
+    }
     initializeUI();
 
     showWelcomeNotification();
@@ -63,6 +63,9 @@ function setupUserInterface() {
 
 function initializeUI() {
     document.getElementById('bet-date').value = getTodaysDate();
+    document.getElementById('end-date-filter').value = getTodaysDate();
+    document.getElementById('stats-end-date-filter').value = getTodaysDate();
+
     populatePlatformOptions();
     renderCustomPlatforms();
     renderSponsorsPage();
@@ -76,13 +79,10 @@ function initializeUI() {
 
 export function updateAllUI() {
     updateDashboardStats();
-    updateStatisticsPage();
+    renderStatistics();
     renderHistory();
     renderRecentBets();
     renderCashHistory();
-    if (state.currentSection === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
-        updateCharts();
-    }
 }
 
 function showWelcomeNotification() {

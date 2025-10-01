@@ -3,7 +3,7 @@ import { ITEMS_PER_PAGE } from '../utils/constants.js';
 
 // --- ANA RENDER FONKSİYONU ---
 export function renderHistory() {
-    // 1. Filtreleri state üzerinden uygula
+    // 1. Tüm Filtreleri Uygula
     const filteredBets = getFilteredBets();
     
     // 2. Filtrelenmiş Veriye Göre Özet Kartlarını Güncelle
@@ -15,20 +15,29 @@ export function renderHistory() {
 
 // --- YARDIMCI FONKSİYONLAR ---
 
-// GÜNCELLEME: Bu fonksiyon artık `state.js` yerine doğrudan bu dosyada yer alıyor ve state'i okuyor.
 function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     
+    // Filtre elemanlarından değerleri al
+    const statusFilter = document.getElementById('status-filter').value;
+    const platformFilter = state.historyPlatformFilter; // DEĞİŞİKLİK: Değeri artık state'ten alıyoruz.
+    const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+    const startDate = document.getElementById('start-date-filter').value;
+    const endDate = document.getElementById('end-date-filter').value;
+
     return actualBets.filter(bet => {
-        const statusMatch = state.historyStatus === 'all' || bet.status === state.historyStatus;
-        const platformMatch = state.historyPlatform === 'all' || bet.platform === state.historyPlatform;
-        const searchMatch = !state.historySearch || bet.description.toLowerCase().includes(state.historySearch.toLowerCase());
-        const dateMatch = (!state.historyStartDate || bet.date >= state.historyStartDate) && (!state.historyEndDate || bet.date <= state.historyEndDate);
+        // Durum filtresi
+        const statusMatch = statusFilter === 'all' || bet.status === statusFilter;
+        // Platform filtresi
+        const platformMatch = platformFilter === 'all' || bet.platform === platformFilter;
+        // Arama filtresi
+        const searchMatch = !searchFilter || bet.description.toLowerCase().includes(searchFilter);
+        // Tarih filtresi
+        const dateMatch = (!startDate || bet.date >= startDate) && (!endDate || bet.date <= endDate);
 
         return statusMatch && platformMatch && searchMatch && dateMatch;
     });
 }
-
 
 function renderHistorySummary(filteredBets) {
     const container = document.getElementById('history-summary-cards');
@@ -39,7 +48,7 @@ function renderHistorySummary(filteredBets) {
     const betCount = filteredBets.length;
     const wonBets = filteredBets.filter(b => b.status === 'won').length;
     const settledBets = filteredBets.filter(b => b.status !== 'pending').length;
-    const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
+    const winRate = settledBets.length > 0 ? (wonBets / settledBets) * 100 : 0;
 
     const netProfitColor = netProfit > 0 ? 'text-green-400' : netProfit < 0 ? 'text-red-400' : 'text-gray-300';
     
@@ -81,9 +90,9 @@ function renderPaginatedBetList(filteredBets) {
         const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
         const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
         const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
-        
-        const editButtonText = bet.status === 'pending' ? 'Sonuçlandır' : 'Düzenle';
-        const editButtonClass = bet.status === 'pending' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700';
+        let actionButtons = (bet.status === 'pending')
+            ? `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
+            : `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
 
         return `
         <div class="bet-card ${statusClass[bet.status]}">
@@ -102,12 +111,12 @@ function renderPaginatedBetList(filteredBets) {
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date + 'T00:00:00').toLocaleDateString('tr-TR')}</div></div>
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>
-                    ${bet.odds ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
+                    ${bet.bet_type !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
                     ${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div></div>` : ''}
                 </div>
                 ${bet.image_url ? `<div class="flex justify-center"><img src="${bet.image_url}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" data-action="show-image-modal" data-src="${bet.image_url}"></div>` : ''}
                 <div class="flex gap-3 pt-4 border-t border-gray-600">
-                    <button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 ${editButtonClass} text-white text-sm rounded-lg">✏️ ${editButtonText}</button>
+                    ${actionButtons}
                     <button data-action="delete-bet" data-id="${bet.id}" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button>
                 </div>
             </div>
@@ -144,7 +153,7 @@ export function changeCashPage(page) {
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Kasa geçmişi fonksiyonları
+// Kasa geçmişi fonksiyonları (Değişiklik yok)
 export function renderCashHistory() {
     const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
     updateCashHistoryStats(cashTransactions);
@@ -157,7 +166,7 @@ export function renderCashHistory() {
     }
 
     const totalPages = Math.ceil(cashTransactions.length / ITEMS_PER_PAGE);
-    const paginatedTxs = [...cashTransactions].reverse().slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
+    const paginatedTxs = cashTransactions.slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
     
     container.innerHTML = paginatedTxs.map(tx => {
         const isDeposit = tx.profit_loss > 0;
@@ -192,4 +201,3 @@ function updateCashHistoryStats(transactions) {
     document.getElementById('cash-history-net').textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
     document.getElementById('cash-history-count').textContent = transactions.length;
 }
-

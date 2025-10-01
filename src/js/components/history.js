@@ -17,26 +17,54 @@ function renderPagination(type, totalPages, current, changeFnName) {
 }
 
 function applyFilters(bets) {
-    const { status, platform, dateRange } = state.filters;
-    return bets.filter(bet => {
+    const { status, platform, searchTerm, period } = state.filters;
+    
+    let dateFilteredBets = bets;
+    if (period !== 'all') {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - (period - 1));
+        startDate.setHours(0, 0, 0, 0);
+        dateFilteredBets = bets.filter(bet => {
+            const betDate = new Date(bet.date);
+            return betDate >= startDate && betDate <= endDate;
+        });
+    }
+
+    return dateFilteredBets.filter(bet => {
         const statusMatch = status === 'all' || bet.status === status;
         const platformMatch = platform === 'all' || bet.platform === platform;
+        const searchMatch = !searchTerm || bet.description.toLowerCase().includes(searchTerm.toLowerCase());
         
-        let dateMatch = true;
-        if (dateRange.start && dateRange.end) {
-            const betDate = new Date(bet.date);
-            dateMatch = betDate >= dateRange.start && betDate <= dateRange.end;
-        }
-        
-        return statusMatch && platformMatch && dateMatch;
+        return statusMatch && platformMatch && searchMatch;
     });
 }
+
+function updateHistorySummary(filteredBets) {
+    const totalInvestment = filteredBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
+    const netProfit = filteredBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
+    const settledBets = filteredBets.filter(b => b.status !== 'pending');
+    const wonBets = settledBets.filter(b => b.status === 'won');
+    const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
+
+    document.getElementById('filtered-bets-count').textContent = filteredBets.length;
+    document.getElementById('filtered-total-investment').textContent = `${totalInvestment.toFixed(2)} ₺`;
+    
+    const netProfitEl = document.getElementById('filtered-net-profit');
+    netProfitEl.textContent = `${netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)} ₺`;
+    netProfitEl.className = `text-2xl font-montserrat font-bold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`;
+    
+    const winRateEl = document.getElementById('filtered-win-rate');
+    winRateEl.textContent = `${winRate.toFixed(1)}%`;
+    winRateEl.className = `text-2xl font-montserrat font-bold ${winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}`;
+}
+
 
 export function renderHistory() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     let filteredBets = applyFilters(actualBets);
     
-    updateHistoryStats(filteredBets);
+    updateHistorySummary(filteredBets);
 
     const historyContainer = document.getElementById('bet-history');
     if (filteredBets.length === 0) {
@@ -87,19 +115,6 @@ export function renderHistory() {
     }).join('');
     
     renderPagination('bets', totalPages, state.currentPage, 'changeBetPage');
-}
-
-function updateHistoryStats(filteredBets) {
-    const els = {
-        total: document.getElementById('history-total-bets'),
-        won: document.getElementById('history-won-bets'),
-        lost: document.getElementById('history-lost-bets'),
-        pending: document.getElementById('history-pending-bets')
-    };
-    if(els.total) els.total.textContent = filteredBets.length;
-    if(els.won) els.won.textContent = filteredBets.filter(b => b.status === 'won').length;
-    if(els.lost) els.lost.textContent = filteredBets.filter(b => b.status === 'lost').length;
-    if(els.pending) els.pending.textContent = filteredBets.filter(b => b.status === 'pending').length;
 }
 
 export function renderCashHistory() {
@@ -161,3 +176,4 @@ export function changeCashPage(page) {
     renderCashHistory();
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
+

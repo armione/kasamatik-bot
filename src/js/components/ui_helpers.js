@@ -25,16 +25,23 @@ export function toggleMobileSidebar() {
 
 export function populatePlatformOptions() {
     const allPlatforms = [...DEFAULT_PLATFORMS, ...state.customPlatforms.map(p => p.name)].sort();
-    const platformSelects = [document.getElementById('platform'), document.getElementById('quick-platform')];
+    const platformSelects = [
+        document.getElementById('platform'), 
+        document.getElementById('quick-platform'),
+        document.getElementById('platform-filter')
+    ];
     platformSelects.forEach(select => {
         if (select) {
-            select.innerHTML = '<option value="">Platform Seçin</option>';
+            const currentVal = select.value;
+            select.innerHTML = `<option value="all">${select.id === 'platform-filter' ? 'Tüm Platformlar' : 'Platform Seçin'}</option>`;
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
                 option.value = platform;
                 option.textContent = platform;
                 select.appendChild(option);
             });
+            if(select.id !== 'platform-filter') select.querySelector('option[value="all"]').remove();
+            select.value = currentVal;
         }
     });
 }

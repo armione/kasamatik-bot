@@ -1,19 +1,11 @@
 import { state } from '../state.js';
 
 export function updateDashboardStats() {
-    // Kasa işlemleri hariç, sadece gerçek bahisleri alıyoruz
     const actualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-    
-    // Tüm bahisler ve kasa işlemleri dahil edilerek toplam kasa hesaplanır
     const totalBankroll = state.bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
-    
-    // Sadece bahislerden gelen net kar/zarar hesaplanır
     const netProfitLoss = actualBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
-
-    // Sadece bahislere yatırılan toplam miktar hesaplanır
     const totalInvestment = actualBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
 
-    // İlgili DOM elementlerini güncelliyoruz
     document.getElementById('total-bets').textContent = actualBets.length;
     document.getElementById('total-investment').textContent = `${totalInvestment.toFixed(2)} ₺`;
 
@@ -24,6 +16,31 @@ export function updateDashboardStats() {
     const netProfitLossEl = document.getElementById('net-profit-loss');
     netProfitLossEl.textContent = `${netProfitLoss >= 0 ? '+' : ''}${netProfitLoss.toFixed(2)} ₺`;
     netProfitLossEl.className = `text-2xl font-montserrat font-bold ${netProfitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`;
+}
+
+export function updatePerformanceSummary() {
+    const period = state.dashboardPeriod;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - (period - 1));
+    startDate.setHours(0, 0, 0, 0);
+
+    const periodBets = state.bets.filter(bet => {
+        const betDate = new Date(bet.date);
+        return bet.bet_type !== 'Kasa İşlemi' && betDate >= startDate && betDate <= endDate;
+    });
+
+    const totalPlayed = periodBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
+    const netResult = periodBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
+
+    document.getElementById('summary-total-played').textContent = `${totalPlayed.toFixed(2)} ₺`;
+    const netResultEl = document.getElementById('summary-net-result');
+    netResultEl.textContent = `${netResult >= 0 ? '+' : ''}${netResult.toFixed(2)} ₺`;
+    netResultEl.className = `text-2xl font-montserrat font-bold ${netResult >= 0 ? 'text-green-400' : 'text-red-400'}`;
+
+    document.querySelectorAll('#performance-period-buttons .period-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.period) === period);
+    });
 }
 
 
@@ -77,7 +94,6 @@ export function renderDashboardBannerAd() {
     }
 }
 
-// YENİ FONKSİYON: Ziyaretçi Sayacı
 export function initializeVisitorCounter() {
     const counterElement = document.getElementById('visitor-counter');
     if (!counterElement) return;
@@ -87,7 +103,7 @@ export function initializeVisitorCounter() {
     const baseCount = 1200;
     const minIncrement = 1;
     const maxIncrement = 3;
-    const updateInterval = 3000; // 3 saniyede bir
+    const updateInterval = 3000;
 
     if (!visitorCount || isNaN(visitorCount)) {
         visitorCount = baseCount + Math.floor(Math.random() * 50);

@@ -416,7 +416,7 @@ export function setupEventListeners() {
             const eventType = id === 'search-filter' ? 'input' : 'change';
             element.addEventListener(eventType, (e) => {
                 updateState({ [stateKey]: e.target.value, currentPage: 1 });
-                renderHistory();
+                renderHistory(); // HATA DÜZELTMESİ: Gereksiz applyFilters() çağrısı kaldırıldı.
             });
         }
     });

@@ -15,7 +15,6 @@ export function renderHistory() {
 
 // --- YARDIMCI FONKSİYONLAR ---
 
-// GÜNCELLEME: Bu fonksiyon artık `state.js` yerine doğrudan bu dosyada yer alıyor.
 function getFilteredBets() {
     const actualBets = state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi');
     
@@ -25,7 +24,7 @@ function getFilteredBets() {
         const searchMatch = !state.historySearch || bet.description.toLowerCase().includes(state.historySearch.toLowerCase());
         const dateMatch = (!state.historyStartDate || bet.date >= state.historyStartDate) && (!state.historyEndDate || bet.date <= state.historyEndDate);
 
-        return statusMatch && platformMatch && searchMatch && dateMatch; // HATA DÜZELTMESİ: `date` -> `dateMatch`
+        return statusMatch && platformMatch && searchMatch && dateMatch;
     });
 }
 

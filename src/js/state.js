@@ -51,4 +51,3 @@ export function setAds(newAds) {
 export function updateState(newState) {
     Object.assign(state, newState);
 }
-

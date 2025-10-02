@@ -144,20 +144,21 @@ async function handleQuickAddSubmitAttempt(e) {
 }
 
 async function handleSaveEditAttempt() {
-    const bet = state.bets.find(b => b.id === state.editingBetId);
+    const bet = state.currentlyEditingBet;
     if (!bet) return;
 
     const status = document.getElementById('edit-status').value;
     const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
     
     let updateData = { status: status };
+
     if (status === 'won') {
         updateData.win_amount = winAmount;
         updateData.profit_loss = winAmount - bet.bet_amount;
     } else if (status === 'lost') {
         updateData.win_amount = 0;
         updateData.profit_loss = -bet.bet_amount;
-    } else {
+    } else { // pending
         updateData.win_amount = 0;
         updateData.profit_loss = 0;
     }
@@ -167,7 +168,9 @@ async function handleSaveEditAttempt() {
         showNotification('Bahis güncellenemedi.', 'error');
     } else {
         const index = state.bets.findIndex(b => b.id === state.editingBetId);
-        if (index !== -1) state.bets[index] = data[0];
+        if (index !== -1) {
+            state.bets[index] = { ...state.bets[index], ...data[0] };
+        }
         updateAllUI();
         Modals.closeEditModal();
         showNotification('✔️ Bahis güncellendi!', 'info');

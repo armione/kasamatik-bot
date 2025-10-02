@@ -51,15 +51,20 @@ export function openEditModal(betId) {
     
     updateState({ editingBetId: betId, currentlyEditingBet: bet });
 
-    document.getElementById('edit-status').value = bet.status;
-    document.getElementById('edit-win-amount').value = bet.win_amount;
-    
+    const statusSelect = document.getElementById('edit-status');
+    const winAmountInput = document.getElementById('edit-win-amount');
     const winAmountSection = document.getElementById('win-amount-section');
-    if (bet.status === 'won') {
-        winAmountSection.classList.remove('hidden');
-    } else {
-        winAmountSection.classList.add('hidden');
-    }
+
+    statusSelect.value = bet.status;
+    
+    const potentialWinnings = bet.bet_amount * bet.odds;
+    winAmountInput.value = bet.status === 'won' ? bet.win_amount : potentialWinnings.toFixed(2);
+    
+    winAmountSection.style.display = bet.status === 'won' ? 'block' : 'none';
+
+    statusSelect.onchange = () => {
+        winAmountSection.style.display = statusSelect.value === 'won' ? 'block' : 'none';
+    };
 
     openModal('edit-modal');
 }
@@ -67,6 +72,10 @@ export function openEditModal(betId) {
 export function closeEditModal() {
     closeModal('edit-modal');
     updateState({ editingBetId: null, currentlyEditingBet: null });
+    const statusSelect = document.getElementById('edit-status');
+    if (statusSelect) {
+        statusSelect.onchange = null; // Bellek sızıntısını önlemek için olay dinleyiciyi temizle
+    }
 }
 
 export function showImageModal(imageSrc) {
@@ -105,3 +114,4 @@ export function renderCustomPlatformsModal() {
         </div>
     `).join('');
 }
+

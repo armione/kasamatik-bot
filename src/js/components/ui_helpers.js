@@ -161,29 +161,26 @@ export function renderActiveSpecialOdds() {
 
 export function renderSpecialOddsPage() {
     const container = document.getElementById('special-odds-list-container');
-    if(!container) return;
+    if (!container) return;
 
-    const activeOdds = state.specialOdds.filter(o => o.is_active);
+    const relevantOdds = state.specialOdds;
 
-    if(activeOdds.length === 0) {
+    if (relevantOdds.length === 0) {
         container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">✨</div><p class="text-xl">Şu anda aktif bir fırsat bulunmuyor.</p></div>`;
         return;
     }
 
-    container.innerHTML = activeOdds.map(odd => {
-        const statusClasses = {
-            pending: 'pending',
-            won: 'won',
-            lost: 'lost',
-            refunded: 'refunded'
-        };
-        const statusTexts = {
-            pending: 'Bekleniyor',
-            won: 'Kazandı',
-            lost: 'Kaybetti',
-            refunded: 'İade Edildi'
-        };
-        const statusText = statusTexts[odd.status] || 'Bilinmiyor';
+    container.innerHTML = relevantOdds.map(odd => {
+        const statusClasses = { pending: 'pending', won: 'won', lost: 'lost', refunded: 'refunded' };
+        const statusTexts = { pending: 'Bekleniyor', won: 'Kazandı', lost: 'Kaybetti', refunded: 'İade Edildi' };
+        
+        let linkButtonsHTML = '';
+        if (odd.primary_link_url && odd.primary_link_text) {
+            linkButtonsHTML += `<a href="${odd.primary_link_url}" target="_blank" rel="noopener noreferrer" class="link-button link-button-primary">${odd.primary_link_text}</a>`;
+        }
+        if (odd.secondary_link_url && odd.secondary_link_text) {
+            linkButtonsHTML += `<a href="${odd.secondary_link_url}" target="_blank" rel="noopener noreferrer" class="link-button link-button-secondary">${odd.secondary_link_text}</a>`;
+        }
 
         return `
             <div class="special-odd-card glass-card rounded-2xl p-6 ${statusClasses[odd.status]}">
@@ -193,7 +190,8 @@ export function renderSpecialOddsPage() {
                             <span class="px-3 py-1 text-sm font-semibold rounded-full bg-black bg-opacity-20 text-blue-300">${odd.platform}</span>
                             <span class="text-sm text-gray-400">🔥 ${odd.play_count} kişi oynadı!</span>
                         </div>
-                        <p class="text-lg font-bold text-white">${odd.description}</p>
+                        <p class="text-lg font-bold text-white mb-4">${odd.description}</p>
+                        <div class="flex flex-wrap gap-2">${linkButtonsHTML}</div>
                     </div>
                     <div class="flex-shrink-0 md:ml-6 text-center md:text-right">
                         <p class="text-gray-400 text-sm">Oran</p>
@@ -203,7 +201,7 @@ export function renderSpecialOddsPage() {
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-700 flex flex-col md:flex-row items-center justify-between">
                     <div class="text-sm text-gray-400 mb-4 md:mb-0">
-                        Durum: <span class="font-semibold status-${statusClasses[odd.status]} text-white px-2 py-1 rounded-md">${statusText}</span>
+                        Durum: <span class="font-semibold status-${statusClasses[odd.status]} text-white px-2 py-1 rounded-md">${statusTexts[odd.status]}</span>
                     </div>
                     <button data-action="open-play-special-odd-modal" data-id="${odd.id}" class="gradient-button w-full md:w-auto px-8 py-3 rounded-lg font-semibold" ${odd.status !== 'pending' ? 'disabled' : ''}>
                         ${odd.status === 'pending' ? 'Fırsatı Oyna' : 'Sonuçlandı'}
@@ -213,6 +211,7 @@ export function renderSpecialOddsPage() {
         `;
     }).join('');
 }
+
 
 
 export function resetForm(formId = 'bet-form') {

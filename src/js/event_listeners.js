@@ -141,7 +141,7 @@ async function handlePlaySpecialOdd(button) {
         bet_amount: amount,
         odds: odd.odds,
         date: new Date().toISOString().split('T')[0],
-        status: 'pending',
+        status: 'pending', // Bu, special_odds tablosunun status'una bağlanacak
         win_amount: 0,
         profit_loss: 0,
         special_odd_id: odd.id
@@ -162,7 +162,6 @@ async function handlePlaySpecialOdd(button) {
         renderSpecialOddsPage();
         Modals.closePlaySpecialOddModal();
         showNotification('✨ Fırsat başarıyla kasana eklendi!', 'success');
-        // Buton durumu modal kapandığı için sıfırlanır, tekrar false yapmaya gerek yok.
     }
 }
 
@@ -381,6 +380,10 @@ async function handlePublishSpecialOdd(e) {
         odds: parseFloat(document.getElementById('special-odd-odds').value),
         platform: document.getElementById('special-odd-platform').value,
         max_bet_amount: parseFloat(document.getElementById('special-odd-max-bet').value) || null,
+        primary_link_text: document.getElementById('special-odd-primary-link-text').value || null,
+        primary_link_url: document.getElementById('special-odd-primary-link-url').value || null,
+        secondary_link_text: document.getElementById('special-odd-secondary-link-text').value || null,
+        secondary_link_url: document.getElementById('special-odd-secondary-link-url').value || null,
         status: 'pending'
     };
 
@@ -397,6 +400,7 @@ async function handlePublishSpecialOdd(e) {
     setButtonLoading(button, false);
 }
 
+
 async function handleResolveSpecialOdd(id, status) {
     if (!confirm(`Bu fırsatı "${status.toUpperCase()}" olarak işaretlemek istediğinizden emin misiniz? Bu işlem, bu bahsi oynayan tüm kullanıcıları etkileyecektir.`)) {
         return;
@@ -407,7 +411,10 @@ async function handleResolveSpecialOdd(id, status) {
         showNotification('Fırsat durumu güncellenemedi.', 'error');
     } else {
         const index = state.specialOdds.findIndex(o => o.id === id);
-        if(index > -1) state.specialOdds[index].status = status;
+        if(index > -1) {
+            state.specialOdds[index].status = data[0].status;
+            state.specialOdds[index].is_active = data[0].is_active;
+        }
         renderActiveSpecialOdds();
         showNotification('Fırsat durumu güncellendi!', 'info');
     }

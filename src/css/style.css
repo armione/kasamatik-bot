@@ -567,3 +567,28 @@ body {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
+.link-button {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.link-button-primary {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.link-button-primary:hover {
+    background-color: #a2c4f3;
+}
+
+.link-button-secondary {
+    background-color: #4b5563;
+    color: white;
+}
+.link-button-secondary:hover {
+    background-color: #6b7280;
+}

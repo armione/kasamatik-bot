@@ -141,7 +141,7 @@ async function handlePlaySpecialOdd(button) {
         bet_amount: amount,
         odds: odd.odds,
         date: new Date().toISOString().split('T')[0],
-        status: 'pending',
+        status: 'pending', 
         win_amount: 0,
         profit_loss: 0,
         special_odd_id: odd.id
@@ -339,7 +339,8 @@ async function handleClearAllDataAttempt() {
 }
 
 async function handleUserAnalyzeBetSlip() {
-    if (!state.currentImageData) {
+    // DÜZELTME: 'state.currentImageData' yerine 'state.mainImageData' kontrol ediliyor.
+    if (!state.mainImageData) { 
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
@@ -347,7 +348,8 @@ async function handleUserAnalyzeBetSlip() {
     setButtonLoading(geminiButton, true, 'Okunuyor...');
     
     try {
-        const base64Data = state.currentImageData.split(',')[1];
+        // DÜZELTME: 'state.currentImageData' yerine 'state.mainImageData' kullanılıyor.
+        const base64Data = state.mainImageData.split(',')[1]; 
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {

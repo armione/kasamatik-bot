@@ -155,7 +155,7 @@ async function handlePlaySpecialOdd(button) {
         state.bets.unshift(data[0]);
         
         const { data: updatedOdd, error: updateError } = await updateSpecialOdd(odd.id, { play_count: odd.play_count + 1 });
-        if(!updateError) {
+        if(!updateError && updatedOdd.length > 0) {
             const index = state.specialOdds.findIndex(o => o.id === odd.id);
             if(index > -1) state.specialOdds[index] = updatedOdd[0];
         }
@@ -219,7 +219,7 @@ async function handleSaveEditAttempt() {
     } else {
         const index = state.bets.findIndex(b => b.id === state.editingBetId);
         if (index !== -1) {
-            state.bets[index] = { ...state.bets[index], ...data[0] };
+            state.bets[index] = data[0];
         }
         updateAllUI();
         Modals.closeEditModal();
@@ -338,7 +338,6 @@ async function handleClearAllDataAttempt() {
     }
 }
 
-// YENİ FONKSİYON: Kullanıcının kupon okuma işlemini yönetir
 async function handleUserAnalyzeBetSlip() {
     if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
@@ -357,7 +356,6 @@ async function handleUserAnalyzeBetSlip() {
                     .join(' / ');
                 document.getElementById('description').value = descriptionText;
             }
-
             if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
             if (result.odds) document.getElementById('odds').value = result.odds;
             
@@ -369,10 +367,9 @@ async function handleUserAnalyzeBetSlip() {
         console.error('Gemini API Hatası:', error);
         showNotification('Kupon okunurken bir hata oluştu.', 'error');
     } finally {
-        setButtonLoading(geminiButton, false, 'Kuponu Oku');
+        setButtonLoading(geminiButton, false);
     }
 }
-
 
 async function handleAdminAnalyzeBetSlip() {
     if (!state.adminImageData) {
@@ -402,7 +399,7 @@ async function handleAdminAnalyzeBetSlip() {
         console.error('Gemini API Hatası:', error);
         showNotification('Kupon okunurken bir hata oluştu.', 'error');
     } finally {
-        setButtonLoading(geminiButton, false, 'Kuponu Oku');
+        setButtonLoading(geminiButton, false);
     }
 }
 
@@ -447,12 +444,12 @@ async function handleResolveSpecialOdd(id, status) {
     if(error) {
         showNotification('Fırsat durumu güncellenemedi.', 'error');
     } else {
-        const index = state.specialOdds.findIndex(o => o.id === id);
+        const index = state.specialOdds.findIndex(o => o.id === parseInt(id));
         if(index > -1) {
-            // Gelen datanın tamamıyla state'i güncelle, trigger'dan dönen 'is_active' ve 'resulted_at' de gelsin.
             state.specialOdds[index] = data[0];
         }
         renderActiveSpecialOdds();
+        updateAllUI();
         showNotification('Fırsat durumu güncellendi!', 'info');
     }
 }
@@ -577,7 +574,6 @@ export function setupEventListeners() {
     // Diğer UI etkileşimleri
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('admin-gemini-analyze-btn').addEventListener('click', handleAdminAnalyzeBetSlip);
-    // DÜZELTME: İşlevsiz olan butonun olay dinleyicisi eklendi.
     document.getElementById('gemini-analyze-btn').addEventListener('click', handleUserAnalyzeBetSlip);
 
     document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
@@ -622,7 +618,7 @@ export function setupEventListeners() {
         let type = 'main'; // Default
         if (!document.getElementById('quick-add-modal').classList.contains('hidden')) {
             type = 'quick';
-        } else if (state.currentSection === 'settings' && state.currentUser.id === ADMIN_USER_ID) {
+        } else if (state.currentSection === 'settings' && document.getElementById('admin-panels-container').style.display !== 'none') {
              type = 'admin';
         } else if (state.currentSection !== 'new-bet') {
             return;
@@ -643,3 +639,4 @@ export function setupEventListeners() {
 
     updateState({ listenersAttached: true });
 }
+

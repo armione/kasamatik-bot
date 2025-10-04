@@ -78,6 +78,60 @@ export function closeEditModal() {
     }
 }
 
+export function openPlaySpecialOddModal(oddId) {
+    const odd = state.specialOdds.find(o => o.id === oddId);
+    if (!odd) return;
+
+    updateState({ playingSpecialOdd: odd });
+
+    const contentContainer = document.getElementById('special-odd-modal-content');
+    const totalBankroll = state.bets.reduce((sum, bet) => sum + (bet.profit_loss || 0), 0);
+
+    contentContainer.innerHTML = `
+        <div class="space-y-3 text-sm">
+            <p class="text-gray-300"><strong class="text-white">Bahis:</strong> ${odd.description}</p>
+            <p class="text-gray-300"><strong class="text-white">Platform:</strong> ${odd.platform}</p>
+            <p class="text-gray-300"><strong class="text-white">Oran:</strong> ${odd.odds}</p>
+            ${odd.max_bet_amount ? `<p class="text-yellow-400"><strong class="text-white">Maksimum Bahis:</strong> ${odd.max_bet_amount} ₺</p>` : ''}
+        </div>
+        <div class="mt-4">
+            <label class="block text-gray-300 text-sm font-medium mb-2">Yatırım Miktarı (₺)</label>
+            <input type="number" id="special-odd-bet-amount" class="input-glass w-full p-3 rounded-lg text-gray-800"
+                   min="0" ${odd.max_bet_amount ? `max="${odd.max_bet_amount}"` : ''} step="0.01" required>
+            <div id="risk-analysis-info" class="text-xs text-gray-400 mt-2 h-4"></div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button id="close-play-special-odd-modal" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">İptal</button>
+            <button id="confirm-play-special-odd" class="gradient-button px-4 py-2 rounded-lg text-white">
+                <span class="btn-text">Bahsi Onayla</span>
+                <span class="btn-loader hidden"></span>
+            </button>
+        </div>
+    `;
+
+    openModal('special-odd-modal');
+    
+    // Risk analizi için event listener
+    const amountInput = document.getElementById('special-odd-bet-amount');
+    const riskInfo = document.getElementById('risk-analysis-info');
+    amountInput.addEventListener('input', () => {
+        const amount = parseFloat(amountInput.value);
+        if(amount > 0 && totalBankroll > 0) {
+            const percentage = (amount / totalBankroll * 100).toFixed(1);
+            const potentialWinnings = (amount * odd.odds).toFixed(2);
+            riskInfo.innerHTML = `Kasanızın <strong class="text-yellow-400">%${percentage}</strong>'i. Potansiyel Kazanç: <strong class="text-green-400">${potentialWinnings} ₺</strong>`;
+        } else {
+            riskInfo.innerHTML = '';
+        }
+    });
+}
+
+export function closePlaySpecialOddModal() {
+    closeModal('special-odd-modal');
+    updateState({ playingSpecialOdd: null });
+}
+
+
 export function showImageModal(imageSrc) {
     document.getElementById('modal-image').src = imageSrc;
     openModal('image-modal');
@@ -114,4 +168,3 @@ export function renderCustomPlatformsModal() {
         </div>
     `).join('');
 }
-

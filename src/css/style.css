@@ -2,6 +2,8 @@
     --primary-blue: #8db3f0;
     --success-green: #10b981;
     --danger-red: #ef4444;
+    --warning-yellow: #f59e0b;
+    --info-blue: #3b82f6;
     --glass-bg: rgba(255, 255, 255, 0.08);
     --glass-border: rgba(255, 255, 255, 0.15);
     --sidebar-width: 280px;
@@ -251,7 +253,7 @@ body {
 }
 
 .status-pending {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, var(--warning-yellow), #d97706);
     color: white;
 }
 
@@ -502,7 +504,12 @@ body {
 }
 
 .bet-card.pending::before {
-    background: linear-gradient(90deg, #f59e0b, #d97706);
+    background: linear-gradient(90deg, var(--warning-yellow), #d97706);
+    opacity: 1;
+}
+
+.bet-card.refunded::before {
+    background: linear-gradient(90deg, var(--info-blue), #2563eb);
     opacity: 1;
 }
 
@@ -534,5 +541,29 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Admin Paneli Stilleri */
+#active-special-odds-list .odd-item {
+    background-color: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Fırsat Kartı Stilleri */
+.special-odd-card {
+    border-left-width: 4px;
+    transition: all 0.3s ease;
+}
+
+.special-odd-card.pending { border-color: var(--warning-yellow); }
+.special-odd-card.won { border-color: var(--success-green); }
+.special-odd-card.lost { border-color: var(--danger-red); }
+.special-odd-card.refunded { border-color: var(--info-blue); }
+
+.special-odd-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 

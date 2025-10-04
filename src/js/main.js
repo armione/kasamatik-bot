@@ -1,4 +1,4 @@
-import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSponsors, setAds } from './state.js';
+import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSponsors, setAds, setSpecialOdds } from './state.js';
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
 import { onAuthStateChange } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
@@ -13,8 +13,6 @@ import { showLoginAdPopup } from './components/modals.js';
 // ---- ANA UYGULAMA MANTIĞI ----
 
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM tamamen yüklendiğinde, olay dinleyicilerini ve kimlik doğrulama kontrolünü başlat.
-    // Bu, `constants.js` dosyasındaki hatayı temelden çözer.
     setupEventListeners();
     onAuthStateChange(handleAuthStateChange);
 });
@@ -43,7 +41,7 @@ async function handleAuthStateChange(session) {
         DOM.get('authContainer').style.display = 'flex';
         DOM.get('appContainer').style.display = 'none';
         updateState({
-            bets: [], customPlatforms: [], sponsors: [], ads: [],
+            bets: [], customPlatforms: [], sponsors: [], ads: [], specialOdds: []
         });
         toggleLoading(false);
     }
@@ -54,11 +52,12 @@ async function initializeApp() {
     if (!state.currentUser) return;
 
     try {
-        const { bets, platforms, sponsors, ads } = await loadInitialData(state.currentUser.id);
+        const { bets, platforms, sponsors, ads, specialOdds } = await loadInitialData(state.currentUser.id);
         setBets(bets);
         setCustomPlatforms(platforms);
         setSponsors(sponsors);
         setAds(ads);
+        setSpecialOdds(specialOdds);
         
         initializeUI();
 
@@ -93,8 +92,14 @@ function initializeDatePickers() {
 function setupUserInterface() {
     DOM.get('userEmailDisplay').textContent = state.currentUser.email;
     const isAdmin = state.currentUser.id === ADMIN_USER_ID;
-    DOM.get('sponsorManagementPanel').style.display = isAdmin ? 'block' : 'none';
-    DOM.get('adManagementPanel').style.display = isAdmin ? 'block' : 'none';
+    
+    document.getElementById('admin-panels-container').style.display = isAdmin ? 'block' : 'none';
+    
+    // Önceki admin panelleri için de kontrol
+    const sponsorPanel = DOM.get('sponsorManagementPanel');
+    const adPanel = DOM.get('adManagementPanel');
+    if(sponsorPanel) sponsorPanel.style.display = 'block'; // Bu paneller artık admin-panels-container içinde
+    if(adPanel) adPanel.style.display = 'block';
 }
 
 function initializeUI() {
@@ -129,4 +134,3 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
-

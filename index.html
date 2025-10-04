@@ -112,6 +112,10 @@
                     <span class="sidebar-icon">🏠</span>
                     <span class="sidebar-text">Ana Panel</span>
                 </div>
+                <div class="sidebar-item" data-section="special-odds-page">
+                    <span class="sidebar-icon">✨</span>
+                    <span class="sidebar-text">Fırsatlar</span>
+                </div>
                 <div class="sidebar-item" data-section="new-bet">
                     <span class="sidebar-icon">➕</span>
                     <span class="sidebar-text">Yeni Kayıt</span>
@@ -152,7 +156,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.11</p>
+                    <p class="text-xs text-gray-500 sidebar-text">v2.14</p>
                 </div>
             </div>
         </div>
@@ -255,6 +259,23 @@
                         </button>
                     </div>
                     <div id="recent-bets" class="space-y-3">
+                    </div>
+                </div>
+            </div>
+
+             <div id="special-odds-page" class="page-section">
+                 <div class="mb-8">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
+                        <div>
+                            <h2 class="text-3xl font-montserrat font-bold gradient-text mb-2">✨ Özel Oran Fırsatları</h2>
+                            <p class="text-gray-400 text-sm">Yönetim tarafından yayınlanan; kaçırılmayacak fırsatlar ve Özel Oranlar</p>
+                        </div>
+                    </div>
+                    <div class="text-center text-xs text-gray-500 mb-6 italic">
+                        Not: Sonuçlanan Özel Oranlar, sonuçlandıktan sonra bu listeden otomatik olarak kaldırılır.
+                    </div>
+                    <div id="special-odds-list-container" class="space-y-4">
+                        <!-- Fırsat kartları buraya eklenecek -->
                     </div>
                 </div>
             </div>
@@ -393,6 +414,7 @@
                                             <option value="pending">Bekleyen</option>
                                             <option value="won">Kazanan</option>
                                             <option value="lost">Kaybeden</option>
+                                            <option value="refunded">İade Edilen</option>
                                         </select>
                                     </div>
                                 </div>
@@ -650,7 +672,7 @@
             </div>
     
             <div id="settings" class="page-section">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🔑 Hesap Yönetimi</h3>
                         <form id="account-settings-form" class="space-y-4">
@@ -700,52 +722,101 @@
                             </button>
                         </div>
                     </div>
-    
-                    <div class="glass-card rounded-2xl p-6">
-                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">💰 Kasa Yönetimi</h3>
-                        <div class="space-y-3">
-                            <button id="reset-bankroll-btn" class="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                                🔄 Kasayı Sıfırla
-                            </button>
-                            <p class="text-xs text-gray-400">Bu işlem mevcut bakiyeyi sıfırlar ve geri alınamaz.</p>
-                        </div>
-                    </div>
 
-                    <div id="sponsor-management-panel" class="glass-card rounded-2xl p-6 md:col-span-3" style="display: none;">
-                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏆 Sponsor Yönetimi (Admin)</h3>
-                        <form id="sponsor-form" class="space-y-4 mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input type="text" id="sponsor-name" placeholder="Sponsor Adı" required class="input-glass p-3 rounded-lg text-gray-800">
-                                <input type="url" id="sponsor-logo-url" placeholder="Logo URL" required class="input-glass p-3 rounded-lg text-gray-800">
-                                <input type="url" id="sponsor-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
-                            </div>
-                            <button type="submit" class="gradient-button w-full py-3 rounded-lg">
-                                Sponsor Ekle
-                            </button>
-                        </form>
-                        <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Sponsorlar</h4>
-                        <div id="sponsors-list" class="space-y-2 max-h-48 overflow-y-auto">
-                        </div>
-                    </div>
+                    <!-- ADMIN PANELS CONTAINER -->
+                    <div id="admin-panels-container" class="hidden xl:col-span-3 space-y-6">
+                         <div id="special-odds-panel" class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-6">📢 Özel Oran Yönetim Paneli (Admin)</h3>
+                            
+                            <!-- Fırsat Yayınlama Formu -->
+                            <form id="special-odd-form" class="space-y-4 mb-8 p-4 border border-gray-700 rounded-xl">
+                                <h4 class="text-lg font-semibold text-gray-300 mb-3">Yeni Fırsat Yayınla</h4>
+                                
+                                <div class="image-upload-area rounded-lg p-4 text-center border-dashed border-gray-600" id="admin-image-upload-area">
+                                    <p class="text-sm text-gray-400 mb-2">Özel oran ekran görüntüsünü yükle:</p>
+                                    <div id="admin-upload-area" class="space-y-2">
+                                        <input type="file" id="admin-image-input" accept="image/*" class="hidden">
+                                        <button type="button" id="admin-image-select-btn" class="gradient-button px-4 py-2 rounded-lg text-white text-sm">📁 Dosya Seç</button>
+                                    </div>
+                                    <div id="admin-image-preview" class="hidden mt-2">
+                                        <img id="admin-preview-img" class="max-w-full max-h-32 mx-auto rounded-lg">
+                                        <button type="button" id="admin-remove-image-btn" class="mt-2 px-2 py-1 bg-red-600 text-white rounded text-xs">🗑️ Kaldır</button>
+                                    </div>
+                                </div>
+                                <button type="button" id="admin-gemini-analyze-btn" class="w-full gradient-button py-2 rounded-lg text-white flex items-center justify-center gap-x-2" disabled>
+                                    <span id="admin-gemini-button-icon">✨</span>
+                                    <span id="admin-gemini-button-text">Kuponu Oku</span>
+                                </button>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-400 text-xs font-medium mb-1">Açıklama</label>
+                                        <textarea id="special-odd-description" required class="input-glass w-full p-2 rounded-lg text-gray-800" rows="3"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 text-xs font-medium mb-1">Oran</label>
+                                        <input type="number" id="special-odd-odds" required step="0.01" class="input-glass w-full p-2 rounded-lg text-gray-800">
+                                    </div>
+                                     <div>
+                                        <label class="block text-gray-400 text-xs font-medium mb-1">Platform</label>
+                                        <input type="text" id="special-odd-platform" required class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="Örn: Holiganbet">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 text-xs font-medium mb-1">Maks. Bahis (₺)</label>
+                                        <input type="number" id="special-odd-max-bet" step="0.01" class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="Opsiyonel">
+                                    </div>
+                                </div>
+                                <button type="submit" class="gradient-button w-full py-3 rounded-lg">
+                                    <span class="btn-text">Fırsatı Yayınla</span>
+                                    <span class="btn-loader hidden"></span>
+                                </button>
+                            </form>
 
-                    <div id="ad-management-panel" class="glass-card rounded-2xl p-6 md:col-span-3" style="display: none;">
-                        <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📢 Reklam Yönetimi (Admin)</h3>
-                        <form id="ad-form" class="space-y-4 mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input type="url" id="ad-image-url" placeholder="Reklam Resim URL" required class="input-glass p-3 rounded-lg text-gray-800">
-                                <input type="url" id="ad-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
-                                <select id="ad-location" required class="input-glass p-3 rounded-lg text-gray-800">
-                                    <option value="">Konum Seçin</option>
-                                    <option value="login_popup">Giriş Pop-up</option>
-                                    <option value="dashboard_banner">Ana Panel Banner</option>
-                                </select>
+                            <!-- Aktif Fırsatlar Listesi -->
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-300 mb-3">Aktif Fırsatlar</h4>
+                                <div id="active-special-odds-list" class="space-y-3 max-h-96 overflow-y-auto">
+                                    <!-- Fırsatlar buraya dinamik olarak eklenecek -->
+                                </div>
                             </div>
-                            <button type="submit" class="gradient-button w-full py-3 rounded-lg">
-                                Reklam Ekle
-                            </button>
-                        </form>
-                        <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Reklamlar</h4>
-                        <div id="ads-list" class="space-y-2 max-h-48 overflow-y-auto">
+                        </div>
+
+                        <div id="sponsor-management-panel" class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏆 Sponsor Yönetimi (Admin)</h3>
+                            <form id="sponsor-form" class="space-y-4 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input type="text" id="sponsor-name" placeholder="Sponsor Adı" required class="input-glass p-3 rounded-lg text-gray-800">
+                                    <input type="url" id="sponsor-logo-url" placeholder="Logo URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                    <input type="url" id="sponsor-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                </div>
+                                <button type="submit" class="gradient-button w-full py-3 rounded-lg">
+                                    Sponsor Ekle
+                                </button>
+                            </form>
+                            <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Sponsorlar</h4>
+                            <div id="sponsors-list" class="space-y-2 max-h-48 overflow-y-auto">
+                            </div>
+                        </div>
+
+                        <div id="ad-management-panel" class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📢 Reklam Yönetimi (Admin)</h3>
+                            <form id="ad-form" class="space-y-4 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input type="url" id="ad-image-url" placeholder="Reklam Resim URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                    <input type="url" id="ad-target-url" placeholder="Hedef URL" required class="input-glass p-3 rounded-lg text-gray-800">
+                                    <select id="ad-location" required class="input-glass p-3 rounded-lg text-gray-800">
+                                        <option value="">Konum Seçin</option>
+                                        <option value="login_popup">Giriş Pop-up</option>
+                                        <option value="dashboard_banner">Ana Panel Banner</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="gradient-button w-full py-3 rounded-lg">
+                                    Reklam Ekle
+                                </button>
+                            </form>
+                            <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Reklamlar</h4>
+                            <div id="ads-list" class="space-y-2 max-h-48 overflow-y-auto">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -865,6 +936,15 @@
                 </form>
             </div>
         </div>
+
+        <div id="special-odd-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Fırsatı Oyna</h3>
+                <div id="special-odd-modal-content" class="space-y-4">
+                    <!-- Pop-up içeriği buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+        </div>
     
         <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
@@ -916,7 +996,7 @@
                         </select>
                     </div>
                     
-                    <div id="win-amount-section" class="hidden">
+                    <div id="win-amount-section" style="display: none;">
                         <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺)</label>
                         <input type="number" id="edit-win-amount" min="0" step="0.01" placeholder="Örn: 1500"
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
@@ -944,4 +1024,3 @@
     <script type="module" src="src/js/main.js" defer></script>
 </body>
 </html>
-

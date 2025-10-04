@@ -32,7 +32,11 @@ function applyFilters(bets) {
     }
 
     return dateFilteredBets.filter(bet => {
-        const statusMatch = status === 'all' || bet.status === status;
+        // DÜZELTME: Bahsin güncel durumunu, özel oran olup olmamasına göre al
+        const isSpecialOdd = !!bet.special_odd_id;
+        const currentStatus = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
+
+        const statusMatch = status === 'all' || currentStatus === status;
         const platformMatch = platform === 'all' || bet.platform === platform;
         const searchMatch = !searchTerm || bet.description.toLowerCase().includes(searchTerm.toLowerCase());
         
@@ -42,9 +46,41 @@ function applyFilters(bets) {
 
 function updateHistorySummary(filteredBets) {
     const totalInvestment = filteredBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
-    const netProfit = filteredBets.reduce((sum, bet) => sum + bet.profit_loss, 0);
-    const settledBets = filteredBets.filter(b => b.status !== 'pending');
-    const wonBets = settledBets.filter(b => b.status === 'won');
+
+    const netProfit = filteredBets.reduce((sum, bet) => {
+        const isSpecialOdd = !!bet.special_odd_id;
+        // DÜZELTME: Durumu her zaman doğru kaynaktan al
+        const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
+
+        if (status === 'pending') return sum;
+        
+        let profit = 0;
+        if (status === 'won') {
+             // DÜZELTME: Kişisel bahisler için win_amount, özel oranlar için oran üzerinden anlık hesapla
+            if(isSpecialOdd){
+                profit = (bet.bet_amount * bet.odds) - bet.bet_amount;
+            } else {
+                profit = bet.win_amount - bet.bet_amount;
+            }
+        } else if (status === 'lost') {
+            profit = -bet.bet_amount;
+        }
+        // 'refunded' durumunda profit 0 kalır, bu doğru.
+        return sum + profit;
+    }, 0);
+
+    const settledBets = filteredBets.filter(b => {
+        const isSpecialOdd = !!b.special_odd_id;
+        const status = isSpecialOdd ? (b.special_odds?.status || 'pending') : b.status;
+        return status !== 'pending';
+    });
+
+    const wonBets = settledBets.filter(b => {
+        const isSpecialOdd = !!b.special_odd_id;
+        const status = isSpecialOdd ? (b.special_odds?.status || 'pending') : b.status;
+        return status === 'won';
+    });
+
     const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
 
     document.getElementById('filtered-bets-count').textContent = filteredBets.length;
@@ -77,16 +113,38 @@ export function renderHistory() {
     const paginatedBets = filteredBets.slice((state.currentPage - 1) * ITEMS_PER_PAGE, state.currentPage * ITEMS_PER_PAGE);
     
     historyContainer.innerHTML = paginatedBets.map(bet => {
-        const statusClass = { pending: 'pending', won: 'won', lost: 'lost' };
-        const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti' };
-        const profitColor = bet.profit_loss > 0 ? 'text-green-400' : bet.profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
-        const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴' };
-        let actionButtons = (bet.status === 'pending')
-            ? `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`
-            : `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
+        const isSpecialOdd = !!bet.special_odd_id;
+        // DÜZELTME: Bahsin güncel durumunu, özel oran olup olmamasına göre al
+        const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
+        
+        // DÜZELTME: Kar/Zararı her zaman güncel duruma göre anlık hesapla
+        let profit_loss = 0;
+        if (status === 'won') {
+             if(isSpecialOdd){
+                profit_loss = (bet.bet_amount * bet.odds) - bet.bet_amount;
+            } else {
+                profit_loss = bet.win_amount - bet.bet_amount;
+            }
+        } else if (status === 'lost') {
+            profit_loss = -bet.bet_amount;
+        }
+
+        const statusClass = { pending: 'pending', won: 'won', lost: 'lost', refunded: 'refunded' };
+        const statusText = { pending: '⏳ Bekleyen', won: '✅ Kazandı', lost: '❌ Kaybetti', refunded: '↩️ İade Edildi'};
+        const profitColor = profit_loss > 0 ? 'text-green-400' : profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
+        const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Özel Oran': '✨' };
+        
+        let actionButtons;
+        if (isSpecialOdd) {
+             actionButtons = `<div class="flex-1 text-center text-sm text-gray-400 italic py-2">Sadece yönetici sonuçlandırabilir.</div>`;
+        } else if (status === 'pending') {
+            actionButtons = `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>`;
+        } else {
+            actionButtons = `<button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>`;
+        }
 
         return `
-        <div class="bet-card ${statusClass[bet.status]}">
+        <div class="bet-card ${statusClass[status]}">
             <div class="flex flex-col space-y-4">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center space-x-3">
@@ -96,16 +154,15 @@ export function renderHistory() {
                             <p class="text-gray-400 text-sm">${bet.bet_type}</p>
                         </div>
                     </div>
-                    <span class="px-4 py-2 rounded-full text-sm font-medium ${statusClass[bet.status]}">${statusText[bet.status]}</span>
+                    <span class="px-4 py-2 rounded-full text-sm font-medium ${statusClass[status]}">${statusText[status]}</span>
                 </div>
                 <div class="bg-gray-800 bg-opacity-30 rounded-lg p-3"><p>${bet.description}</p></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date + 'T00:00:00').toLocaleDateString('tr-TR')}</div></div>
+                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date).toLocaleDateString('tr-TR')}</div></div>
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>
-                    ${bet.bet_type !== 'Slot' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>` : ''}
-                    ${bet.status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${bet.profit_loss >= 0 ? '+' : ''}${bet.profit_loss.toFixed(2)} ₺</div></div>` : ''}
+                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>
+                    ${status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${profit_loss >= 0 ? '+' : ''}${profit_loss.toFixed(2)} ₺</div></div>` : ''}
                 </div>
-                ${bet.image_url ? `<div class="flex justify-center"><img src="${bet.image_url}" class="max-w-48 max-h-32 rounded-xl cursor-pointer" data-action="show-image-modal" data-src="${bet.image_url}"></div>` : ''}
                 <div class="flex gap-3 pt-4 border-t border-gray-600">
                     ${actionButtons}
                     <button data-action="delete-bet" data-id="${bet.id}" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button>
@@ -142,7 +199,7 @@ export function renderCashHistory() {
                         <div class="text-3xl">${icon}</div>
                         <div>
                             <h3 class="font-bold text-white">${tx.description}</h3>
-                            <p class="text-sm text-gray-400">${new Date(tx.date + 'T00:00:00').toLocaleDateString('tr-TR')}</p>
+                            <p class="text-sm text-gray-400">${new Date(tx.date).toLocaleDateString('tr-TR')}</p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">

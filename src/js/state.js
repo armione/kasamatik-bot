@@ -5,6 +5,8 @@ export const state = {
     customPlatforms: [],
     sponsors: [],
     ads: [],
+    specialOdds: [],
+    adminImageData: null,
     editingBetId: null,
     currentlyEditingBet: null,
     currentImageData: null,
@@ -15,6 +17,9 @@ export const state = {
     currentPage: 1,
     cashCurrentPage: 1,
     listenersAttached: false,
+    
+    // Fırsatı oynamak için seçilen özel oran
+    playingSpecialOdd: null,
     
     // Filtreleme durumu
     filters: {
@@ -53,6 +58,10 @@ export function setSponsors(newSponsors) {
 
 export function setAds(newAds) {
     state.ads = newAds;
+}
+
+export function setSpecialOdds(newOdds) {
+    state.specialOdds = newOdds;
 }
 
 export function updateState(newState) {

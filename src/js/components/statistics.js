@@ -1,4 +1,5 @@
 import { state } from '../state.js';
+import { calculateProfitLoss } from '../utils/helpers.js';
 
 function applyStatsFilters(bets) {
     const { dateRange } = state.statsFilters;
@@ -15,10 +16,18 @@ export function updateStatisticsPage() {
     const allActualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
     const actualBets = applyStatsFilters(allActualBets);
     
-    if(allActualBets.length === 0) return;
+    if(state.bets.length === 0) return; // Hiç bahis yoksa hesaplama yapma
 
-    const settledBets = actualBets.filter(b => b.status !== 'pending');
-    const wonBets = settledBets.filter(b => b.status === 'won');
+    const settledBets = actualBets.filter(b => {
+        const isSpecialOdd = !!b.special_odd_id;
+        const status = isSpecialOdd ? (b.special_odds?.status || 'pending') : b.status;
+        return status !== 'pending';
+    });
+    const wonBets = settledBets.filter(b => {
+        const isSpecialOdd = !!b.special_odd_id;
+        const status = isSpecialOdd ? (b.special_odds?.status || 'pending') : b.status;
+        return status === 'won';
+    });
     
     document.getElementById('stats-total-bets').textContent = actualBets.length;
     const sportsBetsCount = actualBets.filter(b => b.bet_type === 'Spor Bahis').length;
@@ -36,7 +45,8 @@ export function updateStatisticsPage() {
     document.getElementById('stats-odds-range').textContent = `En düşük: ${odds.length ? Math.min(...odds).toFixed(2) : '0.00'} | En yüksek: ${odds.length ? Math.max(...odds).toFixed(2) : '0.00'}`;
     
     const totalInvested = actualBets.reduce((sum, b) => sum + b.bet_amount, 0);
-    const netProfit = actualBets.reduce((sum, b) => sum + b.profit_loss, 0);
+    // DÜZELTME: Net kar hesaplaması merkezi fonksiyondan yapılıyor.
+    const netProfit = actualBets.reduce((sum, b) => sum + calculateProfitLoss(b), 0);
     const roi = totalInvested > 0 ? (netProfit / totalInvested) * 100 : 0;
     document.getElementById('stats-roi').textContent = `${roi.toFixed(1)}%`;
     document.getElementById('stats-roi-breakdown').textContent = `Yatırım: ${totalInvested.toFixed(2)}₺ | Net kar: ${netProfit.toFixed(2)}₺`;
@@ -50,7 +60,7 @@ export function updateStatisticsPage() {
     const platformProfits = {};
     actualBets.forEach(bet => {
         if (!platformProfits[bet.platform]) platformProfits[bet.platform] = 0;
-        platformProfits[bet.platform] += bet.profit_loss;
+        platformProfits[bet.platform] += calculateProfitLoss(bet);
     });
     const bestPlatform = Object.entries(platformProfits).sort((a, b) => b[1] - a[1])[0];
     if (bestPlatform && bestPlatform[1] > 0) {
@@ -69,8 +79,9 @@ export function updateCharts() {
     if (!profitCtx) return;
 
     let cumulativeProfit = 0;
+    // DÜZELTME: Grafik için kar/zarar hesaplaması merkezi fonksiyondan yapılıyor.
     const profitData = [...actualBets].reverse().map(bet => {
-        cumulativeProfit += bet.profit_loss;
+        cumulativeProfit += calculateProfitLoss(bet);
         return cumulativeProfit;
     });
 

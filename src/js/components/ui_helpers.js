@@ -12,6 +12,9 @@ export function showSection(sectionName, clickedElement) {
     if (sectionName === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
         updateCharts();
     }
+     if (sectionName === 'special-odds-page') {
+        renderSpecialOddsPage();
+    }
 }
 
 export function toggleSidebar() {
@@ -33,7 +36,9 @@ export function populatePlatformOptions() {
     platformSelects.forEach(select => {
         if (select) {
             const currentValue = select.value;
-            select.innerHTML = `<option value="all">${select.id === 'platform-filter' ? 'Tüm Platformlar' : 'Platform Seçin'}</option>`;
+            const defaultOptionText = select.id === 'platform-filter' ? 'Tüm Platformlar' : 'Platform Seçin';
+            select.innerHTML = `<option value="all">${defaultOptionText}</option>`;
+            
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
                 option.value = platform;
@@ -84,6 +89,7 @@ export function renderSponsorsPage() {
 export function renderAdminPanels() {
     renderSponsorManagementList();
     renderAdManagementList();
+    renderActiveSpecialOdds();
 }
 
 function renderSponsorManagementList() {
@@ -128,6 +134,87 @@ function renderAdManagementList() {
     `).join('');
 }
 
+export function renderActiveSpecialOdds() {
+    const container = document.getElementById('active-special-odds-list');
+    if (!container) return;
+    const pendingOdds = state.specialOdds.filter(o => o.status === 'pending');
+    if(pendingOdds.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-sm text-center">Sonuçlandırılacak aktif fırsat yok.</p>';
+        return;
+    }
+    container.innerHTML = pendingOdds.map(odd => `
+        <div class="odd-item">
+            <p class="font-semibold text-white">${odd.description}</p>
+            <div class="flex items-center justify-between text-sm text-gray-300 mt-2">
+                <span>Oran: <strong class="text-yellow-400">${odd.odds}</strong></span>
+                <span>Platform: <strong class="text-blue-400">${odd.platform}</strong></span>
+                <span>Oynanma: <strong class="text-white">${odd.play_count}</strong></span>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button data-action="resolve-special-odd" data-id="${odd.id}" data-status="won" class="flex-1 py-2 px-3 text-sm bg-green-600 hover:bg-green-700 rounded-lg">Kazandı</button>
+                <button data-action="resolve-special-odd" data-id="${odd.id}" data-status="lost" class="flex-1 py-2 px-3 text-sm bg-red-600 hover:bg-red-700 rounded-lg">Kaybetti</button>
+                <button data-action="resolve-special-odd" data-id="${odd.id}" data-status="refunded" class="flex-1 py-2 px-3 text-sm bg-gray-600 hover:bg-gray-700 rounded-lg">İade Et</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+export function renderSpecialOddsPage() {
+    const container = document.getElementById('special-odds-list-container');
+    if(!container) return;
+
+    const activeOdds = state.specialOdds.filter(o => o.is_active);
+
+    if(activeOdds.length === 0) {
+        container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">✨</div><p class="text-xl">Şu anda aktif bir fırsat bulunmuyor.</p></div>`;
+        return;
+    }
+
+    container.innerHTML = activeOdds.map(odd => {
+        const statusClasses = {
+            pending: 'pending',
+            won: 'won',
+            lost: 'lost',
+            refunded: 'refunded'
+        };
+        const statusTexts = {
+            pending: 'Bekleniyor',
+            won: 'Kazandı',
+            lost: 'Kaybetti',
+            refunded: 'İade Edildi'
+        };
+        const statusText = statusTexts[odd.status] || 'Bilinmiyor';
+
+        return `
+            <div class="special-odd-card glass-card rounded-2xl p-6 ${statusClasses[odd.status]}">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+                    <div class="flex-grow mb-4 md:mb-0">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="px-3 py-1 text-sm font-semibold rounded-full bg-black bg-opacity-20 text-blue-300">${odd.platform}</span>
+                            <span class="text-sm text-gray-400">🔥 ${odd.play_count} kişi oynadı!</span>
+                        </div>
+                        <p class="text-lg font-bold text-white">${odd.description}</p>
+                    </div>
+                    <div class="flex-shrink-0 md:ml-6 text-center md:text-right">
+                        <p class="text-gray-400 text-sm">Oran</p>
+                        <p class="text-4xl font-bold gradient-text">${odd.odds}</p>
+                        ${odd.max_bet_amount ? `<p class="text-xs text-yellow-400 mt-1">Maks. Bahis: ${odd.max_bet_amount} ₺</p>` : ''}
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-700 flex flex-col md:flex-row items-center justify-between">
+                    <div class="text-sm text-gray-400 mb-4 md:mb-0">
+                        Durum: <span class="font-semibold status-${statusClasses[odd.status]} text-white px-2 py-1 rounded-md">${statusText}</span>
+                    </div>
+                    <button data-action="open-play-special-odd-modal" data-id="${odd.id}" class="gradient-button w-full md:w-auto px-8 py-3 rounded-lg font-semibold" ${odd.status !== 'pending' ? 'disabled' : ''}>
+                        ${odd.status === 'pending' ? 'Fırsatı Oyna' : 'Sonuçlandı'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
 export function resetForm(formId = 'bet-form') {
     const form = document.getElementById(formId);
     if(form) {
@@ -145,13 +232,13 @@ export function handleImageFile(file, type) {
     const reader = new FileReader();
     reader.onload = e => {
         const imageData = e.target.result;
-        const prefix = type === 'main' ? '' : 'quick-';
-        if (type === 'main') {
-            state.currentImageData = imageData;
-            document.getElementById('gemini-analyze-btn').disabled = false;
-        } else {
-            state.quickImageData = imageData;
+        const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
+        state[`${type}ImageData`] = imageData;
+
+        if (type === 'main' || type === 'admin') {
+            document.getElementById(`${prefix}gemini-analyze-btn`).disabled = false;
         }
+
         document.getElementById(`${prefix}preview-img`).src = imageData;
         document.getElementById(`${prefix}upload-area`).classList.add('hidden');
         document.getElementById(`${prefix}image-preview`).classList.remove('hidden');
@@ -160,15 +247,16 @@ export function handleImageFile(file, type) {
 }
 
 export function removeImage(type) {
-    const prefix = type === 'main' ? '' : 'quick-';
-    if (type === 'main') {
-        state.currentImageData = null;
-        document.getElementById('gemini-analyze-btn').disabled = true;
-    } else {
-        state.quickImageData = null;
+    const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
+    state[`${type}ImageData`] = null;
+
+    if (type === 'main' || type === 'admin') {
+        document.getElementById(`${prefix}gemini-analyze-btn`).disabled = true;
     }
-    document.getElementById(`${prefix}upload-area`).classList.remove('hidden');
-    document.getElementById(`${prefix}image-preview`).classList.add('hidden');
-    document.getElementById(`${prefix}image-input`).value = '';
+    
+    document.getElementById(`${prefix}upload-area`)?.classList.remove('hidden');
+    document.getElementById(`${prefix}image-preview`)?.classList.add('hidden');
+    const imageInput = document.getElementById(`${prefix}image-input`);
+    if (imageInput) imageInput.value = '';
 }
 

@@ -1,6 +1,36 @@
 // Genel amaçlı yardımcı fonksiyonlar
 
 /**
+ * Bir bahsin kar/zarar durumunu, özel oran olup olmamasına göre doğru bir şekilde hesaplar.
+ * @param {object} bet - Bahis objesi.
+ * @returns {number} Kar/Zarar tutarı.
+ */
+export function calculateProfitLoss(bet) {
+    if (!bet) return 0;
+
+    const isSpecialOdd = !!bet.special_odd_id;
+    const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
+
+    if (status === 'pending') return 0;
+    if (status === 'refunded') return 0;
+
+    if (status === 'won') {
+        if (isSpecialOdd) {
+            return (bet.bet_amount * bet.odds) - bet.bet_amount;
+        } else {
+            return bet.win_amount - bet.bet_amount;
+        }
+    }
+
+    if (status === 'lost') {
+        return -bet.bet_amount;
+    }
+
+    return 0;
+}
+
+
+/**
  * Ekranda bir bildirim mesajı gösterir.
  * @param {string} message Gösterilecek mesaj.
  * @param {'info'|'success'|'warning'|'error'} type Bildirim türü.

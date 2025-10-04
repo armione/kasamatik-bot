@@ -1,6 +1,6 @@
 import { state, updateState } from './state.js';
 import { DOM, DEFAULT_PLATFORMS, ADMIN_USER_ID } from './utils/constants.js';
-import { showNotification, setButtonLoading } from './utils/helpers.js';
+import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSpecialOdd, updateSpecialOdd } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
@@ -141,7 +141,7 @@ async function handlePlaySpecialOdd(button) {
         bet_amount: amount,
         odds: odd.odds,
         date: new Date().toISOString().split('T')[0],
-        status: 'pending', // Bu, special_odds tablosunun status'una bağlanacak
+        status: 'pending',
         win_amount: 0,
         profit_loss: 0,
         special_odd_id: odd.id
@@ -153,10 +153,11 @@ async function handlePlaySpecialOdd(button) {
         setButtonLoading(button, false);
     } else {
         state.bets.unshift(data[0]);
-        const { error: updateError } = await updateSpecialOdd(odd.id, { play_count: odd.play_count + 1 });
+        
+        const { data: updatedOdd, error: updateError } = await updateSpecialOdd(odd.id, { play_count: odd.play_count + 1 });
         if(!updateError) {
             const index = state.specialOdds.findIndex(o => o.id === odd.id);
-            if(index > -1) state.specialOdds[index].play_count++;
+            if(index > -1) state.specialOdds[index] = updatedOdd[0];
         }
         updateAllUI();
         renderSpecialOddsPage();
@@ -337,13 +338,49 @@ async function handleClearAllDataAttempt() {
     }
 }
 
+// YENİ FONKSİYON: Kullanıcının kupon okuma işlemini yönetir
+async function handleUserAnalyzeBetSlip() {
+    if (!state.currentImageData) {
+        showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
+        return;
+    }
+    const geminiButton = document.getElementById('gemini-analyze-btn');
+    setButtonLoading(geminiButton, true, 'Okunuyor...');
+    
+    try {
+        const base64Data = state.currentImageData.split(',')[1];
+        const result = await analyzeBetSlipApi(base64Data);
+        if (result) {
+            if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
+                const descriptionText = result.matches
+                    .map(match => `${match.matchName} (${match.bets.join(', ')})`)
+                    .join(' / ');
+                document.getElementById('description').value = descriptionText;
+            }
+
+            if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
+            if (result.odds) document.getElementById('odds').value = result.odds;
+            
+            showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
+        } else {
+            throw new Error("API'den geçerli bir sonuç alınamadı.");
+        }
+    } catch (error) {
+        console.error('Gemini API Hatası:', error);
+        showNotification('Kupon okunurken bir hata oluştu.', 'error');
+    } finally {
+        setButtonLoading(geminiButton, false, 'Kuponu Oku');
+    }
+}
+
+
 async function handleAdminAnalyzeBetSlip() {
     if (!state.adminImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
     const geminiButton = document.getElementById('admin-gemini-analyze-btn');
-    setButtonLoading(geminiButton, true);
+    setButtonLoading(geminiButton, true, 'Okunuyor...');
     
     try {
         const base64Data = state.adminImageData.split(',')[1];
@@ -365,7 +402,7 @@ async function handleAdminAnalyzeBetSlip() {
         console.error('Gemini API Hatası:', error);
         showNotification('Kupon okunurken bir hata oluştu.', 'error');
     } finally {
-        setButtonLoading(geminiButton, false);
+        setButtonLoading(geminiButton, false, 'Kuponu Oku');
     }
 }
 
@@ -412,8 +449,8 @@ async function handleResolveSpecialOdd(id, status) {
     } else {
         const index = state.specialOdds.findIndex(o => o.id === id);
         if(index > -1) {
-            state.specialOdds[index].status = data[0].status;
-            state.specialOdds[index].is_active = data[0].is_active;
+            // Gelen datanın tamamıyla state'i güncelle, trigger'dan dönen 'is_active' ve 'resulted_at' de gelsin.
+            state.specialOdds[index] = data[0];
         }
         renderActiveSpecialOdds();
         showNotification('Fırsat durumu güncellendi!', 'info');
@@ -540,6 +577,9 @@ export function setupEventListeners() {
     // Diğer UI etkileşimleri
     document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
     document.getElementById('admin-gemini-analyze-btn').addEventListener('click', handleAdminAnalyzeBetSlip);
+    // DÜZELTME: İşlevsiz olan butonun olay dinleyicisi eklendi.
+    document.getElementById('gemini-analyze-btn').addEventListener('click', handleUserAnalyzeBetSlip);
+
     document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
     document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
     
@@ -603,4 +643,3 @@ export function setupEventListeners() {
 
     updateState({ listenersAttached: true });
 }
-

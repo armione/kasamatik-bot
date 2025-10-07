@@ -12,8 +12,24 @@ import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
+// Service Worker'ı kaydet
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('Service Worker başarıyla kaydedildi: ', registration.scope);
+                })
+                .catch(error => {
+                    console.log('Service Worker kaydı başarısız oldu: ', error);
+                });
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    registerServiceWorker(); // Service Worker'ı DOM yüklendiğinde kaydet
     onAuthStateChange(handleAuthStateChange);
 });
 

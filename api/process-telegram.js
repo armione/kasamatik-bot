@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Vercel'in varsayılan body boyut limitini Base64 görselleri kabul etmek için artırıyoruz.
 export const config = {
     api: {
         bodyParser: {
@@ -9,7 +8,6 @@ export const config = {
     },
 };
 
-// Senin sağladığın link sözlüğü
 const KEYWORD_LINKS = {
     "artemisbet": { text: "ARTEMİSBET GİRİŞ", url: "http://artelinks2.com/telegram" },
     "cashwin": { text: "CASHWİN GİRİŞ", url: "https://bit.ly/giriscashwin" },
@@ -80,7 +78,6 @@ export default async function handler(request, response) {
       return response.status(401).json({ message: 'Yetkisiz Erişim.' });
     }
 
-    // --- Gemini ile Multi-Modal Analiz ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
     
@@ -93,6 +90,7 @@ export default async function handler(request, response) {
 3. 'description': (string) Bahsin tam ve detaylı açıklaması. Görseldeki maç isimleri, takımlar ve bahis türünü metinle birleştirerek oluştur. (Örn: "Almanya-Luxembourg, Belçika-Makedonya / Tüm Maçlar Üst 3.5").
 4. 'odds': (number) Bahsin toplam oranı.
 5. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
+6. 'play_count_start': (number) Metin veya görselde "MİN MAKS X ₺ BAHİS" veya benzeri bir ifade varsa, oradaki X sayısını al. Eğer böyle bir ifade bulamazsan, bu değeri 0 olarak ayarla.
 
 Eğer bu bir reklam veya alakasız içerikse, bana sadece {'is_offer': false} döndür.
 Başka hiçbir ek metin, selamlama veya açıklama yazma.
@@ -137,12 +135,7 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     if (parsedJson.is_offer === false || !parsedJson.platform || !parsedJson.odds || !parsedJson.description) {
         return response.status(200).json({ status: 'not_an_offer' });
     }
-
-    // --- Link Bilgilerini Sözlükten Ekle ---
-    const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
-    const linkInfo = KEYWORD_LINKS[platformKey];
-
-    // --- Veritabanına Kaydetme ---
+    
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -150,8 +143,27 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // --- YENİ: Mükerrerlik Kontrolü ---
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const newOddData = {
+    const { data: existingOdds, error: selectError } = await supabase
+      .from('special_odds')
+      .select('id')
+      .eq('platform', parsedJson.platform)
+      .eq('description', parsedJson.description)
+      .gte('created_at', twentyFourHoursAgo)
+      .limit(1);
+
+    if (selectError) {
+        console.error('Supabase Sorgu Hatası:', selectError);
+        throw new Error(`Veritabanı sorgulanırken hata: ${selectError.message}`);
+    }
+    
+    const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
+    const linkInfo = KEYWORD_LINKS[platformKey];
+
+    const dataToUpsert = {
         description: parsedJson.description,
         odds: parseFloat(parsedJson.odds),
         platform: parsedJson.platform,
@@ -161,14 +173,30 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
         status: 'pending'
     };
 
-    const { error } = await supabase.from('special_odds').insert([newOddData]);
+    if (existingOdds && existingOdds.length > 0) {
+        // --- GÜNCELLEME ---
+        const existingOddId = existingOdds[0].id;
+        const { error: updateError } = await supabase
+            .from('special_odds')
+            .update(dataToUpsert)
+            .eq('id', existingOddId);
 
-    if (error) {
-        console.error('Supabase Ekleme Hatası:', error);
-        throw new Error(`Veritabanına eklenirken hata oluştu: ${error.message}`);
+        if (updateError) {
+            console.error('Supabase Güncelleme Hatası:', updateError);
+            throw new Error(`Fırsat güncellenirken hata: ${updateError.message}`);
+        }
+        return response.status(200).json({ status: 'success_updated', message: 'Fırsat başarıyla güncellendi.' });
+    } else {
+        // --- YENİ EKLEME ---
+         dataToUpsert.play_count = parsedJson.play_count_start || 0; // Sadece yeni eklenirken başlangıç sayacını ayarla
+        const { error: insertError } = await supabase.from('special_odds').insert([dataToUpsert]);
+
+        if (insertError) {
+            console.error('Supabase Ekleme Hatası:', insertError);
+            throw new Error(`Veritabanına eklenirken hata: ${insertError.message}`);
+        }
+        return response.status(201).json({ status: 'success_created', message: 'Fırsat başarıyla eklendi.' });
     }
-    
-    return response.status(201).json({ status: 'success', data: newOddData });
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error.message);

@@ -42,13 +42,21 @@ export default async function handler(request, response) {
         return response.status(200).json({ status: 'filtered', reason: 'Gerekli anahtar kelimeler bulunamadı.' });
     }
     
-    // --- 3. Gemini ile Analiz ---
+    // --- 3. Gemini ile Analiz (YENİ, DETAYLI PROMPT) ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
     
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
-    const prompt = `Bu metni analiz et. Eğer bu bir spor bahsi özel oranı ise, bana platform(string), description(string), odds(number), max_bet(number, eğer yoksa null), ve primary_link_url(string, metindeki ilk http linki, yoksa null) bilgilerini içeren bir JSON objesi ver. Eğer bu bir reklam, duyuru veya alakasız bir içerikse, bana sadece {'is_offer': false} şeklinde bir JSON objesi döndür. Cevap olarak SADECE ve SADECE markdown kod bloğu içinde JSON objesi döndür. Başka hiçbir şey yazma. Metin: "${cleanedMessage}"`;
+    // DİKKAT: Prompt güncellendi. Artık maç detaylarını ve bahis türünü açıkça istiyoruz.
+    const prompt = `Bu Telegram mesajı metnini analiz et. Bu metin bir spor bahsi özel oranı içeriyor. Bana SADECE ve SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
+1.  'is_offer': (boolean) Bu metnin bir bahis fırsatı olup olmadığı. Eğer değilse, diğer alanları boş bırak.
+2.  'platform': (string) Bahsin oynanacağı platformun adı (Örn: "Grandpashabet").
+3.  'description': (string) Bahsin tam ve detaylı açıklaması. Bu açıklamada maçların isimleri (Örn: "Almanya-Luxembourg, Belçika-Makedonya") ve bahis türü (Örn: "Tüm Maçlar Üst 3.5") mutlaka yer almalı.
+4.  'odds': (number) Bahsin toplam oranı.
+5.  'max_bet': (number) Maksimum bahis miktarı. Eğer belirtilmemişse null olsun.
+6.  'primary_link_url': (string) Metindeki ilk http linki. Eğer yoksa null olsun.
+Başka hiçbir ek metin, selamlama veya açıklama yazma. Metin: "${cleanedMessage}"`;
 
     const payload = { contents: [{ parts: [{ text: prompt }] }] };
 
@@ -82,14 +90,11 @@ export default async function handler(request, response) {
 
     // --- 4. Veritabanına Kaydetme (GÜVENLİ YÖNTEM) ---
     const supabaseUrl = process.env.SUPABASE_URL;
-    // DİKKAT: Artık anon_key yerine güçlü olan service_role anahtarını kullanıyoruz.
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; 
     if (!supabaseUrl || !supabaseServiceKey) {
         throw new Error("Supabase ortam değişkenleri (URL ve SERVICE_KEY) bulunamadı.");
     }
 
-    // Supabase client'ını service_role anahtarı ile başlatıyoruz.
-    // Bu, RLS kurallarını atlamamızı sağlar.
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const newOddData = {

@@ -42,7 +42,7 @@ export default async function handler(request, response) {
         return response.status(200).json({ status: 'filtered', reason: 'Gerekli anahtar kelimeler bulunamadı.' });
     }
     
-    // --- 3. Gemini ile Analiz (gemini-2.5-flash ile) ---
+    // --- 3. Gemini ile Analiz ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
     
@@ -80,12 +80,17 @@ export default async function handler(request, response) {
         return response.status(200).json({ status: 'not_an_offer', reason: 'Gemini, içeriğin bir fırsat olmadığına karar verdi.' });
     }
 
-    // --- 4. Veritabanına Kaydetme ---
+    // --- 4. Veritabanına Kaydetme (GÜVENLİ YÖNTEM) ---
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) throw new Error("Supabase ortam değişkenleri (URL ve ANON_KEY) bulunamadı.");
+    // DİKKAT: Artık anon_key yerine güçlü olan service_role anahtarını kullanıyoruz.
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; 
+    if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error("Supabase ortam değişkenleri (URL ve SERVICE_KEY) bulunamadı.");
+    }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Supabase client'ını service_role anahtarı ile başlatıyoruz.
+    // Bu, RLS kurallarını atlamamızı sağlar.
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const newOddData = {
         description: parsedJson.description,

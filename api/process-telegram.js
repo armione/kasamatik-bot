@@ -18,39 +18,37 @@ export default async function handler(request, response) {
       return response.status(400).json({ message: 'Mesaj metni gerekli.' });
     }
 
-    // --- 2. Akıllı Ön Filtreleme (YENİ VE GELİŞTİRİLMİŞ) ---
-
-    // Adım 2.1: Tekrarlanan "footer" metnini mesajdan temizle
-    // Bu, "XBONUS DENEME BONUSLARI" gibi ifadelerin yanlış alarma neden olmasını engeller.
-    const footerStartIndex = message.indexOf('ÖZEL ORAN SİTELER');
-    const cleanedMessage = footerStartIndex !== -1 ? message.substring(0, footerStartIndex).trim() : message;
-    
-    const lowerCaseMessage = cleanedMessage.toLowerCase();
-
-    // Adım 2.2: Negatif anahtar kelimeleri kontrol et (daha akıllı)
-    const negativeKeywords = ['form', 'etkinlik', 'freespin', 'kayıt ol', 'üye ol', 'güvenilir sponsorlar'];
-    // "bonus" kelimesini sadece tek başına bir kelime ise yakala (xbonus'u atlaması için)
-    const hasBonusKeyword = /\bbonus\b/.test(lowerCaseMessage);
-
-    if (hasBonusKeyword || negativeKeywords.some(keyword => lowerCaseMessage.includes(keyword))) {
-        return response.status(200).json({ status: 'filtered', reason: 'Alakasız anahtar kelime içeriyor.' });
+    // --- 2. Akıllı Ön Filtreleme ---
+    const footerKeywords = [
+      'XBONUS GÜVENİLİR SPONSORLAR',
+      'ÖZEL ORAN SİTELER'
+    ];
+    let cleanedMessage = message;
+    for (const keyword of footerKeywords) {
+      const footerStartIndex = cleanedMessage.indexOf(keyword);
+      if (footerStartIndex !== -1) {
+        cleanedMessage = cleanedMessage.substring(0, footerStartIndex).trim();
+      }
     }
     
-    // Adım 2.3: Pozitif anahtar kelimeleri kontrol et
+    const lowerCaseMessage = cleanedMessage.toLowerCase();
+    const negativeKeywords = ['form', 'etkinlik', 'freespin', 'kayıt ol', 'üye ol', 'deneme bonusu'];
+    if (negativeKeywords.some(keyword => lowerCaseMessage.includes(keyword))) {
+        return response.status(200).json({ status: 'filtered', reason: `Alakasız anahtar kelime içeriyor: ${negativeKeywords.find(k => lowerCaseMessage.includes(k))}` });
+    }
+    
     const positiveKeywords = ['özel oran', 'oran', 'max'];
     if (!positiveKeywords.some(keyword => lowerCaseMessage.includes(keyword))) {
         return response.status(200).json({ status: 'filtered', reason: 'Gerekli anahtar kelimeler bulunamadı.' });
     }
     
-    // --- 3. Gemini ile Analiz ---
+    // --- 3. Gemini ile Analiz (gemini-2.5-flash ile) ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
     
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
-    // Gemini'a orijinal (temizlenmemiş) mesajı gönderiyoruz, çünkü bazen footer'da da link vb. olabilir.
-    // Gemini'nin kendisi zaten reklamları ayırt etme yeteneğine sahip. Biz sadece bariz olanları en başta eliyoruz.
-    const prompt = `Bu metni analiz et. Eğer bu bir spor bahsi özel oranı ise, bana platform(string), description(string), odds(number), max_bet(number, eğer yoksa null), ve primary_link_url(string, metindeki ilk http linki, yoksa null) bilgilerini içeren bir JSON objesi ver. Eğer bu bir reklam, duyuru veya alakasız bir içerikse, bana sadece {'is_offer': false} şeklinde bir JSON objesi döndür. Cevap olarak SADECE ve SADECE markdown kod bloğu içinde JSON objesi döndür. Başka hiçbir şey yazma. Metin: "${message}"`;
+    const prompt = `Bu metni analiz et. Eğer bu bir spor bahsi özel oranı ise, bana platform(string), description(string), odds(number), max_bet(number, eğer yoksa null), ve primary_link_url(string, metindeki ilk http linki, yoksa null) bilgilerini içeren bir JSON objesi ver. Eğer bu bir reklam, duyuru veya alakasız bir içerikse, bana sadece {'is_offer': false} şeklinde bir JSON objesi döndür. Cevap olarak SADECE ve SADECE markdown kod bloğu içinde JSON objesi döndür. Başka hiçbir şey yazma. Metin: "${cleanedMessage}"`;
 
     const payload = { contents: [{ parts: [{ text: prompt }] }] };
 

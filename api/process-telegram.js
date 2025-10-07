@@ -87,7 +87,7 @@ export default async function handler(request, response) {
     const prompt = `Bu Telegram gönderisini analiz et. Hem metni hem de (varsa) görseli dikkate al. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
 2. 'platform': (string) Platformun adı (Örn: "Grandpashabet").
-3. 'description': (string) Bahsin tam ve detaylı açıklaması. Görseldeki maç isimleri, takımlar ve bahis türünü metinle birleştirerek oluştur. (Örn: "Almanya-Luxembourg, Belçika-Makedonya / Tüm Maçlar Üst 3.5").
+3. 'description': (string) Bahsin tam ve detaylı açıklaması. Görseldeki maç isimleri, takımlar ve bahis türünü metinle birleştirerek oluştur. 'toplam gol 3.5 üst', 'tüm maçlar 3.5 ü' gibi farklı ifadeleri 'Tüm Maçlar 3.5 Üst' gibi standart bir formata çevir.
 4. 'odds': (number) Bahsin toplam oranı.
 5. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
 6. 'play_count_start': (number) Metin veya görselde "MİN MAKS X ₺ BAHİS" veya benzeri bir ifade varsa, oradaki X sayısını al. Eğer böyle bir ifade bulamazsan, bu değeri 0 olarak ayarla.

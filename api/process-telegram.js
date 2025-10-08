@@ -22,7 +22,7 @@ const KEYWORD_LINKS = {
     "mersobahis": { text: "MERSOBAHİS GÜNCEL GİRİŞ", url: "https://ozeloran.site/mersobahis" },
     "jojobet": { text: "JOJOBET", url: "https://ozeloran.site/jojobet" },
     "superbetin": { text: "SUPERBETİN", url: "https://ozeloran.site/superbetin" },
-    "turkbetsüperoran": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
+    "turkbet süper oran": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
     "turkbet": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
     "nakitbahis": { text: "NAKİTBAHİS", url: "https://ozeloran.site/nakitbahis" },
     "pusulabet": { text: "PUSULABET", url: "https://ozeloran.site/pusulabet" },
@@ -84,19 +84,27 @@ export default async function handler(request, response) {
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const parts = [];
-    const prompt = `Bu Telegram gönderisini analiz et. Cevap olarak SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON şu alanları içermeli:
+    const prompt = `Bu Telegram gönderisini analiz et. Hem metni hem de (varsa) görseli dikkate al. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
-2. 'platform': (string) Platformun adı.
-3. 'description': (string) Bahsin tam ve standartlaştırılmış açıklaması. Her maçı "Takım A - Takım B: Bahis Türü" formatında yaz ve aralarına " / " koy. Açıklamanın her zaman tutarlı olması çok önemli.
+2. 'platform': (string) Platformun adı (Örn: "Grandpashabet").
+3. 'description': (string) Bahsin tam ve standartlaştırılmış açıklaması. Birden fazla maç varsa, aralarına " / " koy. Her maçı "Takım A - Takım B: Bahis Türü" formatında yaz. 'toplam gol 3.5 üst', 'tüm maçlar 3.5 ü' gibi farklı ifadeleri 'Toplam 3.5 Gol Üstü' gibi her zaman aynı standart formata çevir. AÇIKLAMANIN HER ZAMAN TUTARLI OLMASI ÇOK ÖNEMLİ.
 4. 'odds': (number) Bahsin toplam oranı.
-5. 'max_bet': (number) Maksimum bahis miktarı (yoksa null).
-6. 'play_count_start': (number) "MİN MAKS X ₺ BAHİS" gibi bir ifade varsa X sayısını al, yoksa 0.
-Eğer bu bir bahis fırsatı değilse, sadece {'is_offer': false} döndür. JSON dışında hiçbir metin yazma.
-Metin: "${message}"`;
+5. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
+6. 'play_count_start': (number) Metin veya görselde "MİN MAKS X ₺ BAHİS" veya benzeri bir ifade varsa, oradaki X sayısını al. Eğer böyle bir ifade bulamazsan, bu değeri 0 olarak ayarla.
+
+Eğer bu bir reklam veya alakasız içerikse, bana sadece {'is_offer': false} döndür.
+Başka hiçbir ek metin, selamlama veya açıklama yazma.
+İşte metin: "${message}"`;
 
     parts.push({ text: prompt });
+
     if (photo) {
-      parts.push({ inlineData: { mimeType: 'image/jpeg', data: photo } });
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: photo
+        }
+      });
     }
 
     const payload = { contents: [{ parts }] };
@@ -106,50 +114,66 @@ Metin: "${message}"`;
       body: JSON.stringify(payload)
     });
 
-    if (!geminiResponse.ok) throw new Error(`Gemini API hatası: ${await geminiResponse.text()}`);
+    if (!geminiResponse.ok) {
+        const errorBody = await geminiResponse.text();
+        console.error("Gemini API Hatası:", errorBody);
+        throw new Error(`Gemini API isteği başarısız oldu: ${geminiResponse.status}`);
+    }
 
     const result = await geminiResponse.json();
     const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) throw new Error("Gemini'den geçerli bir cevap alınamadı.");
     
     const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
-    if (!jsonMatch || !jsonMatch[1]) return response.status(200).json({ status: 'gemini_parse_error', text: rawText });
+    if (!jsonMatch || !jsonMatch[1]) {
+        console.error("API'den gelen cevapta JSON bulunamadı:", rawText);
+        return response.status(200).json({ status: 'gemini_parse_error' });
+    }
     
     const parsedJson = JSON.parse(jsonMatch[1]);
 
-    if (!parsedJson.is_offer) {
+    if (parsedJson.is_offer === false || !parsedJson.platform || !parsedJson.odds || !parsedJson.description) {
         return response.status(200).json({ status: 'not_an_offer' });
     }
     
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; 
-    if (!supabaseUrl || !supabaseServiceKey) throw new Error("Supabase ortam değişkenleri bulunamadı.");
+    if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error("Supabase ortam değişkenleri bulunamadı.");
+    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const platformKey = (parsedJson.platform || "").toLowerCase().replace(/\s/g, '');
-    const linkInfo = KEYWORD_LINKS[platformKey] || { text: `${parsedJson.platform} GİRİŞ`, url: null };
+    const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
+    const linkInfo = KEYWORD_LINKS[platformKey];
 
-    // Veritabanındaki akıllı fonksiyonu çağır
-    const { data, error } = await supabase.rpc('upsert_special_odd', {
+    // Veritabanı fonksiyonunu çağırmak için parametreleri hazırla
+    const rpcParams = {
         p_platform: parsedJson.platform,
         p_description: parsedJson.description,
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
-        p_primary_link_url: linkInfo.url || (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
-        p_primary_link_text: linkInfo.text,
+        p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
+        p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
         p_play_count_start: parsedJson.play_count_start || 0
-    });
+    };
+
+    // Yeni oluşturulan veritabanı fonksiyonunu çağır
+    const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);
 
     if (error) {
         console.error('Supabase RPC Hatası:', error);
-        throw new Error(`Veritabanı fonksiyonu hatası: ${error.message}`);
+        throw new Error(`Veritabanı fonksiyonu çalıştırılırken hata: ${error.message}`);
     }
 
-    return response.status(200).json(data);
+    // Fonksiyondan dönen sonucu direkt olarak istemciye gönder
+    const resultData = data; 
+    const statusCode = resultData.status === 'success_created' ? 201 : 200;
+    return response.status(statusCode).json(resultData);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error.message);
     return response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
+

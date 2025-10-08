@@ -9,59 +9,58 @@ export const config = {
 };
 
 const KEYWORD_LINKS = {
-    "artemisbet": { text: "ARTEMİSBET", url: "https://ozeloran.site/artemisbet" },
-    "cashwin": { text: "CASHWİN", url: "https://ozeloran.site/cashwin" },
-    "betgit": { text: "BETGİT", url: "https://ozeloran.site/betgit" },
-    "parobet": { text: "PAROBET", url: "https://ozeloran.site/parobet" },
-    "dumanbet": { text: "DUMANBET", url: "https://ozeloran.site/dumanbet" },
-    "holiganbet": { text: "HOLİGANBET", url: "https://ozeloran.site/holiganbet" },
-    "kavbet": { text: "KAVBET", url: "https://ozeloran.site/kavbet" },
-    "lunabet": { text: "LUNABET", url: "https://ozeloran.site/lunabet" },
-    "betorspin": { text: "BETORSPİN", url: "https://ozeloran.site/betorspin" },
-    "merso": { text: "MERSOBAHİS GÜNCEL GİRİŞ", url: "https://ozeloran.site/mersobahis" },
-    "mersobahis": { text: "MERSOBAHİS GÜNCEL GİRİŞ", url: "https://ozeloran.site/mersobahis" },
-    "jojobet": { text: "JOJOBET", url: "https://ozeloran.site/jojobet" },
-    "superbetin": { text: "SUPERBETİN", url: "https://ozeloran.site/superbetin" },
-    "turkbet süper oran": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
-    "turkbet": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
-    "nakitbahis": { text: "NAKİTBAHİS", url: "https://ozeloran.site/nakitbahis" },
-    "pusulabet": { text: "PUSULABET", url: "https://ozeloran.site/pusulabet" },
-    "sekabet": { text: "SEKABET", url: "https://ozeloran.site/sekabet" },
-    "şanscasino": { text: "ŞANSCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/sanscasino" },
-    "harbiwin": { text: "HARBİWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/harbiwin" },
-    "piabet": { text: "PİABET GÜNCEL GİRİŞ", url: "https://kisa.to/Xbonuspia" },
-    "asyabahis": { text: "ASYABAHİS", url: "https://ozeloran.site/asyabahis" },
-    "maltcasino": { text: "MALTCASİNO", url: "https://ozeloran.site/maltcasino" },
-    "pinbahis": { text: "PİN BAHİS", url: "https://ozeloran.site/pinbahis" },
-    "olabahis": { text: "OLA BAHİS", url: "https://ozeloran.site/olabahis" },
-    "zirvebet": { text: "ZİRVEBET", url: "https://ozeloran.site/zirvebet" },
-    "bibubet": { text: "BİBUBET", url: "https://ozeloran.site/bibubet" },
-    "megabahis": { text: "MEGABAHİS", url: "https://ozeloran.site/megabahis" },
-    "matbet": { text: "MATBET", url: "https://ozeloran.site/matbet" },
-    "betcio": { text: "BETCİO", url: "https://ozeloran.site/betcio" },
-    "imajbet": { text: "İMAJBET", url: "https://ozeloran.site/imajbet" },
-    "odeonbet": { text: "ODEONBET", url: "https://ozeloran.site/odeonbet" },
-    "baywin": { text: "BAYWİN", url: "https://ozeloran.site/baywin" },
-    "zlot": { text: "ZLOT", url: "https://ozeloran.site/zlot" },
-    "matixbet": { text: "MATİXBET", url: "https://matixortaklik.com/git/matixsosyal/" },
-    "betsmove": { text: "BETSMOVE", url: "https://ozeloran.site/betsmove" },
-    "padişahbet": { text: "PADİŞAHBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/padisahbet" },
-    "bycasino": { text: "BYCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/bycasino" },
-    "maxwin": { text: "MAXWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/maxwin" },
-    "mavibet": { text: "MAVİBET", url: "https://ozeloran.site/mavibet" },
-    "bethand": { text: "BETHAND GÜNCEL GİRİŞ", url: "https://ozeloran.site/bethand" },
-    "hitbet": { text: "HİTBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/hitbet" },
-    "biabet": { text: "BİABET", url: "https://ozeloran.site/biabet" },
-    "roketbahis": { text: "ROKETBAHİS", url: "https://cutt.ly/2rS3rxfX" },
-    "starzbet": { text: "STARZBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/starzbet" },
-    "nerobet": { text: "NEROEBET GÜNCEL GİRİŞ", url: "https://t2m.io/e416FBxD" },
-    "tipbom": { text: "TİPBOM GÜNCEL GİRİŞ", url: "https://cutt.ly/TipBomxBonus" },
-    "amgbahis": { text: "AMGBAHİS GÜNCEL GİRİŞ", url: "https://t2m.io/nebulaaa" },
-    "makrobet": { text: "MAKROBET GÜNCEL GİRİŞ", url: "https://t2m.io/makroxbonus" },
-    "zenginsin": { text: "ZENGİNSİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/zenginsin" },
-    "tokyobet": { text: "TOKYOBET GÜNCEL GİRİŞ", url: "https://tokyoaff.com/qnzhdoup" },
-    "slotin": { text: "SLOTİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/slotin" },
-    "bahisfanatik": { text: "BAHİS FANATİK GÜNCEL GİRİŞ", url: "https://linkany.pro/XBonus" },
+    "artemisbet": { text: "ARTEMİSBET GİRİŞ", url: "http://artelinks2.com/telegram" },
+    "cashwin": { text: "CASHWİN GİRİŞ", url: "https://bit.ly/giriscashwin" },
+    "betgit": { text: "BETGİT GİRİŞ", url: "https://3xl.ink/bgitguncel" },
+    "parobet": { text: "PAROBET GİRİŞ", url: "https://t.ly/parogir" },
+    "dumanbet": { text: "DUMANBET GİRİŞ", url: "https://t2m.io/dbtwitter2" },
+    "holiganbet": { text: "HOLİGANBET GİRİŞ", url: "https://dub.pro/holiguncel" },
+    "kavbet": { text: "KAVBET GİRİŞ", url: "https://tracker.kavbetpartners1.com/link?btag=58804675_363847" },
+    "lunabet": { text: "LUNABET GİRİŞ", url: "https://lunalinks.org/lunabest" },
+    "betorspin": { text: "BETORSPİN GİRİŞ", url: "https://cutt.ly/lwZC7EWV" },
+    "merso": { text: "MERSOBAHİS GİRİŞ", url: "https://mth.tc/mersoxnbl" },
+    "mersobahis": { text: "MERSOBAHİS GİRİŞ", url: "https://mth.tc/mersoxnbl" },
+    "jojobet": { text: "JOJOBET GİRİŞ", url: "https://dub.pro/jojoozeloran" },
+    "superbetin": { text: "SUPERBETİN GİRİŞ", url: "https://sbtmcdn.com/C.ashx?btag=a_10122b_681c_&affid=22692&siteid=10122&adid=681&c=" },
+    "turkbet": { text: "TURKBET GİRİŞ", url: "https://trk85cdn.com/C.ashx?btag=a_10123b_689c_&affid=22693&siteid=10123&adid=689&c=" },
+    "nakitbahis": { text: "NAKİTBAHİS GİRİŞ", url: "https://dub.is/nakitozel" },
+    "pusulabet": { text: "PUSULABET GİRİŞ", url: "https://cutt.ly/pusulaozeloran" },
+    "sekabet": { text: "SEKABET GİRİŞ", url: "https://t2m.io/sekaguncelgiris" },
+    "şanscasino": { text: "ŞANSCASİNO GİRİŞ", url: "https://t.ly/xbonus" },
+    "harbiwin": { text: "HARBİWİN GİRİŞ", url: "https://t2m.io/YDPLog3f" },
+    "piabet": { text: "PİABET GİRİŞ", url: "https://kisa.to/Xbonuspia" },
+    "asyabahis": { text: "ASYABAHİS GİRİŞ", url: "https://t2m.io/asyaguncelgiris" },
+    "maltcasino": { text: "MALTCASİNO GİRİŞ", url: "https://t2m.io/maltguncelgiris" },
+    "pinbahis": { text: "PİN BAHİS GİRİŞ", url: "https://t2m.io/twttrpnbhs24" },
+    "olabahis": { text: "OLA BAHİS GİRİŞ", url: "https://t2m.io/txolabhs" },
+    "zirvebet": { text: "ZİRVEBET GİRİŞ", url: "https://zirve.ink/zirve-oran" },
+    "bibubet": { text: "BİBUBET GİRİŞ", url: "https://dub.link/bibuguncel" },
+    "megabahis": { text: "MEGABAHİS GİRİŞ", url: "https://dub.is/megaguncel" },
+    "matbet": { text: "MATBET GİRİŞ", url: "https://dub.is/matguncel" },
+    "betcio": { text: "BETCİO GİRİŞ", url: "https://t2m.io/cioxbonus" },
+    "imajbet": { text: "İMAJBET GİRİŞ", url: "https://linkin.bio/imajbet" },
+    "odeonbet": { text: "ODEONBET GİRİŞ", url: "http://dub.pro/odeonozeloran" },
+    "baywin": { text: "BAYWİN GİRİŞ", url: "https://cutt.ly/5eVWdeoW" },
+    "zlot": { text: "ZLOT GİRİŞ", url: "https://cutt.ly/9r0pZGAS" },
+    "matixbet": { text: "MATİXBET GİRİŞ", url: "https://matixortaklik.com/git/matixsosyal/" },
+    "betsmove": { text: "BETSMOVE GİRİŞ", url: "http://dub.is/betsmoveguncel" },
+    "padişahbet": { text: "PADİŞAHBET GİRİŞ", url: "http://t2m.io/2YqDMK0" },
+    "bycasino": { text: "BYCASİNO GİRİŞ", url: "https://cutt.ly/arVwJiFm" },
+    "maxwin": { text: "MAXWİN GİRİŞ", url: "https://cutt.ly/maxmedia" },
+    "mavibet": { text: "MAVİBET GİRİŞ", url: "https://dub.pro/maviozeloran" },
+    "bethand": { text: "BETHAND GİRİŞ", url: "https://cutt.ly/GrWexqYB" },
+    "hitbet": { text: "HİTBET GİRİŞ", url: "https://cutt.ly/Hitbet-Vip-MH" },
+    "biabet": { text: "BİABET GİRİŞ", url: "https://biabetlink.com" },
+    "roketbahis": { text: "ROKETBAHİS GİRİŞ", url: "https://cutt.ly/2rS3rxfX" },
+    "starzbet": { text: "STARZBET GİRİŞ", url: "https://cutt.ly/lreDfZTd" },
+    "nerobet": { text: "NEROBET GİRİŞ", url: "https://t2m.io/e416FBxD" },
+    "tipbom": { text: "TİPBOM GİRİŞ", url: "https://cutt.ly/TipBomxBonus" },
+    "amgbahis": { text: "AMGBAHİS GİRİŞ", url: "https://t2m.io/nebulaaa" },
+    "makrobet": { text: "MAKROBET GİRİŞ", url: "https://t2m.io/makroxbonus" },
+    "zenginsin": { text: "ZENGİNSİN GİRİŞ", url: "https://tinyurl.com/wgpaff?t=ZGVkNTIz" },
+    "tokyobet": { text: "TOKYOBET GİRİŞ", url: "https://tokyoaff.com/qnzhdoup" },
+    "slotin": { text: "SLOTİN GİRİŞ", url: "https://cutt.ly/mrlBd9hr" },
+    "bahisfanatik": { text: "BAHİS FANATİK GİRİŞ", url: "https://linkany.pro/XBonus" },
     "grandpashabet": { text: "GRANDPASHABET GİRİŞ", url: "https://ozeloran.site/grandpashabet" }
 };
 
@@ -145,35 +144,28 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
-    const linkInfo = KEYWORD_LINKS[platformKey];
+    const linkInfo = KEYWORD_LINKS[platformKey] || { text: `${parsedJson.platform} GİRİŞ`, url: null };
 
-    // Veritabanı fonksiyonunu çağırmak için parametreleri hazırla
-    const rpcParams = {
+    // Veritabanı fonksiyonunu (RPC) çağır
+    const { data, error } = await supabase.rpc('upsert_special_odd', {
         p_platform: parsedJson.platform,
         p_description: parsedJson.description,
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
-        p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
-        p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
+        p_primary_link_url: linkInfo.url || (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
+        p_primary_link_text: linkInfo.text,
         p_play_count_start: parsedJson.play_count_start || 0
-    };
-
-    // Yeni oluşturulan veritabanı fonksiyonunu çağır
-    const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);
+    });
 
     if (error) {
         console.error('Supabase RPC Hatası:', error);
         throw new Error(`Veritabanı fonksiyonu çalıştırılırken hata: ${error.message}`);
     }
 
-    // Fonksiyondan dönen sonucu direkt olarak istemciye gönder
-    const resultData = data; 
-    const statusCode = resultData.status === 'success_created' ? 201 : 200;
-    return response.status(statusCode).json(resultData);
+    return response.status(200).json(data);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error.message);
     return response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
-

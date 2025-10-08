@@ -65,7 +65,6 @@ const KEYWORD_LINKS = {
     "grandpashabet": { text: "GRANDPASHABET GİRİŞ", url: "https://ozeloran.site/grandpashabet" }
 };
 
-
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'Sadece POST istekleri kabul edilir.' });
@@ -145,63 +144,32 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // --- Mükerrerlik Kontrolü ---
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: existingOdds, error: selectError } = await supabase
-      .from('special_odds')
-      .select('id')
-      .eq('platform', parsedJson.platform)
-      .eq('description', parsedJson.description)
-      .gte('created_at', twentyFourHoursAgo)
-      .limit(1);
-
-    if (selectError) {
-        console.error('Supabase Sorgu Hatası:', selectError);
-        throw new Error(`Veritabanı sorgulanırken hata: ${selectError.message}`);
-    }
-    
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
     const linkInfo = KEYWORD_LINKS[platformKey];
 
-    const dataToUpsert = {
-        description: parsedJson.description,
-        odds: parseFloat(parsedJson.odds),
-        platform: parsedJson.platform,
-        max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
-        primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
-        primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
-        status: 'pending'
+    // Veritabanı fonksiyonunu çağırmak için parametreleri hazırla
+    const rpcParams = {
+        p_platform: parsedJson.platform,
+        p_description: parsedJson.description,
+        p_odds: parseFloat(parsedJson.odds),
+        p_max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
+        p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
+        p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
+        p_play_count_start: parsedJson.play_count_start || 0
     };
 
-    if (existingOdds && existingOdds.length > 0) {
-        // --- GÜNCELLEME ---
-        const existingOddId = existingOdds[0].id;
-        
-        // ÖNEMLİ: Kaydın zaman damgasını yenileyerek "temizle" ve "güncel tut"
-        dataToUpsert.created_at = new Date().toISOString();
+    // Yeni oluşturulan veritabanı fonksiyonunu çağır
+    const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);
 
-        const { error: updateError } = await supabase
-            .from('special_odds')
-            .update(dataToUpsert)
-            .eq('id', existingOddId);
-
-        if (updateError) {
-            console.error('Supabase Güncelleme Hatası:', updateError);
-            throw new Error(`Fırsat güncellenirken hata: ${updateError.message}`);
-        }
-        return response.status(200).json({ status: 'success_updated', message: 'Fırsat başarıyla güncellendi.' });
-    } else {
-        // --- YENİ EKLEME ---
-         dataToUpsert.play_count = parsedJson.play_count_start || 0; // Sadece yeni eklenirken başlangıç sayacını ayarla
-        const { error: insertError } = await supabase.from('special_odds').insert([dataToUpsert]);
-
-        if (insertError) {
-            console.error('Supabase Ekleme Hatası:', insertError);
-            throw new Error(`Veritabanına eklenirken hata: ${insertError.message}`);
-        }
-        return response.status(201).json({ status: 'success_created', message: 'Fırsat başarıyla eklendi.' });
+    if (error) {
+        console.error('Supabase RPC Hatası:', error);
+        throw new Error(`Veritabanı fonksiyonu çalıştırılırken hata: ${error.message}`);
     }
+
+    // Fonksiyondan dönen sonucu direkt olarak istemciye gönder
+    const resultData = data; 
+    const statusCode = resultData.status === 'success_created' ? 201 : 200;
+    return response.status(statusCode).json(resultData);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error.message);

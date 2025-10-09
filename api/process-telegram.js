@@ -8,7 +8,6 @@ export const config = {
     },
 };
 
-// Bilinen platformlar için standart linkler. Bu, manuel link aramayı azaltır.
 const KEYWORD_LINKS = {
     "artemisbet": { text: "ARTEMİSBET", url: "https://ozeloran.site/artemisbet" },
     "cashwin": { text: "CASHWİN", url: "https://ozeloran.site/cashwin" },
@@ -74,20 +73,17 @@ export default async function handler(request, response) {
   try {
     const { secret, message, photo } = request.body;
 
-    // Güvenlik anahtarını kontrol et
     const botSecret = process.env.TELEGRAM_BOT_SECRET;
     if (!botSecret || secret !== botSecret) {
       return response.status(401).json({ message: 'Yetkisiz Erişim.' });
     }
 
-    // Gemini API anahtarını al
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
     
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const parts = [];
-    // Geliştirilmiş ve daha akıllı Gemini prompt'u
     const prompt = `Bu Telegram gönderisini analiz et. Hem metni hem de (varsa) görseli dikkate al. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
 2. 'platform': (string) Platformun adı (Örn: "Grandpashabet").
@@ -102,7 +98,6 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
 
     parts.push({ text: prompt });
 
-    // Eğer fotoğraf varsa, isteğe ekle
     if (photo) {
       parts.push({
         inlineData: {
@@ -113,8 +108,6 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     }
 
     const payload = { contents: [{ parts }] };
-    
-    // Gemini API'sine isteği gönder
     const geminiResponse = await fetch(geminiApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -131,22 +124,18 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) throw new Error("Gemini'den geçerli bir cevap alınamadı.");
     
-    // Cevaptan JSON bloğunu ayıkla
     const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
     if (!jsonMatch || !jsonMatch[1]) {
         console.error("API'den gelen cevapta JSON bulunamadı:", rawText);
-        // Hata vermek yerine, bunun bir fırsat olmadığını varsayarak devam edebiliriz.
         return response.status(200).json({ status: 'gemini_parse_error' });
     }
     
     const parsedJson = JSON.parse(jsonMatch[1]);
 
-    // Eğer bu bir fırsat değilse veya gerekli bilgiler eksikse işlemi sonlandır.
     if (parsedJson.is_offer === false || !parsedJson.platform || !parsedJson.odds || !parsedJson.description) {
         return response.status(200).json({ status: 'not_an_offer' });
     }
     
-    // Supabase bağlantı bilgilerini al
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -155,7 +144,6 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Platform adı için anahtar kelime oluştur ve linki bul
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
     const linkInfo = KEYWORD_LINKS[platformKey];
 
@@ -165,13 +153,15 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
         p_description: parsedJson.description,
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
-        // Eğer bilinen bir link varsa onu kullan, yoksa mesajdan link ayıkla
         p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
         p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
+        // DÜZELTME: İkincil link parametrelerini her zaman gönder, gerekirse null olarak.
+        p_secondary_link_url: null,
+        p_secondary_link_text: null,
         p_play_count_start: parsedJson.play_count_start || 0
     };
 
-    // YENİ MANTIK: "Akıllı Ekle/Güncelle" veritabanı fonksiyonunu çağır
+    // Yeni oluşturulan veritabanı fonksiyonunu çağır
     const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);
 
     if (error) {
@@ -179,8 +169,7 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
         throw new Error(`Veritabanı fonksiyonu çalıştırılırken hata: ${error.message}`);
     }
 
-    // Fonksiyondan dönen sonucu (örn: { status: 'success_created' } veya { status: 'success_updated' })
-    // direkt olarak istemciye gönder
+    // Fonksiyondan dönen sonucu direkt olarak istemciye gönder
     const resultData = data; 
     const statusCode = resultData.status === 'success_created' ? 201 : 200;
     return response.status(statusCode).json(resultData);
@@ -190,3 +179,4 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     return response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
+

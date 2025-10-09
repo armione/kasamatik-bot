@@ -152,7 +152,7 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
         p_platform: parsedJson.platform,
         p_description: parsedJson.description,
         p_odds: parseFloat(parsedJson.odds),
-        p_max_bet_amount: parsedJson.max_bet ? parseFloat(parsedJson.max_bet) : null,
+        p_max_bet_amount: parsedJson.max_bet ? parseInt(parsedJson.max_bet, 10) : null,
         p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
         p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
         // DÜZELTME: İkincil link parametrelerini her zaman gönder, gerekirse null olarak.

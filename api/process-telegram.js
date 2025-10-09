@@ -71,7 +71,7 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { secret, message, photo } = request.body;
+    const { secret, message, photo, telegram_message_id } = request.body;
 
     const botSecret = process.env.TELEGRAM_BOT_SECRET;
     if (!botSecret || secret !== botSecret) {
@@ -84,27 +84,24 @@ export default async function handler(request, response) {
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const parts = [];
-    const prompt = `Bu Telegram gönderisini analiz et. Hem metni hem de (varsa) görseli dikkate al. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
+    // GÜNCELLENMİŞ PROMPT: Daha yapısal veri istemek için güncellendi.
+    const prompt = `Bu Telegram gönderisini analiz et. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
-2. 'platform': (string) Platformun adı (Örn: "Grandpashabet").
-3. 'description': (string) Bahsin tam ve standartlaştırılmış açıklaması. Birden fazla maç varsa, aralarına " / " koy. Her maçı "Takım A - Takım B: Bahis Türü" formatında yaz. 'toplam gol 3.5 üst', 'tüm maçlar 3.5 ü' gibi farklı ifadeleri 'Toplam 3.5 Gol Üstü' gibi her zaman aynı standart formata çevir. AÇIKLAMANIN HER ZAMAN TUTARLI OLMASI ÇOK ÖNEMLİ.
-4. 'odds': (number) Bahsin toplam oranı.
-5. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
-6. 'play_count_start': (number) Metin veya görselde "MİN MAKS X ₺ BAHİS" veya benzeri bir ifade varsa, oradaki X sayısını al. Eğer böyle bir ifade bulamazsan, bu değeri 0 olarak ayarla.
+2. 'platform': (string) Platformun adı.
+3. 'matches': (string dizisi/array) Kupondaki maçların listesi. Her maçı SADECE "Takım A - Takım B" formatında yaz.
+4. 'bet_type': (string) Tüm maçlar için geçerli olan bahis türü. Örneğin: "Ev Sahibi Kazanır", "Toplam 4.5 Gol Üstü", "Karşılıklı Gol Var". Bu açıklamayı her zaman standart ve tutarlı yap.
+5. 'odds': (number) Bahsin toplam oranı.
+6. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
+7. 'play_count_start': (number) Metindeki "min maks X" veya benzeri ifadelerden X sayısını al, yoksa 0.
 
 Eğer bu bir reklam veya alakasız içerikse, bana sadece {'is_offer': false} döndür.
-Başka hiçbir ek metin, selamlama veya açıklama yazma.
+Başka hiçbir ek metin yazma.
 İşte metin: "${message}"`;
 
     parts.push({ text: prompt });
 
     if (photo) {
-      parts.push({
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: photo
-        }
-      });
+      parts.push({ inlineData: { mimeType: 'image/jpeg', data: photo } });
     }
 
     const payload = { contents: [{ parts }] };
@@ -132,7 +129,7 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
     
     const parsedJson = JSON.parse(jsonMatch[1]);
 
-    if (parsedJson.is_offer === false || !parsedJson.platform || !parsedJson.odds || !parsedJson.description) {
+    if (parsedJson.is_offer === false || !parsedJson.platform || !parsedJson.odds || !Array.isArray(parsedJson.matches) || parsedJson.matches.length === 0 || !parsedJson.bet_type) {
         return response.status(200).json({ status: 'not_an_offer' });
     }
     
@@ -144,24 +141,26 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Programatik olarak %100 tutarlı bir açıklama oluştur
+    const description = parsedJson.matches.join(' / ') + ' - ' + parsedJson.bet_type;
+
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
     const linkInfo = KEYWORD_LINKS[platformKey];
 
-    // Veritabanı fonksiyonunu çağırmak için parametreleri hazırla
     const rpcParams = {
         p_platform: parsedJson.platform,
-        p_description: parsedJson.description,
+        p_description: description, // Yeni oluşturulan tutarlı açıklama
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseInt(parsedJson.max_bet, 10) : null,
         p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
         p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
-        // DÜZELTME: İkincil link parametrelerini her zaman gönder, gerekirse null olarak.
         p_secondary_link_url: null,
         p_secondary_link_text: null,
-        p_play_count_start: parsedJson.play_count_start || 0
+        p_play_count_start: parsedJson.play_count_start || 0,
+        p_matches: parsedJson.matches, // Gelecekteki SQL fonksiyonu için yeni maç verisi
+        p_telegram_message_id: telegram_message_id // Otomatik sonuçlandırma için mesaj ID'si
     };
 
-    // Yeni oluşturulan veritabanı fonksiyonunu çağır
     const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);
 
     if (error) {
@@ -169,7 +168,6 @@ Başka hiçbir ek metin, selamlama veya açıklama yazma.
         throw new Error(`Veritabanı fonksiyonu çalıştırılırken hata: ${error.message}`);
     }
 
-    // Fonksiyondan dönen sonucu direkt olarak istemciye gönder
     const resultData = data; 
     const statusCode = resultData.status === 'success_created' ? 201 : 200;
     return response.status(statusCode).json(resultData);

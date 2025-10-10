@@ -55,7 +55,8 @@ export function populatePlatformOptions() {
     });
 }
 
-function populateSpecialOddsPlatformFilter() {
+// YENİ: Fonksiyonun başına 'export' eklendi, böylece diğer dosyalar tarafından kullanılabilir.
+export function populateSpecialOddsPlatformFilter() {
     const select = document.getElementById('special-odds-platform-filter');
     if (!select) return;
 
@@ -301,3 +302,4 @@ export function removeImage(type) {
     const imageInput = document.getElementById(`${prefix}image-input`);
     if (imageInput) imageInput.value = '';
 }
+

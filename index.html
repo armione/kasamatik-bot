@@ -276,6 +276,39 @@
                             <p class="text-gray-400 text-sm">Yönetim tarafından yayınlanan, kaçırılmayacak fırsatlar</p>
                         </div>
                     </div>
+                    
+                    <!-- Gelişmiş Filtreleme Barı -->
+                    <div class="glass-card rounded-2xl p-4 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="special-odds-status-filter" class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                                <select id="special-odds-status-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800">
+                                    <option value="all">Tüm Durumlar</option>
+                                    <option value="pending">Bekleniyor</option>
+                                    <option value="won">Kazandı</option>
+                                    <option value="lost">Kaybetti</option>
+                                    <option value="refunded">İade Edildi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="special-odds-platform-filter" class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
+                                <select id="special-odds-platform-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800">
+                                    <option value="all">Tüm Platformlar</option>
+                                    <!-- Platformlar JS ile dinamik olarak eklenecek -->
+                                </select>
+                            </div>
+                            <div>
+                                <label for="special-odds-sort-filter" class="block text-gray-300 text-sm font-medium mb-2">Sırala</label>
+                                <select id="special-odds-sort-filter" class="input-glass w-full px-4 py-2.5 rounded-lg text-gray-800">
+                                    <option value="newest">En Yeni</option>
+                                    <option value="highest_odd">En Yüksek Oran</option>
+                                    <option value="lowest_odd">En Düşük Oran</option>
+                                    <option value="most_popular">En Popüler</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="text-center text-xs text-gray-500 mb-6 italic">
                         Not: Sonuçlanan fırsatlar, 24 saat sonra bu listeden otomatik olarak kaldırılır.
                     </div>
@@ -1047,3 +1080,4 @@
     <script type="module" src="src/js/main.js" defer></script>
 </body>
 </html>
+

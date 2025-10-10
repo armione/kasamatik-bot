@@ -7,7 +7,7 @@ import { showNotification, getTodaysDate } from './utils/helpers.js';
 import { updateDashboardStats, renderRecentBets, renderDashboardBannerAd, initializeVisitorCounter, updatePerformanceSummary } from './components/dashboard.js';
 import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
-import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels } from './components/ui_helpers.js';
+import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels, renderSpecialOddsPage, populateSpecialOddsPlatformFilter } from './components/ui_helpers.js';
 import { showLoginAdPopup } from './components/modals.js';
 
 // ---- ANA UYGULAMA MANTIĞI ----
@@ -122,6 +122,7 @@ function initializeUI() {
     document.getElementById('bet-date').value = getTodaysDate();
     setupUserInterface();
     populatePlatformOptions();
+    populateSpecialOddsPlatformFilter(); // YENİ EKLENEN SATIR
     renderCustomPlatforms();
     renderSponsorsPage();
     renderDashboardBannerAd();
@@ -140,6 +141,7 @@ export function updateAllUI() {
     renderHistory();
     renderRecentBets();
     renderCashHistory();
+    renderSpecialOddsPage(); // Fırsatlar sayfasını da güncelle
     if (state.currentSection === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
         updateCharts();
     }
@@ -150,3 +152,4 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
+

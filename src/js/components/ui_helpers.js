@@ -13,6 +13,7 @@ export function showSection(sectionName, clickedElement) {
         updateCharts();
     }
      if (sectionName === 'special-odds-page') {
+        populateSpecialOddsPlatformFilter();
         renderSpecialOddsPage();
     }
 }
@@ -52,6 +53,24 @@ export function populatePlatformOptions() {
             }
         }
     });
+}
+
+function populateSpecialOddsPlatformFilter() {
+    const select = document.getElementById('special-odds-platform-filter');
+    if (!select) return;
+
+    // Sadece specialOdds içinde bulunan platformları al ve tekilleştir
+    const platforms = [...new Set(state.specialOdds.map(odd => odd.platform))].sort();
+
+    select.innerHTML = `<option value="all">Tüm Platformlar</option>`;
+    platforms.forEach(platform => {
+        const option = document.createElement('option');
+        option.value = platform;
+        option.textContent = platform;
+        select.appendChild(option);
+    });
+    // Mevcut filtre değerini koru
+    select.value = state.specialOddsFilters.platform;
 }
 
 export function renderCustomPlatforms() {
@@ -163,14 +182,38 @@ export function renderSpecialOddsPage() {
     const container = document.getElementById('special-odds-list-container');
     if (!container) return;
 
-    const relevantOdds = state.specialOdds;
+    const { status, platform, sort } = state.specialOddsFilters;
 
-    if (relevantOdds.length === 0) {
-        container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">✨</div><p class="text-xl">Şu anda aktif bir fırsat bulunmuyor.</p></div>`;
+    // 1. Filtrele
+    let filteredOdds = state.specialOdds.filter(odd => {
+        const statusMatch = status === 'all' || odd.status === status;
+        const platformMatch = platform === 'all' || odd.platform === platform;
+        return statusMatch && platformMatch;
+    });
+
+    // 2. Sırala
+    switch (sort) {
+        case 'newest':
+            filteredOdds.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            break;
+        case 'highest_odd':
+            filteredOdds.sort((a, b) => b.odds - a.odds);
+            break;
+        case 'lowest_odd':
+            filteredOdds.sort((a, b) => a.odds - b.odds);
+            break;
+        case 'most_popular':
+            filteredOdds.sort((a, b) => b.play_count - a.play_count);
+            break;
+    }
+
+
+    if (filteredOdds.length === 0) {
+        container.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-6xl mb-4">🧐</div><p class="text-xl">Bu kriterlere uygun fırsat bulunamadı.</p></div>`;
         return;
     }
 
-    container.innerHTML = relevantOdds.map(odd => {
+    container.innerHTML = filteredOdds.map(odd => {
         const statusClasses = { pending: 'pending', won: 'won', lost: 'lost', refunded: 'refunded' };
         const statusTexts = { pending: 'Bekleniyor', won: 'Kazandı', lost: 'Kaybetti', refunded: 'İade Edildi' };
         
@@ -258,4 +301,3 @@ export function removeImage(type) {
     const imageInput = document.getElementById(`${prefix}image-input`);
     if (imageInput) imageInput.value = '';
 }
-

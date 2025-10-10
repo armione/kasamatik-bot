@@ -20,8 +20,15 @@ export const state = {
     
     // Fırsatı oynamak için seçilen özel oran
     playingSpecialOdd: null,
+
+    // Fırsatlar sayfası için filtreleme durumu
+    specialOddsFilters: {
+        status: 'all',
+        platform: 'all',
+        sort: 'newest',
+    },
     
-    // Filtreleme durumu
+    // Bahis Geçmişi Filtreleme durumu
     filters: {
         status: 'all',
         platform: 'all',
@@ -67,4 +74,3 @@ export function setSpecialOdds(newOdds) {
 export function updateState(newState) {
     Object.assign(state, newState);
 }
-

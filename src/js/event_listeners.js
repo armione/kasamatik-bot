@@ -547,7 +547,7 @@ export function setupEventListeners() {
     });
 
 
-    // Filtreleme
+    // Bahis Geçmişi Filtreleme
     document.getElementById('status-filter').addEventListener('change', (e) => {
         state.filters.status = e.target.value;
         updateState({ currentPage: 1 });
@@ -566,6 +566,21 @@ export function setupEventListeners() {
             renderHistory();
         }, 300);
     });
+
+    // Fırsatlar Sayfası Filtreleme
+    document.getElementById('special-odds-status-filter').addEventListener('change', e => {
+        state.specialOddsFilters.status = e.target.value;
+        renderSpecialOddsPage();
+    });
+    document.getElementById('special-odds-platform-filter').addEventListener('change', e => {
+        state.specialOddsFilters.platform = e.target.value;
+        renderSpecialOddsPage();
+    });
+    document.getElementById('special-odds-sort-filter').addEventListener('change', e => {
+        state.specialOddsFilters.sort = e.target.value;
+        renderSpecialOddsPage();
+    });
+
 
      document.getElementById('stats-reset-filters-btn').addEventListener('click', () => {
         state.statsFilters.dateRange = { start: null, end: null };

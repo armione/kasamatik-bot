@@ -10,59 +10,64 @@ export const config = {
 
 const KEYWORD_LINKS = {
     "artemisbet": { text: "ARTEMİSBET", url: "https://ozeloran.site/artemisbet" },
-    "cashwin": { text: "CASHWİN", url: "https://ozeloran.site/cashwin" },
+    "avvabet": { text: "AVVABET GİRİŞ", url: "https://fishytv.link/avvabet" },
+    "asyabahis": { text: "ASYABAHİS", url: "https://ozeloran.site/asyabahis" },
+    "bahisfanatik": { text: "BAHİS FANATİK GÜNCEL GİRİŞ", url: "https://linkany.pro/XBonus" },
+    "baywin": { text: "BAYWİN", url: "https://ozeloran.site/baywin" },
+    "betcio": { text: "BETCİO", url: "https://ozeloran.site/betcio" },
     "betgit": { text: "BETGİT", url: "https://ozeloran.site/betgit" },
-    "parobet": { text: "PAROBET", url: "https://ozeloran.site/parobet" },
+    "bethand": { text: "BETHAND GÜNCEL GİRİŞ", url: "https://ozeloran.site/bethand" },
+    "betine": { text: "BETİNE GİRİŞ", url: "https://linkgo.in/Betine" },
+    "betixir": { text: "BETİXİR GİRİŞ", url: "https://bit.ly/betixirgir" },
+    "betorspin": { text: "BETORSPİN", url: "https://ozeloran.site/betorspin" },
+    "betsmove": { text: "BETSMOVE", url: "https://ozeloran.site/betsmove" },
+    "biabet": { text: "BİABET", url: "https://ozeloran.site/biabet" },
+    "bibubet": { text: "BİBUBET", url: "https://ozeloran.site/bibubet" },
+    "bycasino": { text: "BYCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/bycasino" },
+    "cashwin": { text: "CASHWİN", url: "https://ozeloran.site/cashwin" },
     "dumanbet": { text: "DUMANBET", url: "https://ozeloran.site/dumanbet" },
+    "grandpashabet": { text: "GRANDPASHABET GİRİŞ", url: "https://ozeloran.site/grandpashabet" },
+    "harbiwin": { text: "HARBİWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/harbiwin" },
+    "hitbet": { text: "HİTBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/hitbet" },
     "holiganbet": { text: "HOLİGANBET", url: "https://ozeloran.site/holiganbet" },
+    "imajbet": { text: "İMAJBET", url: "https://ozeloran.site/imajbet" },
+    "jojobet": { text: "JOJOBET", url: "https://ozeloran.site/jojobet" },
     "kavbet": { text: "KAVBET", url: "https://ozeloran.site/kavbet" },
     "lunabet": { text: "LUNABET", url: "https://ozeloran.site/lunabet" },
-    "betorspin": { text: "BETORSPİN", url: "https://ozeloran.site/betorspin" },
+    "makrobet": { text: "MAKROBET GÜNCEL GİRİŞ", url: "https://t2m.io/makroxbonus" },
+    "maltcasino": { text: "MALTCASİNO", url: "https://ozeloran.site/maltcasino" },
+    "matbet": { text: "MATBET", url: "https://ozeloran.site/matbet" },
+    "matixbet": { text: "MATİXBET", url: "https://matixortaklik.com/git/matixsosyal/" },
+    "mavibet": { text: "MAVİBET", url: "https://ozeloran.site/mavibet" },
+    "maxwin": { text: "MAXWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/maxwin" },
+    "megabahis": { text: "MEGABAHİS", url: "https://ozeloran.site/megabahis" },
     "merso": { text: "MERSOBAHİS GÜNCEL GİRİŞ", url: "https://ozeloran.site/mersobahis" },
     "mersobahis": { text: "MERSOBAHİS GÜNCEL GİRİŞ", url: "https://ozeloran.site/mersobahis" },
-    "jojobet": { text: "JOJOBET", url: "https://ozeloran.site/jojobet" },
+    "nakitbahis": { text: "NAKİTBAHİS", url: "https://ozeloran.site/nakitbahis" },
+    "nerobet": { text: "NEROEBET GÜNCEL GİRİŞ", url: "https://t2m.io/e416FBxD" },
+    "odeonbet": { text: "ODEONBET", url: "https://ozeloran.site/odeonbet" },
+    "olabahis": { text: "OLA BAHİS", url: "https://ozeloran.site/olabahis" },
+    "padişahbet": { text: "PADİŞAHBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/padisahbet" },
+    "parobet": { text: "PAROBET", url: "https://ozeloran.site/parobet" },
+    "piabet": { text: "PİABET GÜNCEL GİRİŞ", url: "https://kisa.to/Xbonuspia" },
+    "pinbahis": { text: "PİN BAHİS", url: "https://ozeloran.site/pinbahis" },
+    "pusulabet": { text: "PUSULABET", url: "https://ozeloran.site/pusulabet" },
+    "roketbahis": { text: "ROKETBAHİS", url: "https://cutt.ly/2rS3rxfX" },
+    "sekabet": { text: "SEKABET", url: "https://ozeloran.site/sekabet" },
+    "slotin": { text: "SLOTİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/slotin" },
+    "starzbet": { text: "STARZBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/starzbet" },
     "superbetin": { text: "SUPERBETİN", url: "https://ozeloran.site/superbetin" },
+    "şanscasino": { text: "ŞANSCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/sanscasino" },
+    "taksimbet": { text: "TAKSİMBET GİRİŞ", url: "https://bit.ly/taksimbet" },
+    "tipbom": { text: "TİPBOM GÜNCEL GİRİŞ", url: "https://cutt.ly/TipBomxBonus" },
+    "tokyobet": { text: "TOKYOBET GÜNCEL GİRİŞ", url: "https://tokyoaff.com/qnzhdoup" },
     "turkbet süper oran": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
     "turkbet": { text: "TURKBET", url: "https://ozeloran.site/turkbet" },
-    "nakitbahis": { text: "NAKİTBAHİS", url: "https://ozeloran.site/nakitbahis" },
-    "pusulabet": { text: "PUSULABET", url: "https://ozeloran.site/pusulabet" },
-    "sekabet": { text: "SEKABET", url: "https://ozeloran.site/sekabet" },
-    "şanscasino": { text: "ŞANSCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/sanscasino" },
-    "harbiwin": { text: "HARBİWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/harbiwin" },
-    "piabet": { text: "PİABET GÜNCEL GİRİŞ", url: "https://kisa.to/Xbonuspia" },
-    "asyabahis": { text: "ASYABAHİS", url: "https://ozeloran.site/asyabahis" },
-    "maltcasino": { text: "MALTCASİNO", url: "https://ozeloran.site/maltcasino" },
-    "pinbahis": { text: "PİN BAHİS", url: "https://ozeloran.site/pinbahis" },
-    "olabahis": { text: "OLA BAHİS", url: "https://ozeloran.site/olabahis" },
-    "zirvebet": { text: "ZİRVEBET", url: "https://ozeloran.site/zirvebet" },
-    "bibubet": { text: "BİBUBET", url: "https://ozeloran.site/bibubet" },
-    "megabahis": { text: "MEGABAHİS", url: "https://ozeloran.site/megabahis" },
-    "matbet": { text: "MATBET", url: "https://ozeloran.site/matbet" },
-    "betcio": { text: "BETCİO", url: "https://ozeloran.site/betcio" },
-    "imajbet": { text: "İMAJBET", url: "https://ozeloran.site/imajbet" },
-    "odeonbet": { text: "ODEONBET", url: "https://ozeloran.site/odeonbet" },
-    "baywin": { text: "BAYWİN", url: "https://ozeloran.site/baywin" },
-    "zlot": { text: "ZLOT", url: "https://ozeloran.site/zlot" },
-    "matixbet": { text: "MATİXBET", url: "https://matixortaklik.com/git/matixsosyal/" },
-    "betsmove": { text: "BETSMOVE", url: "https://ozeloran.site/betsmove" },
-    "padişahbet": { text: "PADİŞAHBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/padisahbet" },
-    "bycasino": { text: "BYCASİNO GÜNCEL GİRİŞ", url: "https://ozeloran.site/bycasino" },
-    "maxwin": { text: "MAXWİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/maxwin" },
-    "mavibet": { text: "MAVİBET", url: "https://ozeloran.site/mavibet" },
-    "bethand": { text: "BETHAND GÜNCEL GİRİŞ", url: "https://ozeloran.site/bethand" },
-    "hitbet": { text: "HİTBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/hitbet" },
-    "biabet": { text: "BİABET", url: "https://ozeloran.site/biabet" },
-    "roketbahis": { text: "ROKETBAHİS", url: "https://cutt.ly/2rS3rxfX" },
-    "starzbet": { text: "STARZBET GÜNCEL GİRİŞ", url: "https://ozeloran.site/starzbet" },
-    "nerobet": { text: "NEROEBET GÜNCEL GİRİŞ", url: "https://t2m.io/e416FBxD" },
-    "tipbom": { text: "TİPBOM GÜNCEL GİRİŞ", url: "https://cutt.ly/TipBomxBonus" },
-    "amgbahis": { text: "AMGBAHİS GÜNCEL GİRİŞ", url: "https://t2m.io/nebulaaa" },
-    "makrobet": { text: "MAKROBET GÜNCEL GİRİŞ", url: "https://t2m.io/makroxbonus" },
+    "yedibahis": { text: "YEDİBAHİS GİRİŞ", url: "https://t2m.io/ydxbonus?utm_medium=social&utm_source=heylink.me" },
     "zenginsin": { text: "ZENGİNSİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/zenginsin" },
-    "tokyobet": { text: "TOKYOBET GÜNCEL GİRİŞ", url: "https://tokyoaff.com/qnzhdoup" },
-    "slotin": { text: "SLOTİN GÜNCEL GİRİŞ", url: "https://ozeloran.site/slotin" },
-    "bahisfanatik": { text: "BAHİS FANATİK GÜNCEL GİRİŞ", url: "https://linkany.pro/XBonus" },
-    "grandpashabet": { text: "GRANDPASHABET GİRİŞ", url: "https://ozeloran.site/grandpashabet" }
+    "zirvebet": { text: "ZİRVEBET", url: "https://ozeloran.site/zirvebet" },
+    "zlot": { text: "ZLOT", url: "https://ozeloran.site/zlot" },
+    "amgbahis": { text: "AMGBAHİS GÜNCEL GİRİŞ", url: "https://t2m.io/nebulaaa" }
 };
 
 export default async function handler(request, response) {
@@ -84,7 +89,6 @@ export default async function handler(request, response) {
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const parts = [];
-    // GÜNCELLENMİŞ PROMPT: Daha yapısal veri istemek için güncellendi.
     const prompt = `Bu Telegram gönderisini analiz et. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
 2. 'platform': (string) Platformun adı.
@@ -141,24 +145,27 @@ Başka hiçbir ek metin yazma.
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Programatik olarak %100 tutarlı bir açıklama oluştur
     const description = parsedJson.matches.join(' / ') + ' - ' + parsedJson.bet_type;
 
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
     const linkInfo = KEYWORD_LINKS[platformKey];
 
+    // DÜZELTME: Sadece KEYWORD_LINKS listesinde varsa linki al, yoksa null bırak.
+    const primaryUrl = linkInfo ? linkInfo.url : null;
+    const primaryText = linkInfo ? linkInfo.text : (primaryUrl ? `${parsedJson.platform} GİRİŞ` : null);
+
     const rpcParams = {
         p_platform: parsedJson.platform,
-        p_description: description, // Yeni oluşturulan tutarlı açıklama
+        p_description: description,
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseInt(parsedJson.max_bet, 10) : null,
-        p_primary_link_url: linkInfo ? linkInfo.url : (message.match(/https?:\/\/[^\s]+/g) || [null])[0],
-        p_primary_link_text: linkInfo ? linkInfo.text : `${parsedJson.platform} GİRİŞ`,
+        p_primary_link_url: primaryUrl,
+        p_primary_link_text: primaryText,
         p_secondary_link_url: null,
         p_secondary_link_text: null,
         p_play_count_start: parsedJson.play_count_start || 0,
-        p_matches: parsedJson.matches, // Gelecekteki SQL fonksiyonu için yeni maç verisi
-        p_telegram_message_id: telegram_message_id // Otomatik sonuçlandırma için mesaj ID'si
+        p_matches: parsedJson.matches,
+        p_telegram_message_id: telegram_message_id
     };
 
     const { data, error } = await supabase.rpc('upsert_special_odd', rpcParams);

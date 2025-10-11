@@ -1,6 +1,6 @@
 import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSponsors, setAds, setSpecialOdds } from './state.js';
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
-import { onAuthStateChange } from './api/auth.js';
+import { getSupabase, onAuthStateChange } from './api/auth.js'; // getSupabase import edildi
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
@@ -9,6 +9,33 @@ import { renderHistory, renderCashHistory } from './components/history.js';
 import { updateStatisticsPage, updateCharts } from './components/statistics.js';
 import { showSection, populatePlatformOptions, renderCustomPlatforms, renderSponsorsPage, renderAdminPanels, renderSpecialOddsPage, populateSpecialOddsPlatformFilter } from './components/ui_helpers.js';
 import { showLoginAdPopup } from './components/modals.js';
+
+// ---- REALTIME GÜNCELLEME İŞLEYİCİSİ ----
+function handleRealtimeUpdate(payload) {
+    console.log('Realtime update received:', payload);
+    const { eventType, new: newRecord, old: oldRecord } = payload;
+
+    if (eventType === 'INSERT') {
+        // Yeni bir fırsat eklendiğinde, listenin en başına ekle
+        state.specialOdds.unshift(newRecord);
+        showNotification(`Yeni Fırsat: ${newRecord.platform}'da yeni özel oran!`, 'info');
+    } else if (eventType === 'UPDATE') {
+        // Bir fırsat güncellendiğinde, listedeki kaydı bul ve güncelle
+        const index = state.specialOdds.findIndex(o => o.id === newRecord.id);
+        if (index > -1) {
+            // Mevcut kaydın üzerine yeni verileri işle
+            state.specialOdds[index] = { ...state.specialOdds[index], ...newRecord };
+             // Eğer durum "kazandı" olarak değiştiyse özel bir bildirim göster
+             if (oldRecord.status === 'pending' && newRecord.status === 'won') {
+               showNotification(`🏆 Sonuçlandı: ${newRecord.platform} fırsatı kazandı!`, 'success');
+             }
+        }
+    }
+    
+    // Değişiklik sonrası tüm arayüzü güncelle
+    updateAllUI();
+}
+
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
@@ -76,6 +103,19 @@ async function initializeApp() {
         setSpecialOdds(specialOdds);
         
         initializeUI();
+
+        // ---- YENİ: SUPABASE REALTIME ABONELİĞİNİ BAŞLAT ----
+        const supabase = getSupabase();
+        supabase
+          .channel('special_odds_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'special_odds' }, handleRealtimeUpdate)
+          .subscribe((status) => {
+              if (status === 'SUBSCRIBED') {
+                  console.log('✅ Fırsatlar sayfasına anlık güncellemeler için başarıyla abone olundu!');
+              }
+          });
+        // ----------------------------------------------------
+
 
         DOM.get('authContainer').style.display = 'none';
         DOM.get('appContainer').style.display = 'block';
@@ -152,4 +192,5 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
+
 

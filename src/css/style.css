@@ -188,6 +188,13 @@ body {
     box-shadow: 0 8px 25px rgba(139, 179, 240, 0.6);
 }
 
+/* DÜZELTME (Görev 1.2): Buton içindeki metin ve yükleyici ikonlarının tıklamaları engellememesi için eklendi. */
+/* Bu kural, butonun tamamının tıklanabilir olmasını sağlar. */
+.gradient-button .btn-text,
+.gradient-button .btn-loader {
+    pointer-events: none;
+}
+
 .gradient-button:disabled {
     background: #5a5e63;
     cursor: not-allowed;

@@ -1,6 +1,6 @@
 import { state, updateState } from './state.js';
 import { DOM, DEFAULT_PLATFORMS, ADMIN_USER_ID } from './utils/constants.js';
-import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
+import { showNotification, setButtonLoading } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSpecialOdd, updateSpecialOdd } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
@@ -26,15 +26,25 @@ async function handleLoginAttempt() {
     setButtonLoading(loginBtn, false);
 }
 
+// GÖREV 0.1 DÜZELTMESİ: Kayıt fonksiyonu, mevcut e-posta adreslerini doğru bir şekilde ele alacak şekilde güncellendi.
 async function handleSignUpAttempt() {
     const signupBtn = DOM.get('signupBtn');
     const authForm = DOM.get('authForm');
     setButtonLoading(signupBtn, true, 'Kayıt olunuyor...');
     const email = authForm.email.value;
-    const { error } = await signUp(email, authForm.password.value);
+    
+    // Supabase'den hem data hem de error objelerini alıyoruz.
+    const { data, error } = await signUp(email, authForm.password.value);
+
     if (error) {
+        // "User already registered" gibi hataları burada yakalıyoruz.
         showNotification(`Kayıt hatası: ${error.message}`, 'error');
+    } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+        // Bu durum, e-postanın zaten kayıtlı olduğunu ancak henüz onaylanmadığını gösterir.
+        // Supabase bu durumda sadece onay mailini tekrar gönderir. Kullanıcıya doğru bilgiyi veriyoruz.
+        showNotification('Bu e-posta adresi zaten kayıtlı. Lütfen e-postanıza gönderilen doğrulama linkini kontrol edin.', 'warning');
     } else {
+        // Bu, başarılı ve yeni bir kayıt işlemidir.
         authForm.classList.add('hidden');
         document.getElementById('user-email-confirm').textContent = email;
         document.getElementById('signup-success-message').classList.remove('hidden');
@@ -51,7 +61,7 @@ async function handlePasswordResetAttempt(e) {
     if (error) {
         showNotification(`Hata: ${error.message}`, 'error');
     } else {
-        showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
+        showNotification('Şifre sıırlama linki e-postana gönderildi.', 'success');
         Modals.closeModal('password-reset-modal');
     }
     setButtonLoading(sendResetBtn, false);
@@ -339,7 +349,6 @@ async function handleClearAllDataAttempt() {
 }
 
 async function handleUserAnalyzeBetSlip() {
-    // DÜZELTME: 'state.currentImageData' yerine 'state.mainImageData' kontrol ediliyor.
     if (!state.mainImageData) { 
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
@@ -348,7 +357,6 @@ async function handleUserAnalyzeBetSlip() {
     setButtonLoading(geminiButton, true, 'Okunuyor...');
     
     try {
-        // DÜZELTME: 'state.currentImageData' yerine 'state.mainImageData' kullanılıyor.
         const base64Data = state.mainImageData.split(',')[1]; 
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
@@ -473,7 +481,12 @@ export function setupEventListeners() {
     DOM.get('loginBtn').addEventListener('click', handleLoginAttempt);
     DOM.get('signupBtn').addEventListener('click', handleSignUpAttempt);
     DOM.get('logoutBtn').addEventListener('click', () => signOut());
-    DOM.get('forgotPasswordLink').addEventListener('click', () => Modals.openModal('password-reset-modal'));
+    // GÖREV 0.1 DÜZELTMESİ: Çalışmayan "Şifremi Unuttum" linki düzeltildi.
+    // Tıklamanın varsayılan davranışını (sayfayı yenileme) engellemek için e.preventDefault() eklendi.
+    DOM.get('forgotPasswordLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        Modals.openModal('password-reset-modal');
+    });
     DOM.get('cancelResetBtn').addEventListener('click', () => Modals.closeModal('password-reset-modal'));
     DOM.get('passwordResetForm').addEventListener('submit', handlePasswordResetAttempt);
     DOM.get('accountSettingsForm').addEventListener('submit', handleUpdatePasswordAttempt);

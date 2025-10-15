@@ -1,6 +1,6 @@
 import { state, updateState } from './state.js';
 import { DOM, DEFAULT_PLATFORMS, ADMIN_USER_ID } from './utils/constants.js';
-import { showNotification, setButtonLoading } from './utils/helpers.js';
+import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSpecialOdd, updateSpecialOdd } from './api/database.js';
 import { analyzeBetSlipApi } from './api/gemini.js';
@@ -42,8 +42,8 @@ async function handleSignUpAttempt() {
     } else if (data.user && data.user.identities && data.user.identities.length === 0) {
         // Bu durum, e-postanın zaten kayıtlı olduğunu ancak henüz onaylanmadığını gösterir.
         // Supabase bu durumda sadece onay mailini tekrar gönderir. Kullanıcıya doğru bilgiyi veriyoruz.
-        showNotification('Bu e-posta adresi zaten kayıtlı. Lütfen e-postanıza gönderilen doğrulama linkini kontrol edin.', 'warning');
-    } else {
+        showNotification('Bu e-posta adresi zaten kayıtlı. Şifrenizi mi unuttunuz?', 'warning');
+    } else if (data.user) {
         // Bu, başarılı ve yeni bir kayıt işlemidir.
         authForm.classList.add('hidden');
         document.getElementById('user-email-confirm').textContent = email;
@@ -61,7 +61,7 @@ async function handlePasswordResetAttempt(e) {
     if (error) {
         showNotification(`Hata: ${error.message}`, 'error');
     } else {
-        showNotification('Şifre sıırlama linki e-postana gönderildi.', 'success');
+        showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
         Modals.closeModal('password-reset-modal');
     }
     setButtonLoading(sendResetBtn, false);

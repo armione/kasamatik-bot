@@ -55,6 +55,12 @@
                         <span class="btn-loader hidden"></span>
                     </button>
                 </div>
+                 <!-- YENİ (Görev 2.1): Giriş ekranı için PWA Yükleme Butonu -->
+                <div class="pt-2">
+                    <button type="button" id="pwa-install-btn-login" class="pwa-install-button hidden w-full py-3 rounded-lg text-white">
+                        ⬇️ Uygulamayı Yükle
+                    </button>
+                </div>
                 <div class="text-center mt-4">
                     <a href="#" id="forgot-password-link" class="text-sm text-gray-400 hover:text-primary-blue">Şifremi Unuttum</a>
                 </div>
@@ -68,6 +74,22 @@
         </div>
     </div>
     
+    <!-- YENİ (Görev 2.1): Uygulama içi akıllı PWA Yükleme Modalı -->
+    <div id="pwa-install-modal" class="fixed bottom-4 right-4 bg-gray-800 text-white p-5 rounded-xl shadow-2xl max-w-sm z-[1002] hidden animate-slide-in-up">
+        <div class="flex items-start space-x-4">
+            <img src="assets/logo_192.png" alt="Kasamatik Logo" class="w-16 h-16 rounded-lg">
+            <div class="flex-1">
+                <h3 class="font-bold text-lg">Kasamatik'i Yükleyin!</h3>
+                <p class="text-sm text-gray-300 mt-1">Fırsatları kaçırmamak ve daha hızlı erişim için uygulamayı ana ekranınıza ekleyin.</p>
+                <div class="mt-4 flex space-x-3">
+                    <button id="pwa-install-btn-modal" class="gradient-button px-4 py-2 rounded-lg text-sm font-semibold">Yükle</button>
+                    <button id="pwa-install-dismiss-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Sonra</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div id="password-reset-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="glass-card rounded-2xl p-8 w-full max-w-sm">
             <h2 class="font-montserrat font-bold text-2xl gradient-text mb-6 text-center">Şifre Sıfırla</h2>

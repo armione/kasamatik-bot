@@ -32,8 +32,15 @@ export function updatePerformanceSummary() {
     const period = state.dashboardPeriod;
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(endDate.getDate() - (period - 1));
-    startDate.setHours(0, 0, 0, 0);
+
+    // DÜZELTME (Görev 1.1): "Bugün" (period=1) seçeneği artık takvim günü yerine "son 24 saati" kapsıyor.
+    // Bu, gece yarısı sonuçlanan bahislerin doğru periyotta görünmesini sağlar.
+    if (period === 1) {
+        startDate.setTime(endDate.getTime() - 24 * 60 * 60 * 1000);
+    } else {
+        startDate.setDate(endDate.getDate() - (period - 1));
+        startDate.setHours(0, 0, 0, 0);
+    }
 
     const periodBets = state.bets.filter(bet => {
         const betDate = new Date(bet.date);
@@ -41,7 +48,6 @@ export function updatePerformanceSummary() {
     });
 
     const totalPlayed = periodBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
-    // DÜZELTME: Net sonuç hesaplaması merkezi fonksiyondan yapılıyor.
     const netResult = periodBets.reduce((sum, bet) => sum + calculateProfitLoss(bet), 0);
 
     document.getElementById('summary-total-played').textContent = `${totalPlayed.toFixed(2)} ₺`;

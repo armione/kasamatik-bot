@@ -45,7 +45,6 @@ export function updateStatisticsPage() {
     document.getElementById('stats-odds-range').textContent = `En düşük: ${odds.length ? Math.min(...odds).toFixed(2) : '0.00'} | En yüksek: ${odds.length ? Math.max(...odds).toFixed(2) : '0.00'}`;
     
     const totalInvested = actualBets.reduce((sum, b) => sum + b.bet_amount, 0);
-    // DÜZELTME: Net kar hesaplaması merkezi fonksiyondan yapılıyor.
     const netProfit = actualBets.reduce((sum, b) => sum + calculateProfitLoss(b), 0);
     const roi = totalInvested > 0 ? (netProfit / totalInvested) * 100 : 0;
     document.getElementById('stats-roi').textContent = `${roi.toFixed(1)}%`;
@@ -74,15 +73,20 @@ export function updateStatisticsPage() {
 
 export function updateCharts() {
     const allActualBets = state.bets.filter(b => b.bet_type !== 'Kasa İşlemi');
-    const actualBets = applyStatsFilters(allActualBets);
+    const actualBets = [...applyStatsFilters(allActualBets)].reverse(); // Grafiğin soldan sağa doğru artması için ters çeviriyoruz.
     const profitCtx = document.getElementById('profitChart')?.getContext('2d');
     if (!profitCtx) return;
 
     let cumulativeProfit = 0;
-    // DÜZELTME: Grafik için kar/zarar hesaplaması merkezi fonksiyondan yapılıyor.
-    const profitData = [...actualBets].reverse().map(bet => {
+    const profitData = actualBets.map(bet => {
         cumulativeProfit += calculateProfitLoss(bet);
         return cumulativeProfit;
+    });
+
+    // DÜZELTME (Görev 1.3): Grafik etiketleri artık bahis sırası yerine tarihleri gösteriyor.
+    const chartLabels = actualBets.map(bet => {
+        const date = new Date(bet.date);
+        return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     });
 
     if (state.profitChart) {
@@ -91,7 +95,7 @@ export function updateCharts() {
     state.profitChart = new Chart(profitCtx, {
         type: 'line',
         data: {
-            labels: actualBets.map((b, i) => `Bahis ${i + 1}`),
+            labels: chartLabels, // Güncellenmiş etiketler
             datasets: [{
                 label: 'Kümülatif Kar/Zarar',
                 data: profitData,
@@ -107,6 +111,27 @@ export function updateCharts() {
             scales: {
                 y: { ticks: { color: 'rgba(255,255,255,0.7)' } },
                 x: { ticks: { color: 'rgba(255,255,255,0.7)' } }
+            },
+            // DÜZELTME (Görev 1.3): Grafik üzerine gelince çıkan bilgi kutucuğu (tooltip) zenginleştirildi.
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            const index = context[0].dataIndex;
+                            const bet = actualBets[index];
+                            return `${new Date(bet.date).toLocaleDateString('tr-TR')} - ${bet.platform}`;
+                        },
+                        label: function(context) {
+                            const profit = context.raw;
+                            return `Kümülatif Kar: ${profit.toFixed(2)} ₺`;
+                        },
+                        afterLabel: function(context) {
+                            const index = context.dataIndex;
+                            const bet = actualBets[index];
+                            return `Bahis: ${bet.description.substring(0, 30)}...`;
+                        }
+                    }
+                }
             }
         }
     });

@@ -685,38 +685,79 @@
     
             <div id="guide" class="page-section">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi</h2>
+                    <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi ve Kurulum</h2>
                     
-                    <div class="glass-card rounded-2xl p-6 mb-8">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
-                                🆕
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v2.0</h3>
-                                <p class="text-gray-400 text-sm">Supabase Entegrasyonu ve Kullanıcı Hesapları</p>
+                    <div class="space-y-6">
+                        <div class="glass-card rounded-2xl p-6">
+                            <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📱 Kasamatik'i Ana Ekranınıza Ekleyin!</h3>
+                            <p class="text-gray-300 mb-6">Kasamatik'i bir uygulama gibi kullanarak fırsatlara anında erişin. Tarayıcınıza göre aşağıdaki adımları izleyebilirsiniz:</p>
+                            
+                            <div class="space-y-4">
+                                <!-- iOS / Safari -->
+                                <div>
+                                    <h4 class="font-bold text-white text-lg mb-2">iPhone / iPad (Safari)</h4>
+                                    <ol class="list-decimal list-inside space-y-2 text-gray-400">
+                                        <li>Safari tarayıcısında Kasamatik'i açın.</li>
+                                        <li>Ekranın altındaki <span class="font-bold text-blue-400">Paylaş</span> simgesine dokunun (yukarı ok olan kutu).</li>
+                                        <li>Açılan menüde aşağı kaydırın ve <span class="font-bold text-white">"Ana Ekrana Ekle"</span> seçeneğine dokunun.</li>
+                                        <li>Sağ üst köşedeki <span class="font-bold text-blue-400">"Ekle"</span> butonuna basın. Kasamatik artık ana ekranınızda!</li>
+                                    </ol>
+                                </div>
+
+                                <!-- Android / Chrome -->
+                                <div>
+                                    <h4 class="font-bold text-white text-lg mb-2">Android (Chrome)</h4>
+                                     <ol class="list-decimal list-inside space-y-2 text-gray-400">
+                                        <li>Chrome tarayıcısında Kasamatik'i açın.</li>
+                                        <li>Sağ üst köşedeki <span class="font-bold text-white">üç nokta (⋮)</span> menüsüne dokunun.</li>
+                                        <li><span class="font-bold text-white">"Uygulamayı Yükle"</span> veya <span class="font-bold text-white">"Ana ekrana ekle"</span> seçeneğine dokunun.</li>
+                                        <li>Kurulumu onaylayın. Kasamatik artık uygulamalarınız arasında!</li>
+                                    </ol>
+                                </div>
+
+                                <!-- Desktop / Chrome / Edge -->
+                                <div>
+                                    <h4 class="font-bold text-white text-lg mb-2">Masaüstü (Chrome, Edge)</h4>
+                                    <ol class="list-decimal list-inside space-y-2 text-gray-400">
+                                       <li>Tarayıcınızda Kasamatik'i açın.</li>
+                                       <li>Adres çubuğunun sağ tarafında çıkan <span class="font-bold text-white">indirme (monitör ve ok)</span> simgesine tıklayın.</li>
+                                       <li><span class="font-bold text-blue-400">"Yükle"</span> butonuna basın.</li>
+                                    </ol>
+                                </div>
                             </div>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex items-start space-x-3">
-                                <span class="text-green-400 text-lg">☁️</span>
+
+                        <div class="glass-card rounded-2xl p-6">
+                             <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl">
+                                    🆕
+                                </div>
                                 <div>
-                                    <h4 class="text-white font-medium">Bulut Veritabanı</h4>
-                                    <p class="text-gray-400 text-sm">Tüm verileriniz artık güvenli Supabase veritabanında saklanıyor.</p>
+                                    <h3 class="text-xl font-montserrat font-bold gradient-text">Yeni Güncelleme v2.0</h3>
+                                    <p class="text-gray-400 text-sm">Supabase Entegrasyonu ve Kullanıcı Hesapları</p>
                                 </div>
                             </div>
-                             <div class="flex items-start space-x-3">
-                                <span class="text-blue-400 text-lg">👤</span>
-                                <div>
-                                    <h4 class="text-white font-medium">Kullanıcı Hesapları</h4>
-                                    <p class="text-gray-400 text-sm">Artık kayıt olup giriş yapabilir, verilerinize her yerden ulaşabilirsiniz.</p>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-green-400 text-lg">☁️</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Bulut Veritabanı</h4>
+                                        <p class="text-gray-400 text-sm">Tüm verileriniz artık güvenli Supabase veritabanında saklanıyor.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <span class="text-purple-400 text-lg">🔐</span>
-                                <div>
-                                    <h4 class="text-white font-medium">Güvenlik</h4>
-                                    <p class="text-gray-400 text-sm">Her kullanıcı sadece kendi verilerini görebilir ve yönetebilir.</p>
+                                 <div class="flex items-start space-x-3">
+                                    <span class="text-blue-400 text-lg">👤</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Kullanıcı Hesapları</h4>
+                                        <p class="text-gray-400 text-sm">Artık kayıt olup giriş yapabilir, verilerinize her yerden ulaşabilirsiniz.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-purple-400 text-lg">🔐</span>
+                                    <div>
+                                        <h4 class="text-white font-medium">Güvenlik</h4>
+                                        <p class="text-gray-400 text-sm">Her kullanıcı sadece kendi verilerini görebilir ve yönetebilir.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

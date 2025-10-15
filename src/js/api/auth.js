@@ -1,5 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../utils/constants.js';
+// DÜZELTME: Silinen showNotification import'u tekrar eklendi.
 import { showNotification } from '../utils/helpers.js';
 
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

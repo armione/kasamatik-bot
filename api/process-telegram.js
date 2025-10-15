@@ -89,14 +89,17 @@ export default async function handler(request, response) {
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const parts = [];
+    // GÖREV 3.1: Yapay zeka prompt'u, "Seçilen takımlar kazanır" gibi durumları daha iyi analiz etmesi için güncellendi.
+    // Yeni 'winning_teams' alanı istendi.
     const prompt = `Bu Telegram gönderisini analiz et. Bu bir spor bahsi özel oranıysa, bana SADECE markdown kod bloğu içinde bir JSON objesi döndür. JSON objesi şu alanları içermeli:
 1. 'is_offer': (boolean) Bu bir bahis fırsatı mı?
 2. 'platform': (string) Platformun adı.
 3. 'matches': (string dizisi/array) Kupondaki maçların listesi. Her maçı SADECE "Takım A - Takım B" formatında yaz.
-4. 'bet_type': (string) Tüm maçlar için geçerli olan bahis türü. Örneğin: "Ev Sahibi Kazanır", "Toplam 4.5 Gol Üstü", "Karşılıklı Gol Var". Bu açıklamayı her zaman standart ve tutarlı yap.
+4. 'bet_type': (string) Tüm maçlar için geçerli olan bahis türü. Örneğin: "Ev Sahibi Kazanır", "Toplam 4.5 Gol Üstü", "Karşılıklı Gol Var".
 5. 'odds': (number) Bahsin toplam oranı.
 6. 'max_bet': (number) Maksimum bahis miktarı (eğer belirtilmemişse null).
 7. 'play_count_start': (number) Metindeki "min maks X" veya benzeri ifadelerden X sayısını al, yoksa 0.
+8. 'winning_teams': (string dizisi/array) Eğer 'bet_type' alanı "Seçilen takımlar kazanır" gibi genel bir ifade içeriyorsa, bu bahsin kazanması için kazanması gereken takımların isimlerini bu diziye ekle. Diğer durumlarda bu alanı null veya boş bırak.
 
 Eğer bu bir reklam veya alakasız içerikse, bana sadece {'is_offer': false} döndür.
 Başka hiçbir ek metin yazma.
@@ -145,18 +148,21 @@ Başka hiçbir ek metin yazma.
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const description = parsedJson.matches.join(' / ') + ' - ' + parsedJson.bet_type;
+    // GÖREV 3.1: Gemini'den 'winning_teams' alanı geldiyse, bunu açıklamaya ekle.
+    let description = parsedJson.matches.join(' / ') + ' - ' + parsedJson.bet_type;
+    if (parsedJson.winning_teams && Array.isArray(parsedJson.winning_teams) && parsedJson.winning_teams.length > 0) {
+        description += ` (${parsedJson.winning_teams.join(', ')})`;
+    }
 
     const platformKey = parsedJson.platform.toLowerCase().replace(/\s/g, '');
     const linkInfo = KEYWORD_LINKS[platformKey];
 
-    // DÜZELTME: Sadece KEYWORD_LINKS listesinde varsa linki al, yoksa null bırak.
     const primaryUrl = linkInfo ? linkInfo.url : null;
     const primaryText = linkInfo ? linkInfo.text : (primaryUrl ? `${parsedJson.platform} GİRİŞ` : null);
 
     const rpcParams = {
         p_platform: parsedJson.platform,
-        p_description: description,
+        p_description: description, // Güncellenmiş, daha net açıklama
         p_odds: parseFloat(parsedJson.odds),
         p_max_bet_amount: parsedJson.max_bet ? parseInt(parsedJson.max_bet, 10) : null,
         p_primary_link_url: primaryUrl,
@@ -184,4 +190,3 @@ Başka hiçbir ek metin yazma.
     return response.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
   }
 }
-

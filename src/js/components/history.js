@@ -23,8 +23,16 @@ function applyFilters(bets) {
     if (period !== 'all') {
         const endDate = new Date();
         const startDate = new Date();
-        startDate.setDate(endDate.getDate() - (period - 1));
-        startDate.setHours(0, 0, 0, 0);
+        
+        // DÜZELTME (Görev 1.1): "Bugün" (period=1) seçeneği artık takvim günü yerine "son 24 saati" kapsıyor.
+        // Bu, gece yarısı sonuçlanan bahislerin doğru periyotta görünmesini sağlar.
+        if (period === 1) {
+            startDate.setTime(endDate.getTime() - 24 * 60 * 60 * 1000);
+        } else {
+            startDate.setDate(endDate.getDate() - (period - 1));
+            startDate.setHours(0, 0, 0, 0);
+        }
+
         dateFilteredBets = bets.filter(bet => {
             const betDate = new Date(bet.date);
             return betDate >= startDate && betDate <= endDate;
@@ -32,7 +40,6 @@ function applyFilters(bets) {
     }
 
     return dateFilteredBets.filter(bet => {
-        // DÜZELTME: Bahsin güncel durumunu, özel oran olup olmamasına göre al
         const isSpecialOdd = !!bet.special_odd_id;
         const currentStatus = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
 
@@ -49,14 +56,12 @@ function updateHistorySummary(filteredBets) {
 
     const netProfit = filteredBets.reduce((sum, bet) => {
         const isSpecialOdd = !!bet.special_odd_id;
-        // DÜZELTME: Durumu her zaman doğru kaynaktan al
         const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
 
         if (status === 'pending') return sum;
         
         let profit = 0;
         if (status === 'won') {
-             // DÜZELTME: Kişisel bahisler için win_amount, özel oranlar için oran üzerinden anlık hesapla
             if(isSpecialOdd){
                 profit = (bet.bet_amount * bet.odds) - bet.bet_amount;
             } else {
@@ -65,7 +70,6 @@ function updateHistorySummary(filteredBets) {
         } else if (status === 'lost') {
             profit = -bet.bet_amount;
         }
-        // 'refunded' durumunda profit 0 kalır, bu doğru.
         return sum + profit;
     }, 0);
 
@@ -114,10 +118,8 @@ export function renderHistory() {
     
     historyContainer.innerHTML = paginatedBets.map(bet => {
         const isSpecialOdd = !!bet.special_odd_id;
-        // DÜZELTME: Bahsin güncel durumunu, özel oran olup olmamasına göre al
         const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
         
-        // DÜZELTME: Kar/Zararı her zaman güncel duruma göre anlık hesapla
         let profit_loss = 0;
         if (status === 'won') {
              if(isSpecialOdd){
@@ -233,4 +235,3 @@ export function changeCashPage(page) {
     renderCashHistory();
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
-

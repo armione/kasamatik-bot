@@ -1,7 +1,8 @@
 import { state, updateState } from '../state.js';
 import { removeImage } from './ui_helpers.js';
 
-function openModal(modalId) {
+// DÜZELTME: export eklendi
+export function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if(modal) {
         modal.classList.remove('hidden');
@@ -9,7 +10,8 @@ function openModal(modalId) {
     }
 }
 
-function closeModal(modalId) {
+// DÜZELTME: export eklendi
+export function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if(modal) {
         modal.classList.add('hidden');
@@ -168,3 +170,4 @@ export function renderCustomPlatformsModal() {
         </div>
     `).join('');
 }
+

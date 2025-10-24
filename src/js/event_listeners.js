@@ -7,7 +7,8 @@ import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderActiveSpecialOdds, renderSpecialOddsPage } from './components/ui_helpers.js';
-import * as Modals from './components/modals.js';
+// DÜZELTME: Import * as Modals yerine named import kullanıldı
+import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal } from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
 import { updatePerformanceSummary } from './components/dashboard.js';
 
@@ -33,7 +34,7 @@ async function handleSignUpAttempt() {
     const authForm = DOM.get('authForm');
     setButtonLoading(signupBtn, true, 'Kayıt olunuyor...');
     const email = authForm.email.value;
-    
+
     // Supabase'den hem data hem de error objelerini alıyoruz.
     const { data, error } = await signUp(email, authForm.password.value);
     console.log("Supabase signUp sonucu:", { data, error }); // EKLENDİ: Supabase cevabını gör
@@ -71,7 +72,8 @@ async function handlePasswordResetAttempt(e) {
         showNotification(`Hata: ${error.message}`, 'error');
     } else {
         showNotification('Şifre sıfırlama linki e-postana gönderildi.', 'success');
-        Modals.closeModal('password-reset-modal');
+        // DÜZELTME: Modals.closeModal yerine closeModal kullanıldı
+        closeModal('password-reset-modal');
     }
     setButtonLoading(sendResetBtn, false);
 }
@@ -110,7 +112,7 @@ async function handleBetFormSubmitAttempt(e) {
     e.preventDefault();
     const addButton = document.getElementById('add-bet-btn');
     setButtonLoading(addButton, true, 'Ekleniyor...');
-    
+
     const newBetData = {
         user_id: state.currentUser.id,
         platform: document.getElementById('platform').value,
@@ -160,7 +162,7 @@ async function handlePlaySpecialOdd(button) {
         bet_amount: amount,
         odds: odd.odds,
         date: new Date().toISOString().split('T')[0],
-        status: 'pending', 
+        status: 'pending',
         win_amount: 0,
         profit_loss: 0,
         special_odd_id: odd.id
@@ -172,7 +174,7 @@ async function handlePlaySpecialOdd(button) {
         setButtonLoading(button, false);
     } else {
         state.bets.unshift(data[0]);
-        
+
         const { data: updatedOdd, error: updateError } = await updateSpecialOdd(odd.id, { play_count: odd.play_count + 1 });
         if(!updateError && updatedOdd.length > 0) {
             const index = state.specialOdds.findIndex(o => o.id === odd.id);
@@ -180,7 +182,8 @@ async function handlePlaySpecialOdd(button) {
         }
         updateAllUI();
         renderSpecialOddsPage();
-        Modals.closePlaySpecialOddModal();
+        // DÜZELTME: Modals.closePlaySpecialOddModal yerine closePlaySpecialOddModal kullanıldı
+        closePlaySpecialOddModal();
         showNotification('✨ Fırsat başarıyla kasana eklendi!', 'success');
     }
 }
@@ -207,7 +210,8 @@ async function handleQuickAddSubmitAttempt(e) {
     } else {
         state.bets.unshift(data[0]);
         updateAllUI();
-        Modals.closeQuickAddModal();
+        // DÜZELTME: Modals.closeQuickAddModal yerine closeQuickAddModal kullanıldı
+        closeQuickAddModal();
         showNotification('🚀 Hızlı bahis eklendi!', 'success');
     }
 }
@@ -218,7 +222,7 @@ async function handleSaveEditAttempt() {
 
     const status = document.getElementById('edit-status').value;
     const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
-    
+
     let updateData = { status: status };
 
     if (status === 'won') {
@@ -241,7 +245,8 @@ async function handleSaveEditAttempt() {
             state.bets[index] = data[0];
         }
         updateAllUI();
-        Modals.closeEditModal();
+        // DÜZELTME: Modals.closeEditModal yerine closeEditModal kullanıldı
+        closeEditModal();
         showNotification('✔️ Bahis güncellendi!', 'info');
     }
 }
@@ -290,7 +295,8 @@ async function handleCashTransactionAttempt(type) {
     } else {
         state.bets.unshift(data[0]);
         updateAllUI();
-        Modals.closeCashTransactionModal();
+        // DÜZELTME: Modals.closeCashTransactionModal yerine closeCashTransactionModal kullanıldı
+        closeCashTransactionModal();
         showNotification(`💸 Kasa işlemi kaydedildi: ${profitLoss.toFixed(2)} ₺`, 'success');
     }
 }
@@ -309,7 +315,8 @@ async function handleAddPlatformAttempt(fromModal = false) {
             state.customPlatforms.push(data[0]);
             input.value = '';
             if (fromModal) {
-                Modals.renderCustomPlatformsModal();
+                // DÜZELTME: Modals.renderCustomPlatformsModal yerine renderCustomPlatformsModal kullanıldı
+                renderCustomPlatformsModal();
             } else {
                 renderCustomPlatforms();
             }
@@ -331,7 +338,8 @@ async function handleRemovePlatformAttempt(platformId, platformName) {
         } else {
             updateState({ customPlatforms: state.customPlatforms.filter(p => p.id !== platformId) });
             renderCustomPlatforms();
-            Modals.renderCustomPlatformsModal();
+            // DÜZELTME: Modals.renderCustomPlatformsModal yerine renderCustomPlatformsModal kullanıldı
+            renderCustomPlatformsModal();
             populatePlatformOptions();
             showNotification(`🗑️ ${platformName} platformu silindi`, 'error');
         }
@@ -358,15 +366,15 @@ async function handleClearAllDataAttempt() {
 }
 
 async function handleUserAnalyzeBetSlip() {
-    if (!state.mainImageData) { 
+    if (!state.mainImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
     const geminiButton = document.getElementById('gemini-analyze-btn');
     setButtonLoading(geminiButton, true, 'Okunuyor...');
-    
+
     try {
-        const base64Data = state.mainImageData.split(',')[1]; 
+        const base64Data = state.mainImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
@@ -377,7 +385,7 @@ async function handleUserAnalyzeBetSlip() {
             }
             if (result.betAmount) document.getElementById('bet-amount').value = result.betAmount;
             if (result.odds) document.getElementById('odds').value = result.odds;
-            
+
             showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
         } else {
             throw new Error("API'den geçerli bir sonuç alınamadı.");
@@ -397,7 +405,7 @@ async function handleAdminAnalyzeBetSlip() {
     }
     const geminiButton = document.getElementById('admin-gemini-analyze-btn');
     setButtonLoading(geminiButton, true, 'Okunuyor...');
-    
+
     try {
         const base64Data = state.adminImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
@@ -409,7 +417,7 @@ async function handleAdminAnalyzeBetSlip() {
                 document.getElementById('special-odd-description').value = descriptionText;
             }
             if (result.odds) document.getElementById('special-odd-odds').value = result.odds;
-            
+
             showNotification('✨ Fırsat bilgileri başarıyla okundu!', 'success');
         } else {
             throw new Error("API'den geçerli bir sonuç alınamadı.");
@@ -479,7 +487,7 @@ export function setupEventListeners() {
         // console.log("Event listeners zaten bağlı, tekrar bağlanmıyor."); // Opsiyonel loglama
         return; // Eğer listener'lar zaten bağlıysa, tekrar bağlama
     };
-    
+
     console.log("setupEventListeners çağrılıyor - İlk kez veya tekrar."); // EKLENDİ: Fonksiyonun ne zaman çağrıldığını gör
 
     document.querySelectorAll('button').forEach(button => {
@@ -493,20 +501,22 @@ export function setupEventListeners() {
     DOM.get('loginBtn')?.addEventListener('click', handleLoginAttempt); // EKLENDİ: Null check
     DOM.get('signupBtn')?.addEventListener('click', handleSignUpAttempt); // EKLENDİ: Null check
     DOM.get('logoutBtn')?.addEventListener('click', () => signOut()); // EKLENDİ: Null check
-    
+
     // GÖREV 0.2 DÜZELTMESİ: Şifremi Unuttum linki
     const forgotPasswordLink = DOM.get('forgotPasswordLink');
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', (e) => {
             e.preventDefault(); // Sayfa yenilemesini engelle
             console.log("Şifremi Unuttum linkine tıklandı!"); // EKLENDİ: Tıklamanın çalıştığını konsolda gör
-            Modals.openModal('password-reset-modal');
+            // DÜZELTME: Modals.openModal yerine openModal kullanıldı
+            openModal('password-reset-modal');
         });
     } else {
         console.error("Hata: 'forgotPasswordLink' elementi bulunamadı."); // EKLENDİ: Element bulunamazsa hata ver
     }
-    
-    DOM.get('cancelResetBtn')?.addEventListener('click', () => Modals.closeModal('password-reset-modal')); // EKLENDİ: Null check
+
+    // DÜZELTME: Modals.closeModal yerine closeModal kullanıldı
+    DOM.get('cancelResetBtn')?.addEventListener('click', () => closeModal('password-reset-modal')); // EKLENDİ: Null check
     DOM.get('passwordResetForm')?.addEventListener('submit', handlePasswordResetAttempt); // EKLENDİ: Null check
     DOM.get('accountSettingsForm')?.addEventListener('submit', handleUpdatePasswordAttempt); // EKLENDİ: Null check
 
@@ -540,7 +550,8 @@ export function setupEventListeners() {
 
         switch (action) {
             case 'open-edit-modal':
-                if (id !== null) Modals.openEditModal(id);
+                 // DÜZELTME: Modals.openEditModal yerine openEditModal kullanıldı
+                if (id !== null) openEditModal(id);
                 break;
             case 'delete-bet':
                 if (id !== null) handleDeleteBetAttempt(id);
@@ -555,7 +566,8 @@ export function setupEventListeners() {
                 if (page !== null) changeCashPage(page);
                 break;
              case 'show-image-modal':
-                if (src) Modals.showImageModal(src);
+                 // DÜZELTME: Modals.showImageModal yerine showImageModal kullanıldı
+                if (src) showImageModal(src);
                 break;
             case 'set-dashboard-period':
                 if (period !== undefined) {
@@ -579,16 +591,19 @@ export function setupEventListeners() {
                 if (id !== null && status) handleResolveSpecialOdd(id, status);
                 break;
             case 'open-play-special-odd-modal':
-                if (id !== null) Modals.openPlaySpecialOddModal(id);
+                // DÜZELTME: Modals.openPlaySpecialOddModal yerine openPlaySpecialOddModal kullanıldı
+                if (id !== null) openPlaySpecialOddModal(id);
                 break;
              // EKLENDİ: Sponsor ve reklam silme işlemleri için case'ler
             case 'delete-sponsor':
                 if (id !== null && name !== undefined) {
+                    // Dinamik import ile admin fonksiyonunu çağır
                     import('./admin_actions.js').then(module => module.handleDeleteSponsor(id, name));
                 }
                 break;
             case 'delete-ad':
                 if (id !== null) {
+                    // Dinamik import ile admin fonksiyonunu çağır
                     import('./admin_actions.js').then(module => module.handleDeleteAd(id));
                 }
                 break;
@@ -598,7 +613,8 @@ export function setupEventListeners() {
     // Fırsatı Oyna Modal (Event Delegation ile)
     document.getElementById('special-odd-modal')?.addEventListener('click', (e) => { // EKLENDİ: Null check
         if (e.target.id === 'close-play-special-odd-modal') {
-            Modals.closePlaySpecialOddModal();
+             // DÜZELTME: Modals.closePlaySpecialOddModal yerine closePlaySpecialOddModal kullanıldı
+            closePlaySpecialOddModal();
         }
         if (e.target.id === 'confirm-play-special-odd') {
             handlePlaySpecialOdd(e.target);
@@ -647,7 +663,7 @@ export function setupEventListeners() {
         if(datePicker) datePicker.clear();
         updateStatisticsPage();
     });
-    
+
     // Diğer UI etkileşimleri
     document.getElementById('reset-form-btn')?.addEventListener('click', () => resetForm()); // EKLENDİ: Null check
     document.getElementById('admin-gemini-analyze-btn')?.addEventListener('click', handleAdminAnalyzeBetSlip); // EKLENDİ: Null check
@@ -655,17 +671,19 @@ export function setupEventListeners() {
 
     document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
     document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
-    
+
     // Modals
-    document.getElementById('floating-add-btn')?.addEventListener('click', Modals.openQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('quick-add-btn')?.addEventListener('click', Modals.openQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('cash-transaction-btn')?.addEventListener('click', Modals.openCashTransactionModal); // EKLENDİ: Null check
-    document.getElementById('platform-manager-btn')?.addEventListener('click', Modals.openPlatformManager); // EKLENDİ: Null check
-    document.getElementById('close-quick-add-btn')?.addEventListener('click', Modals.closeQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('close-edit-btn')?.addEventListener('click', Modals.closeEditModal); // EKLENDİ: Null check
+     // DÜZELTME: Modals.fonksiyonAdi yerine fonksiyonAdi kullanıldı
+    document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('quick-add-btn')?.addEventListener('click', openQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('cash-transaction-btn')?.addEventListener('click', openCashTransactionModal); // EKLENDİ: Null check
+    document.getElementById('platform-manager-btn')?.addEventListener('click', openPlatformManager); // EKLENDİ: Null check
+    document.getElementById('close-quick-add-btn')?.addEventListener('click', closeQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('close-edit-btn')?.addEventListener('click', closeEditModal); // EKLENDİ: Null check
     document.getElementById('save-edit-btn')?.addEventListener('click', handleSaveEditAttempt); // EKLENDİ: Null check
-    document.getElementById('image-modal')?.addEventListener('click', Modals.closeImageModal); // EKLENDİ: Null check
-    
+    document.getElementById('image-modal')?.addEventListener('click', closeImageModal); // EKLENDİ: Null check
+    document.getElementById('close-ad-popup-btn')?.addEventListener('click', closeAdPopup); // Reklam pop-up kapatma butonu
+
     // Image Upload
     const setupImageUpload = (type) => {
         const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
@@ -673,7 +691,7 @@ export function setupEventListeners() {
         const selectBtn = document.getElementById(`${prefix}image-select-btn`);
         const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
         const uploadArea = document.getElementById(`${prefix}image-upload-area`);
-        
+
         // EKLENDİ: Elementler bulunamazsa işlem yapma
         if (!imageInput || !selectBtn || !removeBtn || !uploadArea) {
             // console.warn(`Image upload elementleri bulunamadı: type=${type}`);
@@ -697,14 +715,14 @@ export function setupEventListeners() {
     setupImageUpload('main');
     setupImageUpload('quick');
     setupImageUpload('admin');
-    
+
     document.addEventListener('paste', e => {
         try { // EKLENDİ: Olası hataları yakala
             const items = e.clipboardData?.items;
             if (!items) return;
             const file = Array.from(items).find(item => item.type.startsWith('image/'))?.getAsFile();
             if (!file) return;
-            
+
             let type = 'main'; // Default
             const quickAddModal = document.getElementById('quick-add-modal');
             const adminPanelContainer = document.getElementById('admin-panels-container');
@@ -726,18 +744,26 @@ export function setupEventListeners() {
     // Platform Management
     document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false)); // EKLENDİ: Null check
     document.getElementById('add-platform-modal-btn')?.addEventListener('click', () => handleAddPlatformAttempt(true)); // EKLENDİ: Null check
-    document.getElementById('close-platform-manager-btn')?.addEventListener('click', Modals.closePlatformManager); // EKLENDİ: Null check
-    
+    // DÜZELTME: Modals.closePlatformManager yerine closePlatformManager kullanıldı
+    document.getElementById('close-platform-manager-btn')?.addEventListener('click', closePlatformManager); // EKLENDİ: Null check
+
     // Cash Management
-    document.getElementById('cash-transaction-close-btn')?.addEventListener('click', Modals.closeCashTransactionModal); // EKLENDİ: Null check
+     // DÜZELTME: Modals.closeCashTransactionModal yerine closeCashTransactionModal kullanıldı
+    document.getElementById('cash-transaction-close-btn')?.addEventListener('click', closeCashTransactionModal); // EKLENDİ: Null check
     document.getElementById('cash-deposit-btn')?.addEventListener('click', () => handleCashTransactionAttempt('deposit')); // EKLENDİ: Null check
     document.getElementById('cash-withdrawal-btn')?.addEventListener('click', () => handleCashTransactionAttempt('withdrawal')); // EKLENDİ: Null check
 
-    // EKLENDİ: Dinamik olarak eklenen admin eylemleri için modül
+    // EKLENDİ: Dinamik olarak eklenen admin eylemleri için modül (hata kontrolü eklendi)
     if (state.currentUser?.id === ADMIN_USER_ID) {
-        import('./admin_actions.js').then(module => {
-            module.setupAdminEventListeners();
-        }).catch(err => console.error("Admin actions modülü yüklenemedi:", err));
+        import('./admin_actions.js')
+            .then(module => {
+                if (module && typeof module.setupAdminEventListeners === 'function') {
+                    module.setupAdminEventListeners();
+                } else {
+                     console.error("Admin actions modülünde 'setupAdminEventListeners' fonksiyonu bulunamadı.");
+                }
+            })
+            .catch(err => console.error("Admin actions modülü yüklenemedi:", err));
     }
 
 

@@ -1,5 +1,5 @@
 // Service Worker (sw.js)
-const CACHE_NAME = 'kasamatik-cache-v4'; // Sürüm v3'ten v4'e yükseltildi.
+const CACHE_NAME = 'kasamatik-cache-v5'; // Sürüm v4'ten v5'e yükseltildi.
 // Dış CDN linkleri kaldırıldı, sadece kendi dosyalarımız cache'lenecek.
 const urlsToCache = [
   '/',
@@ -98,7 +98,7 @@ self.addEventListener('fetch', event => {
             if (networkResponse && networkResponse.ok) {
               // Sadece cache'lenecekler listesindeyse veya ana sayfa ise cache'le
               // Önemli: Dönen cevabın tipini kontrol etmek iyi bir pratik olabilir (örn: basic, cors)
-              if (networkResponse.type === 'basic' && urlsToCache.some(cacheUrl => url.endsWith(cacheUrl) || url === self.location.origin + '/')) {
+              if (networkResponse.type === 'basic' && (urlsToCache.some(cacheUrl => url.endsWith(cacheUrl)) || url === self.location.origin + '/')) {
                   const responseToCache = networkResponse.clone();
                   caches.open(CACHE_NAME)
                     .then(cache => {
@@ -119,3 +119,4 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+

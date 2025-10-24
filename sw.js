@@ -1,18 +1,20 @@
 // Service Worker (sw.js)
-const CACHE_NAME = 'kasamatik-cache-v3'; // Sürüm v2'den v3'e yükseltildi.
+const CACHE_NAME = 'kasamatik-cache-v4'; // Sürüm v3'ten v4'e yükseltildi.
+// Dış CDN linkleri kaldırıldı, sadece kendi dosyalarımız cache'lenecek.
 const urlsToCache = [
   '/',
   '/index.html',
   '/src/css/style.css',
-  '/src/js/main.js',
+  '/src/js/main.js', // Ana JS dosyası
+  // Diğer önemli JS modülleri (opsiyonel, main.js import ediyorsa genellikle gerekmez)
+  // '/src/js/event_listeners.js',
+  // '/src/js/api/auth.js',
+  // '/src/js/components/modals.js',
+  // ... diğerleri ...
   '/assets/logo.png',
   '/assets/logo_192.png',
   '/assets/logo_512.png',
-  'https://cdn.tailwindcss.com',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdn.jsdelivr.net/npm/flatpickr',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap'
+  '/manifest.json' // Manifest dosyasını da ekleyelim
 ];
 
 // Yükleme (install) olayında cache'i oluştur ve dosyaları ekle
@@ -21,26 +23,22 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[SW] Cache açıldı ve dosyalar ekleniyor.');
-        // Önemli: addAll atomik bir işlemdir, biri bile başarısız olursa hepsi olmaz.
-        // Hata ayıklama için tek tek eklemeyi düşünebilirsiniz.
+        console.log('[SW] Cache açıldı ve dosyalar ekleniyor:', urlsToCache);
         return cache.addAll(urlsToCache).catch(error => {
-          console.error('[SW] Cache\'e ekleme sırasında hata:', error);
-          // Hata durumunda hangi URL'nin sorun yarattığını bulmak için:
+          console.error('[SW] Cache\'e ekleme sırasında hata (addAll):', error);
+          // Hata ayıklama için tek tek ekleme denemesi
           urlsToCache.forEach(url => {
             cache.add(url).catch(err => console.error(`[SW] ${url} eklenemedi:`, err));
           });
-          // Hata olsa bile devam etmesini sağlayalım (opsiyonel)
-          return Promise.resolve();
+          return Promise.resolve(); // Hata olsa bile SW kurulumuna devam et
         });
       })
       .catch(error => {
-          console.error('[SW] Cache açma/ekleme başarısız oldu:', error);
+          console.error('[SW] Cache açma başarısız oldu:', error);
       })
       .then(() => {
-          // Yeni service worker'ın eskisiyle çakışmadan hemen aktif olmasını sağla
           console.log('[SW] skipWaiting çağrılıyor.');
-          return self.skipWaiting();
+          return self.skipWaiting(); // Yeni SW'nin hemen aktif olmasını sağla
       })
   );
 });
@@ -60,9 +58,8 @@ self.addEventListener('activate', event => {
         })
       );
     }).then(() => {
-        // Aktif olur olmaz istemcileri (client) kontrolü altına almasını sağla
         console.log('[SW] clients.claim çağrılıyor.');
-        return self.clients.claim();
+        return self.clients.claim(); // Aktif SW'nin sayfaları kontrol etmesini sağla
     })
   );
 });
@@ -70,58 +67,54 @@ self.addEventListener('activate', event => {
 
 // Getirme (fetch) olayında cache'i öncelikli kullan (Network fallback)
 self.addEventListener('fetch', event => {
-  // Sadece GET isteklerini cache'le
+  // Sadece GET isteklerini ele al
   if (event.request.method !== 'GET') {
-    // console.log('[SW] Non-GET request:', event.request.method, event.request.url);
     return;
   }
 
-  // API isteklerini veya Supabase isteklerini cache'leme (genellikle güncel veri gerekir)
-  if (event.request.url.includes('/api/') || event.request.url.includes('supabase.co')) {
-    // console.log('[SW] API/Supabase isteği cachelenmiyor:', event.request.url);
-    return fetch(event.request);
+  // API, Supabase veya dış CDN isteklerini cache'leme, doğrudan ağa git
+  const url = event.request.url;
+  // Güvenlik:fonts.googleapis.com veya fonts.gstatic.com gibi fontları da hariç tutalım.
+  if (url.includes('/api/') || url.includes('supabase.co') || url.includes('cdn.') || url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
+    // console.log('[SW] Cachelenmeyen istek:', url); // Debug için log eklenebilir
+    return; // Service Worker bu istekleri görmezden gelir, tarayıcı normal şekilde yönetir
   }
 
-  // console.log('[SW] Fetching:', event.request.url);
-
+  // Cache'deki dosyalar için Cache First stratejisi
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
-        // 1. Cache'de varsa, cache'den döndür (Cache First)
+        // Cache'de varsa, cache'den döndür
         if (cachedResponse) {
           // console.log('[SW] Cache\'den bulundu:', event.request.url);
-          // İsteğe bağlı: Arka planda güncellemeyi kontrol et (Stale While Revalidate)
-          // fetch(event.request).then(networkResponse => { /* ... cache'i güncelle ... */ });
           return cachedResponse;
         }
 
-        // 2. Cache'de yoksa, ağdan (network) iste
+        // Cache'de yoksa, ağdan iste
         // console.log('[SW] Cache\'de bulunamadı, ağdan isteniyor:', event.request.url);
         return fetch(event.request).then(
           networkResponse => {
-            // Ağa gittikten sonra, cevabı cache'e ekle ve döndür
-            // Sadece başarılı (2xx) cevapları ve cache'lenecekler listesindekileri cache'le
-            if (networkResponse && networkResponse.ok && urlsToCache.some(url => event.request.url.endsWith(url) || event.request.url === self.location.origin + '/')) {
-              // console.log('[SW] Ağdan gelen cevap cache\'e ekleniyor:', event.request.url);
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => {
-                  cache.put(event.request, responseToCache);
-                });
-            } else if (networkResponse && !networkResponse.ok) {
-              console.warn('[SW] Ağdan gelen cevap cache\'lenmiyor (status OK değil):', event.request.url, networkResponse.status);
-            } else if (networkResponse) {
-              // console.log('[SW] Ağdan gelen cevap cache\'lenmiyor (urlsToCache listesinde değil):', event.request.url);
+            // Başarılı cevabı (opsiyonel olarak) cache'e ekle
+            if (networkResponse && networkResponse.ok) {
+              // Sadece cache'lenecekler listesindeyse veya ana sayfa ise cache'le
+              // Önemli: Dönen cevabın tipini kontrol etmek iyi bir pratik olabilir (örn: basic, cors)
+              if (networkResponse.type === 'basic' && urlsToCache.some(cacheUrl => url.endsWith(cacheUrl) || url === self.location.origin + '/')) {
+                  const responseToCache = networkResponse.clone();
+                  caches.open(CACHE_NAME)
+                    .then(cache => {
+                      // console.log('[SW] Ağdan gelen cevap cache\'e ekleniyor:', event.request.url);
+                      cache.put(event.request, responseToCache);
+                    });
+              }
             }
             return networkResponse;
           }
         ).catch(error => {
-          // Ağ hatası durumunda (çevrimdışı olma vb.)
+          // Ağ hatası (çevrimdışı olma durumu vb.)
           console.error('[SW] Fetch hatası:', error, event.request.url);
-          // Burada çevrimdışı bir sayfa veya genel bir hata mesajı döndürebilirsiniz.
-          // Örneğin: return caches.match('/offline.html');
-          // veya sadece hatayı propage et
-          throw error;
+          // İsteğe bağlı: Çevrimdışı sayfası göster
+          // return caches.match('/offline.html');
+          throw error; // Veya hatayı yukarıya ilet
         });
       })
   );

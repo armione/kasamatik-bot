@@ -28,6 +28,7 @@ async function handleLoginAttempt() {
 
 // GÖREV 0.1 DÜZELTMESİ: Kayıt fonksiyonu, mevcut e-posta adreslerini doğru bir şekilde ele alacak şekilde güncellendi.
 async function handleSignUpAttempt() {
+    console.log("handleSignUpAttempt çağrıldı."); // EKLENDİ: Fonksiyonun çağrıldığını kontrol et
     const signupBtn = DOM.get('signupBtn');
     const authForm = DOM.get('authForm');
     setButtonLoading(signupBtn, true, 'Kayıt olunuyor...');
@@ -35,19 +36,27 @@ async function handleSignUpAttempt() {
     
     // Supabase'den hem data hem de error objelerini alıyoruz.
     const { data, error } = await signUp(email, authForm.password.value);
+    console.log("Supabase signUp sonucu:", { data, error }); // EKLENDİ: Supabase cevabını gör
 
     if (error) {
         // "User already registered" gibi hataları burada yakalıyoruz.
+        console.log("Kayıt hatası yakalandı:", error.message); // EKLENDİ: Hata mesajını gör
         showNotification(`Kayıt hatası: ${error.message}`, 'error');
     } else if (data.user && data.user.identities && data.user.identities.length === 0) {
         // Bu durum, e-postanın zaten kayıtlı olduğunu ancak henüz onaylanmadığını gösterir.
         // Supabase bu durumda sadece onay mailini tekrar gönderir. Kullanıcıya doğru bilgiyi veriyoruz.
-        showNotification('Bu e-posta adresi zaten kayıtlı. Şifrenizi mi unuttunuz?', 'warning');
+        console.log("Mevcut ama onaylanmamış e-posta durumu."); // EKLENDİ: Bu bloğa girip girmediğini gör
+        showNotification('Bu e-posta adresi zaten kayıtlı. Lütfen e-postanızı kontrol edin veya şifrenizi sıfırlayın.', 'warning');
     } else if (data.user) {
         // Bu, başarılı ve yeni bir kayıt işlemidir.
+        console.log("Yeni kayıt başarılı."); // EKLENDİ: Başarılı kayıt durumunu gör
         authForm.classList.add('hidden');
         document.getElementById('user-email-confirm').textContent = email;
         document.getElementById('signup-success-message').classList.remove('hidden');
+    } else {
+        // Beklenmeyen bir durum
+        console.log("Beklenmeyen Supabase signUp cevabı:", data); // EKLENDİ: Diğer durumları logla
+        showNotification('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.', 'error');
     }
     setButtonLoading(signupBtn, false);
 }
@@ -467,9 +476,12 @@ async function handleResolveSpecialOdd(id, status) {
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
     if (state.listenersAttached) {
-        return;
+        // console.log("Event listeners zaten bağlı, tekrar bağlanmıyor."); // Opsiyonel loglama
+        return; // Eğer listener'lar zaten bağlıysa, tekrar bağlama
     };
     
+    console.log("setupEventListeners çağrılıyor - İlk kez veya tekrar."); // EKLENDİ: Fonksiyonun ne zaman çağrıldığını gör
+
     document.querySelectorAll('button').forEach(button => {
         const textElement = button.querySelector('.btn-text');
         if (textElement) {
@@ -478,79 +490,113 @@ export function setupEventListeners() {
     });
 
     // Auth
-    DOM.get('loginBtn').addEventListener('click', handleLoginAttempt);
-    DOM.get('signupBtn').addEventListener('click', handleSignUpAttempt);
-    DOM.get('logoutBtn').addEventListener('click', () => signOut());
-    // GÖREV 0.1 DÜZELTMESİ: Çalışmayan "Şifremi Unuttum" linki düzeltildi.
-    // Tıklamanın varsayılan davranışını (sayfayı yenileme) engellemek için e.preventDefault() eklendi.
-    DOM.get('forgotPasswordLink').addEventListener('click', (e) => {
-        e.preventDefault();
-        Modals.openModal('password-reset-modal');
-    });
-    DOM.get('cancelResetBtn').addEventListener('click', () => Modals.closeModal('password-reset-modal'));
-    DOM.get('passwordResetForm').addEventListener('submit', handlePasswordResetAttempt);
-    DOM.get('accountSettingsForm').addEventListener('submit', handleUpdatePasswordAttempt);
+    DOM.get('loginBtn')?.addEventListener('click', handleLoginAttempt); // EKLENDİ: Null check
+    DOM.get('signupBtn')?.addEventListener('click', handleSignUpAttempt); // EKLENDİ: Null check
+    DOM.get('logoutBtn')?.addEventListener('click', () => signOut()); // EKLENDİ: Null check
+    
+    // GÖREV 0.2 DÜZELTMESİ: Şifremi Unuttum linki
+    const forgotPasswordLink = DOM.get('forgotPasswordLink');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault(); // Sayfa yenilemesini engelle
+            console.log("Şifremi Unuttum linkine tıklandı!"); // EKLENDİ: Tıklamanın çalıştığını konsolda gör
+            Modals.openModal('password-reset-modal');
+        });
+    } else {
+        console.error("Hata: 'forgotPasswordLink' elementi bulunamadı."); // EKLENDİ: Element bulunamazsa hata ver
+    }
+    
+    DOM.get('cancelResetBtn')?.addEventListener('click', () => Modals.closeModal('password-reset-modal')); // EKLENDİ: Null check
+    DOM.get('passwordResetForm')?.addEventListener('submit', handlePasswordResetAttempt); // EKLENDİ: Null check
+    DOM.get('accountSettingsForm')?.addEventListener('submit', handleUpdatePasswordAttempt); // EKLENDİ: Null check
 
     // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
-    document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
-    document.getElementById('mobile-menu-toggle').addEventListener('click', toggleMobileSidebar);
+    document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar); // EKLENDİ: Null check
+    document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMobileSidebar); // EKLENDİ: Null check
 
     // Form Submissions
-    document.getElementById('bet-form').addEventListener('submit', handleBetFormSubmitAttempt);
-    document.getElementById('quick-add-form').addEventListener('submit', handleQuickAddSubmitAttempt);
-    document.getElementById('special-odd-form').addEventListener('submit', handlePublishSpecialOdd);
+    document.getElementById('bet-form')?.addEventListener('submit', handleBetFormSubmitAttempt); // EKLENDİ: Null check
+    document.getElementById('quick-add-form')?.addEventListener('submit', handleQuickAddSubmitAttempt); // EKLENDİ: Null check
+    document.getElementById('special-odd-form')?.addEventListener('submit', handlePublishSpecialOdd); // EKLENDİ: Null check
 
     // Clicks on dynamically generated content (Event Delegation)
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
-        const { action, id, name, page, src, period, status } = target.dataset;
+        // data-* attribute'lerinden değerleri alırken null/undefined kontrolü ekleyelim
+        const action = target.dataset.action;
+        const id = target.dataset.id ? parseInt(target.dataset.id, 10) : null;
+        const name = target.dataset.name;
+        const page = target.dataset.page ? parseInt(target.dataset.page, 10) : null;
+        const src = target.dataset.src;
+        const period = target.dataset.period; // String veya number olabilir, kontrol edilecek
+        const status = target.dataset.status;
+
+        // console.log("data-action tıklandı:", { action, id, name, page, src, period, status }); // EKLENDİ: Hangi action tıklandı?
 
         switch (action) {
             case 'open-edit-modal':
-                Modals.openEditModal(parseInt(id));
+                if (id !== null) Modals.openEditModal(id);
                 break;
             case 'delete-bet':
-                handleDeleteBetAttempt(parseInt(id));
+                if (id !== null) handleDeleteBetAttempt(id);
                 break;
             case 'remove-platform':
-                handleRemovePlatformAttempt(parseInt(id), name);
+                if (id !== null && name !== undefined) handleRemovePlatformAttempt(id, name);
                 break;
             case 'changeBetPage':
-                changeBetPage(parseInt(page));
+                if (page !== null) changeBetPage(page);
                 break;
             case 'changeCashPage':
-                changeCashPage(parseInt(page));
+                if (page !== null) changeCashPage(page);
                 break;
              case 'show-image-modal':
-                Modals.showImageModal(src);
+                if (src) Modals.showImageModal(src);
                 break;
             case 'set-dashboard-period':
-                updateState({ dashboardPeriod: parseInt(period) });
-                updatePerformanceSummary();
+                if (period !== undefined) {
+                    const periodNum = parseInt(period, 10);
+                    if (!isNaN(periodNum)) {
+                         updateState({ dashboardPeriod: periodNum });
+                         updatePerformanceSummary();
+                    }
+                }
                 break;
             case 'set-history-period':
-                updateState({ filters: { ...state.filters, period: period === 'all' ? 'all' : parseInt(period) }, currentPage: 1 });
-                document.querySelectorAll('#history-period-buttons .period-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.period === period);
-                });
-                renderHistory();
+                 if (period !== undefined) {
+                    updateState({ filters: { ...state.filters, period: period === 'all' ? 'all' : parseInt(period, 10) }, currentPage: 1 });
+                    document.querySelectorAll('#history-period-buttons .period-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.period === period);
+                    });
+                    renderHistory();
+                 }
                 break;
             case 'resolve-special-odd':
-                handleResolveSpecialOdd(parseInt(id), status);
+                if (id !== null && status) handleResolveSpecialOdd(id, status);
                 break;
             case 'open-play-special-odd-modal':
-                Modals.openPlaySpecialOddModal(parseInt(id));
+                if (id !== null) Modals.openPlaySpecialOddModal(id);
+                break;
+             // EKLENDİ: Sponsor ve reklam silme işlemleri için case'ler
+            case 'delete-sponsor':
+                if (id !== null && name !== undefined) {
+                    import('./admin_actions.js').then(module => module.handleDeleteSponsor(id, name));
+                }
+                break;
+            case 'delete-ad':
+                if (id !== null) {
+                    import('./admin_actions.js').then(module => module.handleDeleteAd(id));
+                }
                 break;
         }
     });
 
     // Fırsatı Oyna Modal (Event Delegation ile)
-    document.getElementById('special-odd-modal').addEventListener('click', (e) => {
+    document.getElementById('special-odd-modal')?.addEventListener('click', (e) => { // EKLENDİ: Null check
         if (e.target.id === 'close-play-special-odd-modal') {
             Modals.closePlaySpecialOddModal();
         }
@@ -561,17 +607,17 @@ export function setupEventListeners() {
 
 
     // Bahis Geçmişi Filtreleme
-    document.getElementById('status-filter').addEventListener('change', (e) => {
+    document.getElementById('status-filter')?.addEventListener('change', (e) => { // EKLENDİ: Null check
         state.filters.status = e.target.value;
         updateState({ currentPage: 1 });
         renderHistory();
     });
-    document.getElementById('platform-filter').addEventListener('change', (e) => {
+    document.getElementById('platform-filter')?.addEventListener('change', (e) => { // EKLENDİ: Null check
         state.filters.platform = e.target.value;
         updateState({ currentPage: 1 });
         renderHistory();
     });
-     document.getElementById('search-filter').addEventListener('input', (e) => {
+     document.getElementById('search-filter')?.addEventListener('input', (e) => { // EKLENDİ: Null check
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
             state.filters.searchTerm = e.target.value;
@@ -581,43 +627,44 @@ export function setupEventListeners() {
     });
 
     // Fırsatlar Sayfası Filtreleme
-    document.getElementById('special-odds-status-filter').addEventListener('change', e => {
+    document.getElementById('special-odds-status-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
         state.specialOddsFilters.status = e.target.value;
         renderSpecialOddsPage();
     });
-    document.getElementById('special-odds-platform-filter').addEventListener('change', e => {
+    document.getElementById('special-odds-platform-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
         state.specialOddsFilters.platform = e.target.value;
         renderSpecialOddsPage();
     });
-    document.getElementById('special-odds-sort-filter').addEventListener('change', e => {
+    document.getElementById('special-odds-sort-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
         state.specialOddsFilters.sort = e.target.value;
         renderSpecialOddsPage();
     });
 
 
-     document.getElementById('stats-reset-filters-btn').addEventListener('click', () => {
+     document.getElementById('stats-reset-filters-btn')?.addEventListener('click', () => { // EKLENDİ: Null check
         state.statsFilters.dateRange = { start: null, end: null };
-        flatpickr("#stats-date-range-filter").clear();
+        const datePicker = document.getElementById('stats-date-range-filter')?._flatpickr; // flatpickr instance'ına erişim
+        if(datePicker) datePicker.clear();
         updateStatisticsPage();
     });
     
     // Diğer UI etkileşimleri
-    document.getElementById('reset-form-btn').addEventListener('click', () => resetForm());
-    document.getElementById('admin-gemini-analyze-btn').addEventListener('click', handleAdminAnalyzeBetSlip);
-    document.getElementById('gemini-analyze-btn').addEventListener('click', handleUserAnalyzeBetSlip);
+    document.getElementById('reset-form-btn')?.addEventListener('click', () => resetForm()); // EKLENDİ: Null check
+    document.getElementById('admin-gemini-analyze-btn')?.addEventListener('click', handleAdminAnalyzeBetSlip); // EKLENDİ: Null check
+    document.getElementById('gemini-analyze-btn')?.addEventListener('click', handleUserAnalyzeBetSlip); // EKLENDİ: Null check
 
-    document.getElementById('clear-all-btn').addEventListener('click', handleClearAllDataAttempt);
-    document.getElementById('clear-all-settings-btn').addEventListener('click', handleClearAllDataAttempt);
+    document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
+    document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
     
     // Modals
-    document.getElementById('floating-add-btn').addEventListener('click', Modals.openQuickAddModal);
-    document.getElementById('quick-add-btn').addEventListener('click', Modals.openQuickAddModal);
-    document.getElementById('cash-transaction-btn').addEventListener('click', Modals.openCashTransactionModal);
-    document.getElementById('platform-manager-btn').addEventListener('click', Modals.openPlatformManager);
-    document.getElementById('close-quick-add-btn').addEventListener('click', Modals.closeQuickAddModal);
-    document.getElementById('close-edit-btn').addEventListener('click', Modals.closeEditModal);
-    document.getElementById('save-edit-btn').addEventListener('click', handleSaveEditAttempt);
-    document.getElementById('image-modal').addEventListener('click', Modals.closeImageModal);
+    document.getElementById('floating-add-btn')?.addEventListener('click', Modals.openQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('quick-add-btn')?.addEventListener('click', Modals.openQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('cash-transaction-btn')?.addEventListener('click', Modals.openCashTransactionModal); // EKLENDİ: Null check
+    document.getElementById('platform-manager-btn')?.addEventListener('click', Modals.openPlatformManager); // EKLENDİ: Null check
+    document.getElementById('close-quick-add-btn')?.addEventListener('click', Modals.closeQuickAddModal); // EKLENDİ: Null check
+    document.getElementById('close-edit-btn')?.addEventListener('click', Modals.closeEditModal); // EKLENDİ: Null check
+    document.getElementById('save-edit-btn')?.addEventListener('click', handleSaveEditAttempt); // EKLENDİ: Null check
+    document.getElementById('image-modal')?.addEventListener('click', Modals.closeImageModal); // EKLENDİ: Null check
     
     // Image Upload
     const setupImageUpload = (type) => {
@@ -626,47 +673,74 @@ export function setupEventListeners() {
         const selectBtn = document.getElementById(`${prefix}image-select-btn`);
         const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
         const uploadArea = document.getElementById(`${prefix}image-upload-area`);
-        selectBtn?.addEventListener('click', () => imageInput.click());
-        imageInput?.addEventListener('change', (e) => handleImageFile(e.target.files[0], type));
-        removeBtn?.addEventListener('click', () => removeImage(type));
+        
+        // EKLENDİ: Elementler bulunamazsa işlem yapma
+        if (!imageInput || !selectBtn || !removeBtn || !uploadArea) {
+            // console.warn(`Image upload elementleri bulunamadı: type=${type}`);
+            return;
+        }
+
+        selectBtn.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0], type));
+        removeBtn.addEventListener('click', () => removeImage(type));
         ['dragover', 'dragleave', 'drop'].forEach(eventName => {
-            uploadArea?.addEventListener(eventName, e => {
+            uploadArea.addEventListener(eventName, e => {
                 e.preventDefault();
                 e.stopPropagation();
                 uploadArea.classList.toggle('dragover', eventName === 'dragover');
-                if (eventName === 'drop') handleImageFile(e.dataTransfer.files[0], type);
-            });
+                if (eventName === 'drop' && e.dataTransfer?.files?.length > 0) { // EKLENDİ: Drop eventinde dosya kontrolü
+                     handleImageFile(e.dataTransfer.files[0], type);
+                }
+            }, false); // EKLENDİ: useCapture false olabilir
         });
     };
     setupImageUpload('main');
     setupImageUpload('quick');
     setupImageUpload('admin');
+    
     document.addEventListener('paste', e => {
-        const file = Array.from(e.clipboardData.items).find(item => item.type.startsWith('image/'))?.getAsFile();
-        if (!file) return;
-        
-        let type = 'main'; // Default
-        if (!document.getElementById('quick-add-modal').classList.contains('hidden')) {
-            type = 'quick';
-        } else if (state.currentSection === 'settings' && document.getElementById('admin-panels-container').style.display !== 'none') {
-             type = 'admin';
-        } else if (state.currentSection !== 'new-bet') {
-            return;
-        }
+        try { // EKLENDİ: Olası hataları yakala
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            const file = Array.from(items).find(item => item.type.startsWith('image/'))?.getAsFile();
+            if (!file) return;
+            
+            let type = 'main'; // Default
+            const quickAddModal = document.getElementById('quick-add-modal');
+            const adminPanelContainer = document.getElementById('admin-panels-container');
 
-        handleImageFile(file, type);
+            if (quickAddModal && !quickAddModal.classList.contains('hidden')) {
+                type = 'quick';
+            } else if (state.currentSection === 'settings' && adminPanelContainer && !adminPanelContainer.classList.contains('hidden')) {
+                 type = 'admin';
+            } else if (state.currentSection !== 'new-bet') {
+                return; // Sadece ilgili sayfalardayken yapıştır
+            }
+
+            handleImageFile(file, type);
+        } catch (pasteError) {
+             console.error("Yapıştırma hatası:", pasteError);
+        }
     });
 
     // Platform Management
-    document.getElementById('add-platform-btn').addEventListener('click', () => handleAddPlatformAttempt(false));
-    document.getElementById('add-platform-modal-btn').addEventListener('click', () => handleAddPlatformAttempt(true));
-    document.getElementById('close-platform-manager-btn').addEventListener('click', Modals.closePlatformManager);
+    document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false)); // EKLENDİ: Null check
+    document.getElementById('add-platform-modal-btn')?.addEventListener('click', () => handleAddPlatformAttempt(true)); // EKLENDİ: Null check
+    document.getElementById('close-platform-manager-btn')?.addEventListener('click', Modals.closePlatformManager); // EKLENDİ: Null check
     
     // Cash Management
-    document.getElementById('cash-transaction-close-btn').addEventListener('click', Modals.closeCashTransactionModal);
-    document.getElementById('cash-deposit-btn').addEventListener('click', () => handleCashTransactionAttempt('deposit'));
-    document.getElementById('cash-withdrawal-btn').addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
+    document.getElementById('cash-transaction-close-btn')?.addEventListener('click', Modals.closeCashTransactionModal); // EKLENDİ: Null check
+    document.getElementById('cash-deposit-btn')?.addEventListener('click', () => handleCashTransactionAttempt('deposit')); // EKLENDİ: Null check
+    document.getElementById('cash-withdrawal-btn')?.addEventListener('click', () => handleCashTransactionAttempt('withdrawal')); // EKLENDİ: Null check
+
+    // EKLENDİ: Dinamik olarak eklenen admin eylemleri için modül
+    if (state.currentUser?.id === ADMIN_USER_ID) {
+        import('./admin_actions.js').then(module => {
+            module.setupAdminEventListeners();
+        }).catch(err => console.error("Admin actions modülü yüklenemedi:", err));
+    }
+
 
     updateState({ listenersAttached: true });
+    console.log("Event listeners başarıyla bağlandı."); // EKLENDİ: Bağlantı tamamlandı logu
 }
-

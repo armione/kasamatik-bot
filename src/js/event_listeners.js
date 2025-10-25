@@ -6,10 +6,9 @@ import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBets
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
-// ui_helpers'dan handleImageFile fonksiyonunu da import ediyoruz
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderActiveSpecialOdds, renderSpecialOddsPage } from './components/ui_helpers.js';
-// DÜZELTME: Import * as Modals yerine named import kullanıldı
-import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal } from './components/modals.js';
+// openResolveModal ve closeResolveModal import edildi
+import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openResolveModal, closeResolveModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal } from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
 import { updatePerformanceSummary } from './components/dashboard.js';
 
@@ -20,26 +19,24 @@ let searchDebounceTimer;
 async function handleLoginAttempt() {
     const loginBtn = DOM.get('loginBtn');
     const authForm = DOM.get('authForm');
-    if (!authForm) return; // Form yoksa çık
+    if (!authForm) return;
     setButtonLoading(loginBtn, true, 'Giriş yapılıyor...');
     const { error } = await signIn(authForm.email.value, authForm.password.value);
     if (error) {
         showNotification(`Giriş hatası: ${error.message}`, 'error');
     }
+    // Başarılı girişte state değişimi zaten handleAuthStateChange'de ele alınır.
     setButtonLoading(loginBtn, false);
 }
 
-// GÖREV 0.1 DÜZELTMESİ: Kayıt fonksiyonu, mevcut e-posta adreslerini doğru bir şekilde ele alacak şekilde güncellendi.
 async function handleSignUpAttempt() {
-    console.log("handleSignUpAttempt çağrıldı.");
     const signupBtn = DOM.get('signupBtn');
     const authForm = DOM.get('authForm');
-    if (!authForm) return; // Form yoksa çık
+    if (!authForm) return;
     setButtonLoading(signupBtn, true, 'Kayıt olunuyor...');
     const email = authForm.email.value;
     const password = authForm.password.value;
 
-    // Hata Kontrolü: Şifre uzunluğu
     if (!password || password.length < 6) {
         showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
         setButtonLoading(signupBtn, false);
@@ -50,20 +47,16 @@ async function handleSignUpAttempt() {
     console.log("Supabase signUp sonucu:", { data, error });
 
     if (error) {
-        console.log("Kayıt hatası yakalandı:", error.message);
         showNotification(`Kayıt hatası: ${error.message}`, 'error');
     } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-        console.log("Mevcut ama onaylanmamış e-posta durumu.");
         showNotification('Bu e-posta adresi zaten kayıtlı. Lütfen e-postanızı kontrol edin veya şifrenizi sıfırlayın.', 'warning');
     } else if (data.user) {
-        console.log("Yeni kayıt başarılı.");
         authForm.classList.add('hidden');
         const userEmailConfirm = document.getElementById('user-email-confirm');
         if (userEmailConfirm) userEmailConfirm.textContent = email;
         const successMessage = document.getElementById('signup-success-message');
         if (successMessage) successMessage.classList.remove('hidden');
     } else {
-        console.log("Beklenmeyen Supabase signUp cevabı:", data);
         showNotification('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.', 'error');
     }
     setButtonLoading(signupBtn, false);
@@ -73,7 +66,7 @@ async function handlePasswordResetAttempt(e) {
     e.preventDefault();
     const sendResetBtn = DOM.get('sendResetBtn');
     const passwordResetForm = DOM.get('passwordResetForm');
-    if (!passwordResetForm) return; // Form yoksa çık
+    if (!passwordResetForm) return;
     setButtonLoading(sendResetBtn, true, 'Gönderiliyor...');
     const emailInput = passwordResetForm['reset-email'];
     const email = emailInput ? emailInput.value : '';
@@ -133,7 +126,6 @@ async function handleBetFormSubmitAttempt(e) {
     const oddsInput = document.getElementById('odds');
     const dateInput = document.getElementById('bet-date');
 
-    // HATA DÜZELTME: Zorunlu alan kontrolü
     const platform = platformSelect ? platformSelect.value : '';
     const betAmount = betAmountInput ? parseFloat(betAmountInput.value) : NaN;
     const odds = oddsInput ? parseFloat(oddsInput.value) : NaN;
@@ -155,7 +147,6 @@ async function handleBetFormSubmitAttempt(e) {
         showNotification('Lütfen bir tarih seçin.', 'warning');
         return;
     }
-
 
     setButtonLoading(addButton, true, 'Ekleniyor...');
 
@@ -210,7 +201,7 @@ async function handlePlaySpecialOdd(button) {
         bet_amount: amount,
         odds: odd.odds,
         date: new Date().toISOString().split('T')[0],
-        status: 'pending', // Özel oranlar her zaman 'pending' başlar
+        status: 'pending',
         win_amount: 0,
         profit_loss: 0,
         special_odd_id: odd.id
@@ -222,29 +213,25 @@ async function handlePlaySpecialOdd(button) {
         setButtonLoading(button, false);
     } else if (data && data.length > 0) {
         state.bets.unshift(data[0]);
-
-        // Arka planda play_count'u güncelle, hata olursa sadece logla
+        // Arka planda play_count'u güncelle
         updateSpecialOdd(odd.id, { play_count: (odd.play_count || 0) + 1 })
             .then(({ data: updatedOddData, error: updateError }) => {
                 if (!updateError && updatedOddData && updatedOddData.length > 0) {
                     const index = state.specialOdds.findIndex(o => o.id === odd.id);
                     if (index > -1) state.specialOdds[index] = updatedOddData[0];
-                    renderSpecialOddsPage(); // UI'ı güncelle
+                    renderSpecialOddsPage();
                 } else if(updateError) {
                      console.error("Özel oran oynanma sayısı güncellenirken hata:", updateError);
                 }
             });
-
         updateAllUI();
         closePlaySpecialOddModal();
         showNotification('✨ Fırsat başarıyla kasana eklendi!', 'success');
     } else {
         showNotification('Fırsat eklendi ancak veri alınamadı.', 'warning');
-        setButtonLoading(button, false); // Butonu tekrar aktif et
+        setButtonLoading(button, false);
     }
-    // Başarılı durumda buton zaten modal kapanınca resetlenir.
 }
-
 
 async function handleQuickAddSubmitAttempt(e) {
     e.preventDefault();
@@ -269,15 +256,14 @@ async function handleQuickAddSubmitAttempt(e) {
         return;
     }
 
-
     const newBetData = {
         user_id: state.currentUser.id,
         platform: platform,
-        bet_type: 'Spor Bahis', // Hızlı ekleme varsayılanı
+        bet_type: 'Spor Bahis',
         description: 'Hızlı bahis',
         bet_amount: amount,
         odds: odds,
-        date: new Date().toISOString().split('T')[0], // Bugünün tarihi
+        date: new Date().toISOString().split('T')[0],
         status: 'pending',
         win_amount: 0,
         profit_loss: 0
@@ -300,48 +286,122 @@ async function handleQuickAddSubmitAttempt(e) {
     setButtonLoading(submitButton, false);
 }
 
-async function handleSaveEditAttempt() {
+// YENİ: Bahis Sonuçlandırma İşleyicisi (resolve-modal için)
+async function handleSaveResolveAttempt() {
     const bet = state.currentlyEditingBet;
-    if (!bet) return;
+    if (!bet || bet.status !== 'pending') {
+         showNotification('Sadece bekleyen bahisler sonuçlandırılabilir.', 'warning');
+        return; // Sadece bekleyen bahisler
+    }
 
-    const statusSelect = document.getElementById('edit-status');
-    const winAmountInput = document.getElementById('edit-win-amount');
-    const tagInput = document.getElementById('edit-tag');
+    const statusSelect = document.getElementById('resolve-status');
+    const winAmountInput = document.getElementById('resolve-win-amount');
+    const saveButton = document.getElementById('save-resolve-btn');
 
-    const status = statusSelect ? statusSelect.value : bet.status;
-    const winAmount = winAmountInput ? parseFloat(winAmountInput.value) : 0;
-    const tag = tagInput ? tagInput.value.trim() : bet.tag; // Mevcut etiketi koru veya yenisini al
+    const status = statusSelect ? statusSelect.value : '';
+    const winAmount = (status === 'won' && winAmountInput) ? parseFloat(winAmountInput.value) : 0;
 
-    // HATA DÜZELTME: Durum 'won' ise kazanç miktarı girilmeli
+    // Hata kontrolü: Sonuç seçilmeli
+    if (!status) {
+         showNotification('Lütfen bir sonuç seçin (Kazandı, Kaybetti, İade).', 'warning');
+         return;
+    }
+     // Hata kontrolü: Durum 'won' ise kazanç miktarı girilmeli
     if (status === 'won' && (isNaN(winAmount) || winAmount <= 0)) {
          showNotification('Kazanan bahisler için geçerli bir Toplam Kazanç miktarı girmelisiniz (0\'dan büyük).', 'warning');
          return;
     }
 
-    let updateData = {
-        status: status,
-        tag: tag || null // Boş etiket null olarak kaydedilsin
-    };
+    let updateData = { status: status };
 
     if (status === 'won') {
         updateData.win_amount = winAmount;
-        // profit_loss hesaplaması: özel oran mı değil mi kontrol et
+        // profit_loss hesaplaması
         const profit = bet.special_odd_id
-            ? (bet.bet_amount * bet.odds) - bet.bet_amount // Özel oransa, oran üzerinden hesapla
-            : winAmount - bet.bet_amount; // Normal bahisse, girilen kazançtan hesapla
+            ? (bet.bet_amount * bet.odds) - bet.bet_amount
+            : winAmount - bet.bet_amount;
         updateData.profit_loss = profit;
     } else if (status === 'lost') {
         updateData.win_amount = 0;
         updateData.profit_loss = -bet.bet_amount;
     } else if (status === 'refunded') {
-        updateData.win_amount = 0; // İade ise kazanç 0
-        updateData.profit_loss = 0; // İade ise kar/zarar 0
-    } else { // pending
         updateData.win_amount = 0;
         updateData.profit_loss = 0;
     }
 
+    setButtonLoading(saveButton, true, 'Kaydediliyor...');
+
+    const { data, error } = await updateBet(state.editingBetId, updateData);
+    if (error) {
+        showNotification('Bahis sonuçlandırılamadı: ' + error.message, 'error');
+    } else if (data && data.length > 0) {
+        const index = state.bets.findIndex(b => b.id === state.editingBetId);
+        if (index !== -1) {
+            state.bets[index] = data[0]; // Güncellenmiş bahsi state'e yansıt
+        }
+        updateAllUI();
+        closeResolveModal(); // Yeni modalı kapat
+        showNotification('✔️ Bahis sonuçlandırıldı!', 'success');
+    } else {
+         showNotification('Bahis sonuçlandırıldı ancak veri alınamadı.', 'warning');
+    }
+     setButtonLoading(saveButton, false);
+}
+
+
+// Bahis Düzenleme/Etiketleme İşleyicisi (edit-modal için)
+async function handleSaveEditAttempt() {
+    const bet = state.currentlyEditingBet;
+    if (!bet) return; // Düzenlenecek bahis yoksa çık
+
+    const tagInput = document.getElementById('edit-tag');
+    const statusSelect = document.getElementById('edit-status');
+    const winAmountInput = document.getElementById('edit-win-amount');
     const saveButton = document.getElementById('save-edit-btn');
+
+    // Sadece etiketi al (her durumda güncellenecek)
+    const tag = tagInput ? tagInput.value.trim() : bet.tag;
+
+    let updateData = { tag: tag || null }; // Etiketi her zaman al, boşsa null yap
+
+    // Eğer bahis sonuçlanmışsa veya modal'da sonuç bölümü görünürse, sonucu da al
+    const resultSection = document.getElementById('edit-result-section');
+    if (resultSection && resultSection.style.display !== 'none') {
+        const status = statusSelect ? statusSelect.value : bet.status; // Yeni veya mevcut durumu al
+        const winAmount = (status === 'won' && winAmountInput) ? parseFloat(winAmountInput.value) : 0;
+
+        // Hata kontrolü: Durum 'won' ise kazanç miktarı girilmeli (sonuçlanmış bahis düzenleniyorsa)
+        if (status === 'won' && (isNaN(winAmount) || winAmount <= 0)) {
+            showNotification('Kazanan bahisleri düzenlerken geçerli bir Toplam Kazanç miktarı girmelisiniz (0\'dan büyük).', 'warning');
+            return;
+        }
+
+        updateData.status = status; // Durumu güncelleme objesine ekle
+
+        // Kar/Zarar ve Kazanç Miktarını hesapla/ayarla
+        if (status === 'won') {
+            updateData.win_amount = winAmount;
+            const profit = bet.special_odd_id
+                ? (bet.bet_amount * bet.odds) - bet.bet_amount
+                : winAmount - bet.bet_amount;
+            updateData.profit_loss = profit;
+        } else if (status === 'lost') {
+            updateData.win_amount = 0;
+            updateData.profit_loss = -bet.bet_amount;
+        } else if (status === 'refunded') {
+            updateData.win_amount = 0;
+            updateData.profit_loss = 0;
+        } else { // pending (bekleyene geri döndürme durumu)
+            updateData.win_amount = 0;
+            updateData.profit_loss = 0;
+        }
+    } else if (bet.status === 'pending') {
+        // Eğer bahis bekliyorsa ve sadece etiketleniyorsa (sonuç bölümü gizli),
+        // mevcut durumunu (pending) ve sıfır win/profit değerlerini koru.
+        // updateData objesine status, win_amount, profit_loss ekleme.
+        // Sadece 'tag' güncellenecek.
+    }
+
     setButtonLoading(saveButton, true, 'Kaydediliyor...');
 
     const { data, error } = await updateBet(state.editingBetId, updateData);
@@ -350,7 +410,8 @@ async function handleSaveEditAttempt() {
     } else if (data && data.length > 0) {
         const index = state.bets.findIndex(b => b.id === state.editingBetId);
         if (index !== -1) {
-            state.bets[index] = data[0]; // Güncellenmiş bahsi state'e yansıt
+             // State'i güncelle: Mevcut bahsin üzerine yeni verileri ekle
+            state.bets[index] = { ...state.bets[index], ...data[0] };
         }
         updateAllUI();
         closeEditModal();
@@ -361,30 +422,29 @@ async function handleSaveEditAttempt() {
      setButtonLoading(saveButton, false);
 }
 
+
 async function handleDeleteBetAttempt(betId) {
-    // Önce kullanıcıya onay sorusu göster
     const confirmation = confirm('Bu kaydı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.');
-    if (!confirmation) return; // Kullanıcı iptal ederse işlemi durdur
+    if (!confirmation) return;
 
     const { error } = await deleteBet(betId);
     if (error) {
         showNotification('Kayıt silinemedi: ' + error.message, 'error');
     } else {
-        // State'i güncelle: Silinen bahsi listeden çıkar
         updateState({ bets: state.bets.filter(b => b.id !== betId) });
-        updateAllUI(); // Arayüzü yeniden çiz
-        showNotification('🗑️ Kayıt silindi.', 'error'); // Bilgi mesajı göster (tip 'error' ama içerik bilgi)
+        updateAllUI();
+        showNotification('🗑️ Kayıt silindi.', 'error');
     }
 }
 
 async function handleCashTransactionAttempt(type) {
     const amountInput = document.getElementById('cash-amount');
-    const descriptionInput = document.getElementById('cash-description'); // GÖREV 3.3: Açıklama input'unu al
+    const descriptionInput = document.getElementById('cash-description');
     const depositBtn = document.getElementById('cash-deposit-btn');
     const withdrawalBtn = document.getElementById('cash-withdrawal-btn');
 
     let amount = amountInput ? parseFloat(amountInput.value) : NaN;
-    let description = descriptionInput ? descriptionInput.value.trim() : ''; // GÖREV 3.3: Açıklamayı al
+    let description = descriptionInput ? descriptionInput.value.trim() : '';
 
     if (isNaN(amount) || amount <= 0) {
         showNotification('Lütfen geçerli bir miktar girin (0\'dan büyük).', 'error');
@@ -393,26 +453,23 @@ async function handleCashTransactionAttempt(type) {
 
     const isDeposit = type === 'deposit';
     const profitLoss = isDeposit ? amount : -amount;
-
-    // GÖREV 3.3: Açıklama boşsa varsayılanı kullan
     if (!description) {
         description = isDeposit ? 'Para Ekleme' : 'Para Çekme';
     }
 
     const cashTransaction = {
         user_id: state.currentUser.id,
-        platform: 'Kasa İşlemi', // Sabit platform adı
-        bet_type: 'Kasa İşlemi', // Sabit bahis türü
-        description: description, // GÖREV 3.3: Kullanıcının girdiği veya varsayılan açıklama
-        bet_amount: Math.abs(amount), // Her zaman pozitif miktar
-        odds: 1, // Kasa işlemi için oran 1
-        date: new Date().toISOString().split('T')[0], // Bugünün tarihi
-        status: isDeposit ? 'won' : 'lost', // Teknik olarak durumu belirtir
-        win_amount: isDeposit ? amount : 0, // Yatırmada kazanç miktarı
-        profit_loss: profitLoss, // Kasa hareketini yansıtır
+        platform: 'Kasa İşlemi',
+        bet_type: 'Kasa İşlemi',
+        description: description,
+        bet_amount: Math.abs(amount),
+        odds: 1,
+        date: new Date().toISOString().split('T')[0],
+        status: isDeposit ? 'won' : 'lost',
+        win_amount: isDeposit ? amount : 0,
+        profit_loss: profitLoss,
     };
 
-    // İlgili butonu yükleme durumuna al
     const currentBtn = isDeposit ? depositBtn : withdrawalBtn;
     setButtonLoading(currentBtn, true, 'Kaydediliyor...');
 
@@ -420,16 +477,14 @@ async function handleCashTransactionAttempt(type) {
     if (error) {
         showNotification('Kasa işlemi kaydedilemedi: ' + error.message, 'error');
     } else if (data && data.length > 0) {
-        state.bets.unshift(data[0]); // Yeni işlemi listenin başına ekle
+        state.bets.unshift(data[0]);
         updateAllUI();
-        closeCashTransactionModal(); // Modalı kapat ve alanları temizle
+        closeCashTransactionModal();
         showNotification(`💸 Kasa işlemi kaydedildi: ${profitLoss.toFixed(2)} ₺`, 'success');
     } else {
         showNotification('Kasa işlemi eklendi ancak veri alınamadı.', 'warning');
     }
-
-    // Butonu normal durumuna döndür
-    setButtonLoading(depositBtn, false);
+    setButtonLoading(depositBtn, false); // Her iki butonu da normale döndür
     setButtonLoading(withdrawalBtn, false);
 }
 
@@ -438,19 +493,16 @@ async function handleAddPlatformAttempt(fromModal = false) {
     const input = document.getElementById(inputId);
     const name = input ? input.value.trim() : '';
 
-    // Platform adı boş olamaz
     if (!name) {
         showNotification('Platform adı boş olamaz.', 'warning');
         return;
     }
 
-    // Varsayılan ve özel platformları birleştir, küçük harfe çevirerek kontrol et
     const allPlatformsLower = [
         ...DEFAULT_PLATFORMS.map(p => p.toLowerCase()),
         ...state.customPlatforms.map(p => p.name.toLowerCase())
     ];
 
-    // Platform zaten mevcut mu kontrol et
     if (allPlatformsLower.includes(name.toLowerCase())) {
         showNotification('Bu platform zaten mevcut.', 'warning');
         return;
@@ -460,17 +512,11 @@ async function handleAddPlatformAttempt(fromModal = false) {
     if (error) {
         showNotification('Platform eklenemedi: ' + error.message, 'error');
     } else if (data && data.length > 0) {
-        state.customPlatforms.push(data[0]); // Yeni platformu state'e ekle
-        if (input) input.value = ''; // Input alanını temizle
-
-        // Arayüzleri güncelle
-        if (fromModal) {
-            renderCustomPlatformsModal(); // Modal içindeki listeyi güncelle
-        } else {
-            renderCustomPlatforms(); // Ayarlar sayfasındaki listeyi güncelle
-        }
-        populatePlatformOptions(); // Tüm platform select dropdown'larını güncelle
-
+        state.customPlatforms.push(data[0]);
+        if (input) input.value = '';
+        if (fromModal) renderCustomPlatformsModal();
+        else renderCustomPlatforms();
+        populatePlatformOptions();
         showNotification(`✅ "${name}" platformu eklendi!`, 'success');
     } else {
          showNotification('Platform eklendi ancak veri alınamadı.', 'warning');
@@ -485,14 +531,10 @@ async function handleRemovePlatformAttempt(platformId, platformName) {
     if (error) {
         showNotification('Platform silinemedi: ' + error.message, 'error');
     } else {
-        // State'i güncelle: Silinen platformu listeden çıkar
         updateState({ customPlatforms: state.customPlatforms.filter(p => p.id !== platformId) });
-
-        // Arayüzleri güncelle
-        renderCustomPlatforms(); // Ayarlar sayfasındaki listeyi güncelle
-        renderCustomPlatformsModal(); // Modal içindeki listeyi güncelle
-        populatePlatformOptions(); // Tüm platform select dropdown'larını güncelle
-
+        renderCustomPlatforms();
+        renderCustomPlatformsModal();
+        populatePlatformOptions();
         showNotification(`🗑️ "${platformName}" platformu silindi`, 'error');
     }
 }
@@ -501,12 +543,10 @@ async function handleClearAllDataAttempt() {
     const confirmation = confirm('DİKKAT! TÜM KİŞİSEL VERİLERİNİZİ (BAHİS KAYITLARI, ÖZEL PLATFORMLAR) KALICI OLARAK SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem geri alınamaz!');
     if (!confirmation) return;
 
-    // Butonu yükleme durumuna al (her iki sayfada da olabilir)
     const clearBtn1 = document.getElementById('clear-all-btn');
     const clearBtn2 = document.getElementById('clear-all-settings-btn');
     if (clearBtn1) setButtonLoading(clearBtn1, true, 'Siliniyor...');
     if (clearBtn2) setButtonLoading(clearBtn2, true, 'Siliniyor...');
-
 
     const [betsRes, platformsRes] = await Promise.all([
         clearAllBetsForUser(state.currentUser.id),
@@ -517,36 +557,29 @@ async function handleClearAllDataAttempt() {
         console.error("Veri silme hatası:", betsRes.error || platformsRes.error);
         showNotification('Veriler silinirken bir hata oluştu. Lütfen tekrar deneyin.', 'error');
     } else {
-        // State'i sıfırla
         updateState({ bets: [], customPlatforms: [] });
-        // Arayüzü güncelle
         updateAllUI();
         populatePlatformOptions();
         renderCustomPlatforms();
-        renderCustomPlatformsModal(); // Platform modalını da güncelle
+        renderCustomPlatformsModal();
         showNotification('🗑️ Tüm kişisel verileriniz başarıyla silindi!', 'error');
     }
-
-    // Butonları normal durumuna döndür
     if (clearBtn1) setButtonLoading(clearBtn1, false);
     if (clearBtn2) setButtonLoading(clearBtn2, false);
 }
 
 async function handleUserAnalyzeBetSlip() {
-    // HATA DÜZELTME: Doğru state değişkenini kontrol et
     if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
     const geminiButton = document.getElementById('gemini-analyze-btn');
-    setButtonLoading(geminiButton, true, 'Kasamatik AI Okuyor...'); // Metin güncellendi
+    setButtonLoading(geminiButton, true, 'Kasamatik AI Okuyor...');
 
     try {
         const base64Data = state.currentImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
-
         if (result) {
-            // Sonuçları ilgili alanlara doldur
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
                 const descriptionText = result.matches
                     .map(match => `${match.matchName} (${match.bets.join(', ')})`)
@@ -556,20 +589,17 @@ async function handleUserAnalyzeBetSlip() {
             }
             const betAmountInput = document.getElementById('bet-amount');
             if (result.betAmount && betAmountInput) betAmountInput.value = result.betAmount;
-
             const oddsInput = document.getElementById('odds');
             if (result.odds && oddsInput) oddsInput.value = result.odds;
-
             showNotification('✨ Kupon bilgileri başarıyla okundu!', 'success');
         } else {
-            // API'den beklenen formatta cevap gelmezse
             throw new Error("API'den geçerli bir sonuç alınamadı veya sonuç boş.");
         }
     } catch (error) {
         console.error('Kupon okuma (Gemini API) Hatası:', error);
         showNotification(`Kupon okunurken bir hata oluştu: ${error.message}`, 'error');
     } finally {
-        setButtonLoading(geminiButton, false); // Butonu her durumda normale döndür
+        setButtonLoading(geminiButton, false);
     }
 }
 
@@ -579,7 +609,7 @@ async function handleAdminAnalyzeBetSlip() {
         return;
     }
     const geminiButton = document.getElementById('admin-gemini-analyze-btn');
-    setButtonLoading(geminiButton, true, 'Kasamatik AI Okuyor...'); // Metin güncellendi
+    setButtonLoading(geminiButton, true, 'Kasamatik AI Okuyor...');
 
     try {
         const base64Data = state.adminImageData.split(',')[1];
@@ -594,7 +624,6 @@ async function handleAdminAnalyzeBetSlip() {
             }
              const oddsInput = document.getElementById('special-odd-odds');
             if (result.odds && oddsInput) oddsInput.value = result.odds;
-
             showNotification('✨ Fırsat bilgileri başarıyla okundu!', 'success');
         } else {
             throw new Error("API'den geçerli bir sonuç alınamadı.");
@@ -607,45 +636,37 @@ async function handleAdminAnalyzeBetSlip() {
     }
 }
 
-// GÖREV 1.4: Panodan resim yapıştırma işleyicisi
 async function handlePasteFromClipboard(type) {
     try {
         if (!navigator.clipboard || !navigator.clipboard.read) {
             showNotification('Tarayıcınız panodan okumayı desteklemiyor.', 'warning');
             return;
         }
-
-        showNotification('📋 Pano okunuyor...', 'info', 2000); // Kullanıcıya geri bildirim
+        showNotification('📋 Pano okunuyor...', 'info', 2000);
         const items = await navigator.clipboard.read();
         let imageBlob = null;
-
-        // Panodaki öğeleri dolaşarak bir resim bulmaya çalış
         for (const item of items) {
             const imageType = item.types.find(type => type.startsWith('image/'));
             if (imageType) {
                 imageBlob = await item.getType(imageType);
-                break; // İlk bulunan resmi al ve döngüden çık
+                break;
             }
         }
-
         if (imageBlob) {
-            // Blob'u File objesine çevir (handleImageFile bunu bekliyor)
-            const fileName = `pasted-image-${Date.now()}.png`; // Benzersiz dosya adı
+            const fileName = `pasted-image-${Date.now()}.png`;
             const file = new File([imageBlob], fileName, { type: imageBlob.type });
-            handleImageFile(file, type); // ui_helpers'dan gelen fonksiyonu çağır
+            handleImageFile(file, type);
             showNotification('✅ Resim panodan başarıyla yapıştırıldı!', 'success');
         } else {
             showNotification('Panoda yapıştırılacak bir resim bulunamadı.', 'warning');
         }
     } catch (err) {
         console.error('Panodan yapıştırma hatası:', err);
-        // İzin hatalarını veya diğer sorunları kullanıcıya bildir
         if (err.name === 'NotAllowedError' || err.name === 'SecurityError' || err.message.includes('permission')) {
              showNotification('Panodan okuma izni gerekli. Tarayıcı ayarlarınızı kontrol edin.', 'error');
         } else if (err.name === 'NotFoundError') {
              showNotification('Panoda okunacak veri bulunamadı.', 'warning');
-        }
-         else {
+        } else {
              showNotification('Panodan okuma sırasında bir hata oluştu.', 'error');
         }
     }
@@ -667,7 +688,6 @@ async function handlePublishSpecialOdd(e) {
     const platform = platformInput ? platformInput.value.trim() : '';
     const maxBetAmount = maxBetInput ? parseFloat(maxBetInput.value) : null;
 
-    // HATA DÜZELTME: Zorunlu alan kontrolü
     if (!description || !platform) {
         showNotification('Lütfen Açıklama ve Platform alanlarını doldurun.', 'warning');
         return;
@@ -681,30 +701,29 @@ async function handlePublishSpecialOdd(e) {
          return;
     }
 
-
     setButtonLoading(button, true, 'Yayınlanıyor...');
 
     const oddData = {
         description: description,
         odds: odds,
         platform: platform,
-        max_bet_amount: maxBetAmount, // null veya geçerli sayı
+        max_bet_amount: maxBetAmount,
         primary_link_text: document.getElementById('special-odd-primary-link-text')?.value || null,
         primary_link_url: document.getElementById('special-odd-primary-link-url')?.value || null,
         secondary_link_text: document.getElementById('special-odd-secondary-link-text')?.value || null,
         secondary_link_url: document.getElementById('special-odd-secondary-link-url')?.value || null,
-        status: 'pending' // Yeni fırsatlar her zaman bekleyen başlar
+        status: 'pending'
     };
 
     const { data, error } = await addSpecialOdd(oddData);
     if (error) {
         showNotification('Fırsat yayınlanamadı: ' + error.message, 'error');
     } else if (data && data.length > 0){
-        state.specialOdds.unshift(data[0]); // Yeni fırsatı listenin başına ekle
-        renderActiveSpecialOdds(); // Admin panelindeki listeyi güncelle
-        renderSpecialOddsPage(); // Fırsatlar sayfasını güncelle
-        form.reset(); // Formu temizle
-        removeImage('admin'); // Admin resim önizlemesini kaldır
+        state.specialOdds.unshift(data[0]);
+        renderActiveSpecialOdds();
+        renderSpecialOddsPage();
+        form.reset();
+        removeImage('admin');
         showNotification('📢 Yeni fırsat başarıyla yayınlandı!', 'success');
     } else {
          showNotification('Fırsat yayınlandı ancak veri alınamadı.', 'warning');
@@ -717,27 +736,24 @@ async function handleResolveSpecialOdd(id, status) {
     const confirmation = confirm(`Bu fırsatı "${status.toUpperCase()}" olarak işaretlemek istediğinizden emin misiniz? Bu işlem, bu bahsi oynayan tüm kullanıcıları etkileyecektir.`);
     if (!confirmation) return;
 
-    // İlgili butonu bul ve yükleme durumuna al (event delegation'dan dolayı biraz dolaylı)
     const button = document.querySelector(`button[data-action="resolve-special-odd"][data-id="${id}"][data-status="${status}"]`);
     if (button) setButtonLoading(button, true);
 
-    const { data, error } = await updateSpecialOdd(id, { status: status }); // status'u gönder
+    const { data, error } = await updateSpecialOdd(id, { status: status });
     if(error) {
         showNotification('Fırsat durumu güncellenemedi: ' + error.message, 'error');
     } else if (data && data.length > 0) {
         const index = state.specialOdds.findIndex(o => o.id === parseInt(id));
         if(index > -1) {
-            state.specialOdds[index] = data[0]; // State'i güncelle
+            state.specialOdds[index] = data[0];
         }
-        renderActiveSpecialOdds(); // Admin panelindeki listeyi güncelle
-        renderSpecialOddsPage(); // Fırsatlar sayfasını güncelle
-        updateAllUI(); // Genel UI güncellemesi (özellikle bahis geçmişi için)
+        renderActiveSpecialOdds();
+        renderSpecialOddsPage();
+        updateAllUI();
         showNotification(`Fırsat durumu "${status.toUpperCase()}" olarak güncellendi!`, 'info');
     } else {
         showNotification('Fırsat güncellendi ancak veri alınamadı.', 'warning');
     }
-
-    // Tüm çözümle butonlarını normale döndür (hangisine basıldığını spesifik tutmak zor)
     document.querySelectorAll(`button[data-action="resolve-special-odd"][data-id="${id}"]`).forEach(btn => {
          setButtonLoading(btn, false);
     });
@@ -745,22 +761,17 @@ async function handleResolveSpecialOdd(id, status) {
 
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
-    // Mevcut listener'lar varsa temizle (tekrarlı eklemeyi önlemek için)
-    // Bu kısım UI güncellemeleri sonrası butonların çalışmama sorununu çözebilir
-    const oldBody = document.body;
-    const newBody = oldBody.cloneNode(true);
-    oldBody.parentNode.replaceChild(newBody, oldBody);
-    state.listenersAttached = false; // Tekrar bağlanacağını belirt
+    // BUG FIX: Olay dinleyicilerini tekrar tekrar eklemeyi önle
+    if (state.listenersAttached) {
+        console.log("Event listeners zaten bağlı.");
+        return;
+    }
+    console.log("setupEventListeners çağrılıyor - İlk kez.");
 
-    // Şimdi listener'ları yeniden ekle
-    if (state.listenersAttached) return;
-
-    console.log("setupEventListeners çağrılıyor.");
-
-    // Tüm butonlara varsayılan metni data attribute olarak ekle
+    // Tüm butonlara varsayılan metni data attribute olarak ekle (sadece bir kez)
     document.querySelectorAll('button').forEach(button => {
         const textElement = button.querySelector('.btn-text');
-        if (textElement && !button.dataset.defaultText) { // Sadece yoksa ekle
+        if (textElement && !button.dataset.defaultText) {
             button.dataset.defaultText = textElement.textContent;
         }
     });
@@ -768,13 +779,12 @@ export function setupEventListeners() {
     // Auth
     DOM.get('loginBtn')?.addEventListener('click', handleLoginAttempt);
     DOM.get('signupBtn')?.addEventListener('click', handleSignUpAttempt);
-    DOM.get('logoutBtn')?.addEventListener('click', () => signOut().catch(err => console.error("Çıkış hatası:", err))); // Çıkışta hata olursa yakala
+    DOM.get('logoutBtn')?.addEventListener('click', () => signOut().catch(err => console.error("Çıkış hatası:", err)));
 
     const forgotPasswordLink = DOM.get('forgotPasswordLink');
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log("Şifremi Unuttum tıklandı.");
             openModal('password-reset-modal');
         });
     }
@@ -786,7 +796,6 @@ export function setupEventListeners() {
     // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => {
-             // Tıklanan öğenin kendisini ve section adını al
              const sectionName = item.dataset.section;
              if (sectionName) {
                  showSection(sectionName, item);
@@ -801,12 +810,11 @@ export function setupEventListeners() {
     document.getElementById('quick-add-form')?.addEventListener('submit', handleQuickAddSubmitAttempt);
     document.getElementById('special-odd-form')?.addEventListener('submit', handlePublishSpecialOdd);
 
-    // Clicks on dynamically generated content (Event Delegation - Ana gövdeye bağla)
+    // Ana olay dinleyicisi (Event Delegation - Sadece bir kez body'e eklenir)
     document.body.addEventListener('click', e => {
-        const target = e.target.closest('[data-action]'); // data-action içeren en yakın parent'ı bul
-        if (!target) return; // Eğer tıklanan yer veya parent'ı data-action içermiyorsa çık
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
 
-        // Tıklanan elementin data attribute'larını al
         const action = target.dataset.action;
         const id = target.dataset.id ? parseInt(target.dataset.id, 10) : null;
         const name = target.dataset.name;
@@ -814,17 +822,17 @@ export function setupEventListeners() {
         const src = target.dataset.src;
         const period = target.dataset.period;
         const status = target.dataset.status;
-        const section = target.dataset.section; // Dashboard'daki "Tümünü Gör" butonu için
+        const section = target.dataset.section;
 
-        console.log("data-action tıklandı:", { action, id, name, page, src, period, status, section }); // Tıklamayı logla
+        // console.log("data-action tıklandı:", { action, id, name, page, src, period, status, section });
 
-        // Aksiyona göre ilgili fonksiyonu çağır
         switch (action) {
+            // YENİ: Resolve Modal Açma
+            case 'open-resolve-modal':
+                if (id !== null) openResolveModal(id);
+                break;
             case 'open-edit-modal':
-                if (id !== null) {
-                    console.log(`openEditModal çağrılıyor - ID: ${id}`); // Log eklendi
-                    openEditModal(id);
-                }
+                if (id !== null) openEditModal(id);
                 break;
             case 'delete-bet':
                 if (id !== null) handleDeleteBetAttempt(id);
@@ -846,21 +854,24 @@ export function setupEventListeners() {
                     const periodNum = parseInt(period, 10);
                     if (!isNaN(periodNum)) {
                          updateState({ dashboardPeriod: periodNum });
-                         updatePerformanceSummary(); // Sadece performans özetini güncelle
+                         updatePerformanceSummary();
+                         // Aktif butonu güncelle
+                         document.querySelectorAll('#performance-period-buttons .period-btn').forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.period === period);
+                         });
                     }
                 }
                 break;
             case 'set-history-period':
                  if (period !== undefined) {
                     updateState({ filters: { ...state.filters, period: period === 'all' ? 'all' : parseInt(period, 10) }, currentPage: 1 });
-                    // Aktif butonu güncelle
                     document.querySelectorAll('#history-period-buttons .period-btn').forEach(btn => {
                         btn.classList.toggle('active', btn.dataset.period === period);
                     });
-                    renderHistory(); // Geçmişi yeniden render et
+                    renderHistory();
                  }
                 break;
-            case 'resolve-special-odd':
+            case 'resolve-special-odd': // Admin panelindeki butonlar
                 if (id !== null && status) handleResolveSpecialOdd(id, status);
                 break;
             case 'open-play-special-odd-modal':
@@ -876,7 +887,7 @@ export function setupEventListeners() {
                     import('./admin_actions.js').then(module => module.handleDeleteAd(id)).catch(err => console.error("Admin actions yüklenemedi:", err));
                 }
                 break;
-             case 'navigate-section': // Dashboard'daki "Tümünü Gör" için
+             case 'navigate-section':
                  if (section) {
                     const targetSidebarItem = document.querySelector(`.sidebar-item[data-section="${section}"]`);
                     if (targetSidebarItem) {
@@ -887,28 +898,38 @@ export function setupEventListeners() {
         }
     });
 
-    // Fırsatı Oyna Modal (Modal'ın kendisine listener ekle)
-    const specialOddModal = document.getElementById('special-odd-modal');
-    specialOddModal?.addEventListener('click', (e) => {
-        if (e.target.id === 'close-play-special-odd-modal') {
-            closePlaySpecialOddModal();
-        }
-        // Butonun kendisi veya içindeki span ise (loader/text)
-        if (e.target.closest('#confirm-play-special-odd')) {
-             handlePlaySpecialOdd(document.getElementById('confirm-play-special-odd'));
-        }
+    // Modal İçi Olay Dinleyicileri (Modalların kendilerine eklenir)
+
+    // Fırsatı Oyna Modalı
+    document.getElementById('special-odd-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'close-play-special-odd-modal') closePlaySpecialOddModal();
+        if (e.target.closest('#confirm-play-special-odd')) handlePlaySpecialOdd(document.getElementById('confirm-play-special-odd'));
     });
 
-    // Edit Modal (Modal'ın kendisine listener ekle)
-    const editModal = document.getElementById('edit-modal');
-    editModal?.addEventListener('click', (e) => {
-        if (e.target.id === 'close-edit-btn') {
-            closeEditModal();
-        }
-         // Butonun kendisi veya içindeki span ise (loader/text)
-        if (e.target.closest('#save-edit-btn')) {
-            handleSaveEditAttempt();
-        }
+    // Düzenleme/Etiketleme Modalı
+    document.getElementById('edit-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'close-edit-btn') closeEditModal();
+        if (e.target.closest('#save-edit-btn')) handleSaveEditAttempt();
+    });
+
+    // YENİ: Sonuçlandırma Modalı
+    document.getElementById('resolve-modal')?.addEventListener('click', (e) => {
+         if (e.target.id === 'close-resolve-btn') closeResolveModal();
+         if (e.target.closest('#save-resolve-btn')) handleSaveResolveAttempt();
+    });
+
+    // Kasa İşlemi Modalı
+    document.getElementById('cash-transaction-modal')?.addEventListener('click', (e) => {
+         if (e.target.id === 'cash-transaction-close-btn') closeCashTransactionModal();
+         else if (e.target.closest('#cash-deposit-btn')) handleCashTransactionAttempt('deposit');
+         else if (e.target.closest('#cash-withdrawal-btn')) handleCashTransactionAttempt('withdrawal');
+    });
+
+    // Platform Yöneticisi Modalı
+    document.getElementById('platform-manager-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'close-platform-manager-btn') closePlatformManager();
+        if (e.target.closest('#add-platform-modal-btn')) handleAddPlatformAttempt(true);
+        // Silme işlemi event delegation ile body listener'da ele alınıyor (remove-platform)
     });
 
 
@@ -929,7 +950,7 @@ export function setupEventListeners() {
             state.filters.searchTerm = e.target.value;
             updateState({ currentPage: 1 });
             renderHistory();
-        }, 300); // 300ms bekleme süresi
+        }, 300);
     });
 
     // Fırsatlar Sayfası Filtreleme
@@ -946,48 +967,42 @@ export function setupEventListeners() {
         renderSpecialOddsPage();
     });
 
-
+    // İstatistikler Sayfası Filtre Sıfırlama
      document.getElementById('stats-reset-filters-btn')?.addEventListener('click', () => {
-        updateState({ statsFilters: { dateRange: { start: null, end: null } } }); // State'i güncelle
+        updateState({ statsFilters: { dateRange: { start: null, end: null } } });
         const datePicker = document.getElementById('stats-date-range-filter')?._flatpickr;
         if(datePicker) datePicker.clear();
-        updateStatisticsPage(); // İstatistikleri yeniden hesapla ve çiz
-        updateCharts(); // Grafikleri de güncelle
+        updateStatisticsPage();
+        updateCharts();
     });
 
-    // Diğer UI etkileşimleri
+    // Diğer Butonlar
     document.getElementById('reset-form-btn')?.addEventListener('click', () => resetForm());
     document.getElementById('admin-gemini-analyze-btn')?.addEventListener('click', handleAdminAnalyzeBetSlip);
     document.getElementById('gemini-analyze-btn')?.addEventListener('click', handleUserAnalyzeBetSlip);
-
-    document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt);
-    document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt);
-
-    // Modals (Açma Butonları)
+    document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt); // History sayfasındaki
+    document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt); // Ayarlar sayfasındaki
     document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal);
-    document.getElementById('quick-add-btn')?.addEventListener('click', openQuickAddModal);
-    document.getElementById('cash-transaction-btn')?.addEventListener('click', openCashTransactionModal);
-    document.getElementById('platform-manager-btn')?.addEventListener('click', openPlatformManager);
-
-    // Modals (Kapatma Butonları - closeModal içinde handle ediliyor genelde)
-    document.getElementById('close-quick-add-btn')?.addEventListener('click', closeQuickAddModal);
-    // document.getElementById('close-edit-btn') -> Modal içindeki listener ile handle ediliyor
-    document.getElementById('image-modal')?.addEventListener('click', closeImageModal); // Resme tıklayınca kapatma
+    document.getElementById('quick-add-btn')?.addEventListener('click', openQuickAddModal); // Dashboard hızlı işlem
+    document.getElementById('cash-transaction-btn')?.addEventListener('click', openCashTransactionModal); // Dashboard hızlı işlem
+    document.getElementById('platform-manager-btn')?.addEventListener('click', openPlatformManager); // Yeni Kayıt sayfasındaki
+    document.getElementById('image-modal')?.addEventListener('click', closeImageModal);
     document.getElementById('close-ad-popup-btn')?.addEventListener('click', closeAdPopup);
+    document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false)); // Ayarlar sayfasındaki
 
-    // Image Upload (Setup Fonksiyonu)
+
+    // Image Upload Setup (Setup Fonksiyonu)
     const setupImageUpload = (type) => {
         const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
         const imageInput = document.getElementById(`${prefix}image-input`);
         const selectBtn = document.getElementById(`${prefix}image-select-btn`);
         const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
         const uploadArea = document.getElementById(`${prefix}image-upload-area`);
-        const pasteBtn = document.getElementById(`${prefix}paste-image-btn`); // Panodan yapıştır butonu
+        const pasteBtn = document.getElementById(`${prefix}paste-image-btn`);
 
         if (!imageInput || !selectBtn || !removeBtn || !uploadArea) return;
 
         selectBtn.addEventListener('click', () => imageInput.click());
-        // Panodan yapıştır butonu varsa listener ekle
         if (pasteBtn) pasteBtn.addEventListener('click', () => handlePasteFromClipboard(type));
         imageInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
@@ -996,16 +1011,10 @@ export function setupEventListeners() {
         });
         removeBtn.addEventListener('click', () => removeImage(type));
 
-        // Sürükle-Bırak Alanı
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             uploadArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (eventName === 'dragenter' || eventName === 'dragover') {
-                    uploadArea.classList.add('dragover');
-                } else {
-                    uploadArea.classList.remove('dragover');
-                }
+                e.preventDefault(); e.stopPropagation();
+                uploadArea.classList.toggle('dragover', eventName === 'dragenter' || eventName === 'dragover');
                 if (eventName === 'drop' && e.dataTransfer?.files?.length > 0) {
                      handleImageFile(e.dataTransfer.files[0], type);
                 }
@@ -1021,30 +1030,21 @@ export function setupEventListeners() {
         try {
             const items = e.clipboardData?.items;
             if (!items) return;
-
-            // Yapıştırılan öğeler arasında bir resim dosyası ara
             const file = Array.from(items).find(item => item.type.startsWith('image/'))?.getAsFile();
-            if (!file) return; // Resim yoksa çık
+            if (!file) return;
 
-            // Hangi yükleme alanının aktif olduğunu belirle
             let activeType = null;
             const quickAddModal = document.getElementById('quick-add-modal');
-            const specialOddForm = document.getElementById('special-odd-form'); // Admin panelindeki form
+            const specialOddForm = document.getElementById('special-odd-form');
 
-            if (state.currentSection === 'new-bet') {
-                 activeType = 'main';
-            } else if (quickAddModal && !quickAddModal.classList.contains('hidden')) {
-                activeType = 'quick';
-            } else if (state.currentSection === 'settings' && specialOddForm && state.currentUser?.id === ADMIN_USER_ID) {
-                 // Sadece admin ise ve ayarlar sayfasındaysa admin yapıştırmasını kabul et
-                 activeType = 'admin';
-            }
+            if (state.currentSection === 'new-bet') activeType = 'main';
+            else if (quickAddModal && !quickAddModal.classList.contains('hidden')) activeType = 'quick';
+            else if (state.currentSection === 'settings' && specialOddForm && state.currentUser?.id === ADMIN_USER_ID) activeType = 'admin';
 
-            // Eğer uygun bir yükleme alanı aktifse, resmi işle
             if (activeType) {
                 handleImageFile(file, activeType);
                  showNotification('📋 Resim panodan yapıştırıldı!', 'success');
-                 e.preventDefault(); // Tarayıcının varsayılan yapıştırma işlemini engelle
+                 e.preventDefault();
             }
         } catch (pasteError) {
              console.error("Genel yapıştırma hatası:", pasteError);
@@ -1052,29 +1052,12 @@ export function setupEventListeners() {
         }
     });
 
-    // Platform Management
-    document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false));
-    document.getElementById('add-platform-modal-btn')?.addEventListener('click', () => handleAddPlatformAttempt(true));
-    document.getElementById('close-platform-manager-btn')?.addEventListener('click', closePlatformManager);
-
-    // Cash Management (Modal içindeki butonlar)
-    const cashModal = document.getElementById('cash-transaction-modal');
-    cashModal?.addEventListener('click', (e) => {
-         if (e.target.id === 'cash-transaction-close-btn') {
-            closeCashTransactionModal();
-        } else if (e.target.closest('#cash-deposit-btn')) {
-             handleCashTransactionAttempt('deposit');
-        } else if (e.target.closest('#cash-withdrawal-btn')) {
-             handleCashTransactionAttempt('withdrawal');
-        }
-    });
-
-    // Dinamik admin eylemleri için modül yükleme
+    // Dinamik admin eylemleri için modül yükleme (sadece bir kez)
     if (state.currentUser?.id === ADMIN_USER_ID) {
         import('./admin_actions.js')
             .then(module => {
                 if (module && typeof module.setupAdminEventListeners === 'function') {
-                    module.setupAdminEventListeners();
+                    module.setupAdminEventListeners(); // Admin form submit listener'larını ekler
                 } else {
                      console.error("Admin actions modülünde 'setupAdminEventListeners' fonksiyonu bulunamadı.");
                 }
@@ -1082,8 +1065,8 @@ export function setupEventListeners() {
             .catch(err => console.error("Admin actions modülü yüklenemedi:", err));
     }
 
-
-    updateState({ listenersAttached: true });
+    updateState({ listenersAttached: true }); // Listener'ların bağlandığını işaretle
     console.log("Event listeners başarıyla bağlandı.");
 }
+
 

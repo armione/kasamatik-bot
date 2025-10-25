@@ -181,7 +181,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.19</p> <!-- Sürüm güncellendi -->
+                    <p class="text-xs text-gray-500 sidebar-text">v2.20</p> <!-- Sürüm güncellendi -->
                 </div>
             </div>
         </div>
@@ -279,7 +279,8 @@
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text">📋 Son Bahisler</h3>
-                        <button id="show-history-btn" data-section="history" class="sidebar-item text-blue-400 hover:text-blue-300 text-sm p-0 m-0 bg-transparent"> <!-- Buton sidebar-item gibi davranacak -->
+                        <!-- Buton düzeltildi: data-action eklendi -->
+                        <button id="show-history-btn" data-action="navigate-section" data-section="history" class="text-blue-400 hover:text-blue-300 text-sm">
                             Tümünü Gör →
                         </button>
                     </div>
@@ -1005,6 +1006,12 @@
                         <input type="number" id="cash-amount" required min="0.01" step="0.01" placeholder="1000" <!-- min değeri 0.01 yapıldı -->
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
+                    <!-- GÖREV 3.3: Açıklama Input Alanı -->
+                     <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Açıklama (Opsiyonel)</label>
+                        <input type="text" id="cash-description" placeholder="Örn: Papara Transferi"
+                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
                     <div class="flex justify-end space-x-3 pt-2">
                         <button type="button" id="cash-transaction-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                             İptal
@@ -1126,32 +1133,32 @@
             </div>
         </div>
 
-        <!-- Tek Düzenleme Modalı -->
+        <!-- ESKİ Düzenleme Modalı (Sadece Etiket ve Sonuç Düzeltme için) -->
         <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Düzenle / Sonuçlandır</h3>
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Düzenle</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum (Düzeltme)</label>
                         <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <!-- Durumlar dinamik olarak eklenecek, sadece sonuçlanmışlar? Belki hepsi olmalı -->
                             <option value="pending">Bekleyen</option>
                             <option value="won">Kazandı</option>
                             <option value="lost">Kaybetti</option>
-                            <option value="refunded">İade Edildi</option> <!-- İade Edildi seçeneği eklendi -->
+                            <option value="refunded">İade Edildi</option>
                         </select>
                     </div>
 
-                    <!-- GÖREV 3.2: Etiket Giriş Alanı -->
                     <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Etiket (Örn: 🔥, 🤞)</label>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Etiket</label>
                         <input type="text" id="edit-tag" placeholder="Kupona bir etiket ekle..."
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
 
-                    <div id="win-amount-section" style="display: none;"> <!-- Başlangıçta gizli -->
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺)</label>
-                        <input type="number" id="edit-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500" <!-- min değeri 0.01 yapıldı -->
+                    <div id="edit-win-amount-section" style="display: none;">
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺) (Düzeltme)</label>
+                        <input type="number" id="edit-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
                 </div>
@@ -1161,12 +1168,45 @@
                         İptal
                     </button>
                     <button id="save-edit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        Kaydet
+                        Değişiklikleri Kaydet
                     </button>
                 </div>
             </div>
         </div>
-        <!-- Resolve Modal Kaldırıldı -->
+
+        <!-- YENİ Basit Sonuçlandırma Modalı -->
+        <div id="resolve-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
+            <div class="glass-card rounded-2xl p-6 w-full max-w-sm"> <!-- Daha küçük -->
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Sonuçlandır</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Sonuç</label>
+                        <select id="resolve-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <option value="won">Kazandı</option>
+                            <option value="lost">Kaybetti</option>
+                            <option value="refunded">İade Edildi</option>
+                        </select>
+                    </div>
+
+                    <div id="resolve-win-amount-section" style="display: none;"> <!-- Başlangıçta gizli -->
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺)</label>
+                        <input type="number" id="resolve-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
+                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="close-resolve-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        İptal
+                    </button>
+                    <button id="save-resolve-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
+                        Sonuçlandır
+                    </button>
+                </div>
+            </div>
+        </div>
+
 
         <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
             <div class="max-w-4xl max-h-full">

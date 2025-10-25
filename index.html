@@ -181,7 +181,7 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.20</p> <!-- Sürüm güncellendi -->
+                    <p class="text-xs text-gray-500 sidebar-text">v2.21</p> <!-- Sürüm güncellendi -->
                 </div>
             </div>
         </div>
@@ -1136,30 +1136,34 @@
         <!-- ESKİ Düzenleme Modalı (Sadece Etiket ve Sonuç Düzeltme için) -->
         <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Düzenle</h3>
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Düzenle/Etiketle</h3> <!-- Başlık güncellendi -->
 
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum (Düzeltme)</label>
-                        <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                            <!-- Durumlar dinamik olarak eklenecek, sadece sonuçlanmışlar? Belki hepsi olmalı -->
-                            <option value="pending">Bekleyen</option>
-                            <option value="won">Kazandı</option>
-                            <option value="lost">Kaybetti</option>
-                            <option value="refunded">İade Edildi</option>
-                        </select>
-                    </div>
-
+                     <!-- Etiket Alanı (Her zaman görünür) -->
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Etiket</label>
                         <input type="text" id="edit-tag" placeholder="Kupona bir etiket ekle..."
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
 
-                    <div id="edit-win-amount-section" style="display: none;">
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺) (Düzeltme)</label>
-                        <input type="number" id="edit-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
-                               class="input-glass w-full p-3 rounded-lg text-gray-800">
+                    <!-- Durum ve Kazanç Alanları (Sadece sonuçlanmışsa anlamlı, ama düzeltme için gösterilebilir) -->
+                     <div id="edit-result-section"> <!-- Bu bölümü gizleyip açacağız -->
+                        <hr class="border-gray-600 my-4"> <!-- Ayraç -->
+                        <div>
+                            <label class="block text-gray-300 text-sm font-medium mb-2">Durum (Düzeltme)</label>
+                            <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                                <option value="pending">Bekleyen</option> <!-- Bekleyene geri alma seçeneği -->
+                                <option value="won">Kazandı</option>
+                                <option value="lost">Kaybetti</option>
+                                <option value="refunded">İade Edildi</option>
+                            </select>
+                        </div>
+
+                        <div id="edit-win-amount-section" style="display: none;">
+                            <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺) (Düzeltme)</label>
+                            <input type="number" id="edit-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
+                                   class="input-glass w-full p-3 rounded-lg text-gray-800">
+                        </div>
                     </div>
                 </div>
 
@@ -1183,6 +1187,8 @@
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Sonuç</label>
                         <select id="resolve-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                             <!-- Varsayılan boş olsun ki kullanıcı seçsin -->
+                             <option value="" disabled selected>Sonuç Seçin...</option>
                             <option value="won">Kazandı</option>
                             <option value="lost">Kaybetti</option>
                             <option value="refunded">İade Edildi</option>

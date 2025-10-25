@@ -56,8 +56,10 @@ export function openEditModal(betId) {
     const statusSelect = document.getElementById('edit-status');
     const winAmountInput = document.getElementById('edit-win-amount');
     const winAmountSection = document.getElementById('win-amount-section');
+    const tagInput = document.getElementById('edit-tag'); // GÖREV 3.2: Etiket input'unu al
 
     statusSelect.value = bet.status;
+    tagInput.value = bet.tag || ''; // GÖREV 3.2: Mevcut etiketi input'a yazdır
     
     const potentialWinnings = bet.bet_amount * bet.odds;
     winAmountInput.value = bet.status === 'won' ? bet.win_amount : potentialWinnings.toFixed(2);
@@ -75,6 +77,8 @@ export function closeEditModal() {
     closeModal('edit-modal');
     updateState({ editingBetId: null, currentlyEditingBet: null });
     const statusSelect = document.getElementById('edit-status');
+    const tagInput = document.getElementById('edit-tag'); // GÖREV 3.2: Etiket input'unu temizle
+    if (tagInput) tagInput.value = ''; // GÖREV 3.2: Kapatırken input'u temizle
     if (statusSelect) {
         statusSelect.onchange = null; // Bellek sızıntısını önlemek için olay dinleyiciyi temizle
     }

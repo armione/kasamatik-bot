@@ -136,6 +136,9 @@ export function renderHistory() {
         const profitColor = profit_loss > 0 ? 'text-green-400' : profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
         const betTypeIcon = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Özel Oran': '✨' };
         
+        // GÖREV 3.2: Etiket varsa gösterilecek HTML'i hazırla
+        const tagHtml = bet.tag ? `<span class="text-lg ml-2">${bet.tag}</span>` : '';
+
         let actionButtons;
         if (isSpecialOdd) {
              actionButtons = `<div class="flex-1 text-center text-sm text-gray-400 italic py-2">Sadece yönetici sonuçlandırabilir.</div>`;
@@ -152,7 +155,10 @@ export function renderHistory() {
                     <div class="flex items-center space-x-3">
                         <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg">${betTypeIcon[bet.bet_type] || '🎯'}</div>
                         <div>
-                            <h3 class="font-bold text-white text-lg">${bet.platform}</h3>
+                            <div class="flex items-center">
+                                <h3 class="font-bold text-white text-lg">${bet.platform}</h3>
+                                ${tagHtml} <!-- GÖREV 3.2: Etiket buraya eklendi -->
+                            </div>
                             <p class="text-gray-400 text-sm">${bet.bet_type}</p>
                         </div>
                     </div>
@@ -235,3 +241,4 @@ export function changeCashPage(page) {
     renderCashHistory();
     document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
+

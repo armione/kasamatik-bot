@@ -6,6 +6,7 @@ import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBets
 import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
+// ui_helpers'dan handleImageFile fonksiyonunu da import ediyoruz
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderActiveSpecialOdds, renderSpecialOddsPage } from './components/ui_helpers.js';
 // DÜZELTME: Import * as Modals yerine named import kullanıldı
 import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal } from './components/modals.js';
@@ -222,8 +223,12 @@ async function handleSaveEditAttempt() {
 
     const status = document.getElementById('edit-status').value;
     const winAmount = parseFloat(document.getElementById('edit-win-amount').value) || 0;
+    const tag = document.getElementById('edit-tag').value.trim() || null; // GÖREV 3.2: Yeni etiketi oku
 
-    let updateData = { status: status };
+    let updateData = {
+        status: status,
+        tag: tag // GÖREV 3.2: Güncelleme objesine etiketi ekle
+    };
 
     if (status === 'won') {
         updateData.win_amount = winAmount;
@@ -366,7 +371,7 @@ async function handleClearAllDataAttempt() {
 }
 
 async function handleUserAnalyzeBetSlip() {
-    if (!state.mainImageData) {
+    if (!state.currentImageData) { // currentImageData olarak düzeltildi
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
@@ -374,7 +379,7 @@ async function handleUserAnalyzeBetSlip() {
     setButtonLoading(geminiButton, true, 'Okunuyor...');
 
     try {
-        const base64Data = state.mainImageData.split(',')[1];
+        const base64Data = state.currentImageData.split(',')[1]; // currentImageData olarak düzeltildi
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
@@ -427,6 +432,49 @@ async function handleAdminAnalyzeBetSlip() {
         showNotification('Kupon okunurken bir hata oluştu.', 'error');
     } finally {
         setButtonLoading(geminiButton, false);
+    }
+}
+
+// GÖREV 1.4: Panodan resim yapıştırma işleyicisi
+async function handlePasteFromClipboard(type) {
+    try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+            showNotification('Tarayıcınız panodan okumayı desteklemiyor.', 'warning');
+            return;
+        }
+
+        // Panodan okuma izni iste (modern tarayıcılarda gerekir)
+        // 'clipboard-read' izni bazı tarayıcılarda (örn: Firefox) 'query' ile çalışmayabilir,
+        // doğrudan okumayı denemek daha iyi bir yaklaşımdır. Tarayıcı zaten izni isteyecektir.
+
+        showNotification('📋 Pano okunuyor...', 'info', 2000);
+        const items = await navigator.clipboard.read();
+        let imageBlob = null;
+
+        for (const item of items) {
+            const imageType = item.types.find(type => type.startsWith('image/'));
+            if (imageType) {
+                imageBlob = await item.getType(imageType);
+                break;
+            }
+        }
+
+        if (imageBlob) {
+            // handleImageFile (ui_helpers.js'de) bir File objesi bekler. Blob'u File'a dönüştürelim.
+            const file = new File([imageBlob], 'pasted-image.png', { type: imageBlob.type });
+            handleImageFile(file, type); // ui_helpers'dan import edildi
+            showNotification('✅ Resim panodan yapıştırıldı!', 'success');
+        } else {
+            showNotification('Panoda yapıştırılacak bir resim bulunamadı.', 'warning');
+        }
+    } catch (err) {
+        // İzin reddedilirse veya başka bir hata olursa
+        console.error('Panodan yapıştırma hatası:', err);
+        if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+             showNotification('Panodan okuma izni vermelisiniz.', 'error');
+        } else {
+             showNotification('Panodan okuma başarısız oldu.', 'error');
+        }
     }
 }
 
@@ -691,6 +739,7 @@ export function setupEventListeners() {
         const selectBtn = document.getElementById(`${prefix}image-select-btn`);
         const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
         const uploadArea = document.getElementById(`${prefix}image-upload-area`);
+        const pasteBtn = document.getElementById(`${prefix}paste-image-btn`); // GÖREV 1.4
 
         // EKLENDİ: Elementler bulunamazsa işlem yapma
         if (!imageInput || !selectBtn || !removeBtn || !uploadArea) {
@@ -699,6 +748,7 @@ export function setupEventListeners() {
         }
 
         selectBtn.addEventListener('click', () => imageInput.click());
+        if (pasteBtn) pasteBtn.addEventListener('click', () => handlePasteFromClipboard(type)); // GÖREV 1.4: Listener eklendi
         imageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0], type));
         removeBtn.addEventListener('click', () => removeImage(type));
         ['dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -770,3 +820,4 @@ export function setupEventListeners() {
     updateState({ listenersAttached: true });
     console.log("Event listeners başarıyla bağlandı."); // EKLENDİ: Bağlantı tamamlandı logu
 }
+

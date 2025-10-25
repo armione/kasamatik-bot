@@ -75,6 +75,9 @@ export function renderRecentBets() {
         const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
         const profit_loss = calculateProfitLoss(bet);
 
+        // GÖREV 3.2: Etiket varsa gösterilecek HTML'i hazırla (daha küçük font)
+        const tagHtml = bet.tag ? `<span class="text-sm ml-2">${bet.tag}</span>` : '';
+
         const statusClass = { pending: 'status-pending', won: 'status-won', lost: 'status-lost', refunded: 'status-refunded' };
         const statusText = { pending: '⏳', won: '✅', lost: '❌', refunded: '↩️' };
         const profitColor = profit_loss > 0 ? 'text-green-400' : profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
@@ -84,7 +87,10 @@ export function renderRecentBets() {
                 <div class="flex justify-between items-center">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2 mb-1">
-                            <span class="font-medium text-white text-sm">${bet.platform}</span>
+                            <div class="flex items-center"> <!-- GÖREV 3.2: Platform ve etiketi sarmak için div eklendi -->
+                                <span class="font-medium text-white text-sm">${bet.platform}</span>
+                                ${tagHtml} <!-- GÖREV 3.2: Etiket buraya eklendi -->
+                            </div>
                             <span class="px-2 py-1 rounded-full text-xs ${statusClass[status]}">${statusText[status]}</span>
                         </div>
                         <p class="text-gray-300 text-xs truncate">${bet.description}</p>
@@ -142,3 +148,4 @@ export function initializeVisitorCounter() {
         localStorage.setItem('visitorCount', visitorCount);
     }, updateInterval);
 }
+

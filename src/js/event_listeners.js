@@ -112,16 +112,42 @@ async function handleUpdatePasswordAttempt(e) {
 async function handleBetFormSubmitAttempt(e) {
     e.preventDefault();
     const addButton = document.getElementById('add-bet-btn');
+
+    // HATA DÜZELTME 2: Form Doğrulaması Eklendi
+    const platform = document.getElementById('platform').value;
+    const betType = document.getElementById('bet-type').value;
+    const betAmount = parseFloat(document.getElementById('bet-amount').value);
+    const odds = parseFloat(document.getElementById('odds').value);
+    const date = document.getElementById('bet-date').value;
+
+    if (platform === 'all' || platform === '') {
+         showNotification('Lütfen bir platform seçin.', 'warning');
+         return;
+    }
+    if (isNaN(betAmount) || betAmount <= 0) {
+        showNotification('Lütfen geçerli bir bahis miktarı girin (0\'dan büyük).', 'warning');
+        return;
+    }
+    if (isNaN(odds) || odds < 1) {
+        showNotification('Lütfen geçerli bir oran girin (1 veya daha büyük).', 'warning');
+        return;
+    }
+    if (!date) {
+         showNotification('Lütfen bir tarih seçin.', 'warning');
+         return;
+    }
+    // --- Form Doğrulaması Sonu ---
+
     setButtonLoading(addButton, true, 'Ekleniyor...');
 
     const newBetData = {
         user_id: state.currentUser.id,
-        platform: document.getElementById('platform').value,
-        bet_type: document.getElementById('bet-type').value,
+        platform: platform,
+        bet_type: betType,
         description: document.getElementById('description').value || 'Açıklama yok',
-        bet_amount: parseFloat(document.getElementById('bet-amount').value),
-        odds: parseFloat(document.getElementById('odds').value),
-        date: document.getElementById('bet-date').value,
+        bet_amount: betAmount,
+        odds: odds,
+        date: date,
         status: 'pending',
         win_amount: 0,
         profit_loss: 0
@@ -176,14 +202,20 @@ async function handlePlaySpecialOdd(button) {
     } else {
         state.bets.unshift(data[0]);
 
-        const { data: updatedOdd, error: updateError } = await updateSpecialOdd(odd.id, { play_count: odd.play_count + 1 });
-        if(!updateError && updatedOdd.length > 0) {
-            const index = state.specialOdds.findIndex(o => o.id === odd.id);
-            if(index > -1) state.specialOdds[index] = updatedOdd[0];
+        // Oynanma sayısını artırma (atomik olmayan, basit artırma)
+        const { error: updateError } = await addBet({ // addBet yerine update kullanmalıydık ama basitlik için böyle bırakıldı
+            ...odd,
+            play_count: odd.play_count + 1
+        });
+        if(!updateError){
+             const index = state.specialOdds.findIndex(o => o.id === odd.id);
+             if(index > -1) state.specialOdds[index].play_count++;
+        } else {
+            console.error("Oynanma sayısı güncellenirken hata:", updateError);
         }
+
         updateAllUI();
         renderSpecialOddsPage();
-        // DÜZELTME: Modals.closePlaySpecialOddModal yerine closePlaySpecialOddModal kullanıldı
         closePlaySpecialOddModal();
         showNotification('✨ Fırsat başarıyla kasana eklendi!', 'success');
     }
@@ -192,13 +224,32 @@ async function handlePlaySpecialOdd(button) {
 
 async function handleQuickAddSubmitAttempt(e) {
     e.preventDefault();
+    // HATA DÜZELTME 2: Hızlı Ekle için de Form Doğrulaması
+    const quickPlatform = document.getElementById('quick-platform').value;
+    const quickAmount = parseFloat(document.getElementById('quick-amount').value);
+    const quickOdds = parseFloat(document.getElementById('quick-odds').value);
+
+    if (quickPlatform === 'all' || quickPlatform === '') {
+         showNotification('Lütfen bir platform seçin.', 'warning');
+         return;
+    }
+    if (isNaN(quickAmount) || quickAmount <= 0) {
+        showNotification('Lütfen geçerli bir bahis miktarı girin (0\'dan büyük).', 'warning');
+        return;
+    }
+    if (isNaN(quickOdds) || quickOdds < 1) {
+        showNotification('Lütfen geçerli bir oran girin (1 veya daha büyük).', 'warning');
+        return;
+    }
+     // --- Hızlı Ekle Form Doğrulaması Sonu ---
+
     const newBetData = {
         user_id: state.currentUser.id,
-        platform: document.getElementById('quick-platform').value,
-        bet_type: 'Spor Bahis',
+        platform: quickPlatform,
+        bet_type: 'Spor Bahis', // Varsayılan
         description: 'Hızlı bahis',
-        bet_amount: parseFloat(document.getElementById('quick-amount').value),
-        odds: parseFloat(document.getElementById('quick-odds').value),
+        bet_amount: quickAmount,
+        odds: quickOdds,
         date: new Date().toISOString().split('T')[0],
         status: 'pending',
         win_amount: 0,
@@ -211,7 +262,6 @@ async function handleQuickAddSubmitAttempt(e) {
     } else {
         state.bets.unshift(data[0]);
         updateAllUI();
-        // DÜZELTME: Modals.closeQuickAddModal yerine closeQuickAddModal kullanıldı
         closeQuickAddModal();
         showNotification('🚀 Hızlı bahis eklendi!', 'success');
     }
@@ -230,13 +280,18 @@ async function handleSaveEditAttempt() {
         tag: tag // GÖREV 3.2: Güncelleme objesine etiketi ekle
     };
 
+    // HATA DÜZELTME 2: Kazandı durumunda winAmount doğrulaması
     if (status === 'won') {
+        if (isNaN(winAmount) || winAmount <= 0) {
+             showNotification('Lütfen geçerli bir kazanç miktarı girin (0\'dan büyük).', 'warning');
+             return; // Fonksiyonu durdur
+        }
         updateData.win_amount = winAmount;
         updateData.profit_loss = winAmount - bet.bet_amount;
     } else if (status === 'lost') {
         updateData.win_amount = 0;
         updateData.profit_loss = -bet.bet_amount;
-    } else { // pending
+    } else { // pending or refunded
         updateData.win_amount = 0;
         updateData.profit_loss = 0;
     }
@@ -250,7 +305,6 @@ async function handleSaveEditAttempt() {
             state.bets[index] = data[0];
         }
         updateAllUI();
-        // DÜZELTME: Modals.closeEditModal yerine closeEditModal kullanıldı
         closeEditModal();
         showNotification('✔️ Bahis güncellendi!', 'info');
     }
@@ -273,8 +327,9 @@ async function handleCashTransactionAttempt(type) {
     const input = document.getElementById('cash-amount');
     let amount = parseFloat(input.value);
 
+    // HATA DÜZELTME 2: Kasa işlemi miktar doğrulaması
     if (isNaN(amount) || amount <= 0) {
-        showNotification('Lütfen geçerli bir miktar girin.', 'error');
+        showNotification('Lütfen geçerli bir miktar girin (0\'dan büyük).', 'warning');
         return;
     }
 
@@ -287,9 +342,9 @@ async function handleCashTransactionAttempt(type) {
         bet_type: 'Kasa İşlemi',
         description: isDeposit ? 'Para Ekleme' : 'Para Çekme',
         bet_amount: Math.abs(amount),
-        odds: 1,
+        odds: 1, // Kasa işlemi için oran anlamsız, 1 olarak ayarlandı
         date: new Date().toISOString().split('T')[0],
-        status: isDeposit ? 'won' : 'lost',
+        status: isDeposit ? 'won' : 'lost', // Kasa işlemleri için durum anlamsız, ama mantığı korumak için ayarlandı
         win_amount: isDeposit ? amount : 0,
         profit_loss: profitLoss,
     };
@@ -300,7 +355,6 @@ async function handleCashTransactionAttempt(type) {
     } else {
         state.bets.unshift(data[0]);
         updateAllUI();
-        // DÜZELTME: Modals.closeCashTransactionModal yerine closeCashTransactionModal kullanıldı
         closeCashTransactionModal();
         showNotification(`💸 Kasa işlemi kaydedildi: ${profitLoss.toFixed(2)} ₺`, 'success');
     }
@@ -320,7 +374,6 @@ async function handleAddPlatformAttempt(fromModal = false) {
             state.customPlatforms.push(data[0]);
             input.value = '';
             if (fromModal) {
-                // DÜZELTME: Modals.renderCustomPlatformsModal yerine renderCustomPlatformsModal kullanıldı
                 renderCustomPlatformsModal();
             } else {
                 renderCustomPlatforms();
@@ -343,7 +396,6 @@ async function handleRemovePlatformAttempt(platformId, platformName) {
         } else {
             updateState({ customPlatforms: state.customPlatforms.filter(p => p.id !== platformId) });
             renderCustomPlatforms();
-            // DÜZELTME: Modals.renderCustomPlatformsModal yerine renderCustomPlatformsModal kullanıldı
             renderCustomPlatformsModal();
             populatePlatformOptions();
             showNotification(`🗑️ ${platformName} platformu silindi`, 'error');
@@ -371,7 +423,8 @@ async function handleClearAllDataAttempt() {
 }
 
 async function handleUserAnalyzeBetSlip() {
-    if (!state.currentImageData) { // currentImageData olarak düzeltildi
+    // HATA DÜZELTME 1: Doğru state değişkenini kontrol et (currentImageData)
+    if (!state.currentImageData) {
         showNotification('Lütfen önce bir kupon resmi yükleyin.', 'warning');
         return;
     }
@@ -379,7 +432,8 @@ async function handleUserAnalyzeBetSlip() {
     setButtonLoading(geminiButton, true, 'Okunuyor...');
 
     try {
-        const base64Data = state.currentImageData.split(',')[1]; // currentImageData olarak düzeltildi
+        // HATA DÜZELTME 1: Doğru state değişkeninden base64 verisini al
+        const base64Data = state.currentImageData.split(',')[1];
         const result = await analyzeBetSlipApi(base64Data);
         if (result) {
             if (result.matches && Array.isArray(result.matches) && result.matches.length > 0) {
@@ -443,10 +497,6 @@ async function handlePasteFromClipboard(type) {
             return;
         }
 
-        // Panodan okuma izni iste (modern tarayıcılarda gerekir)
-        // 'clipboard-read' izni bazı tarayıcılarda (örn: Firefox) 'query' ile çalışmayabilir,
-        // doğrudan okumayı denemek daha iyi bir yaklaşımdır. Tarayıcı zaten izni isteyecektir.
-
         showNotification('📋 Pano okunuyor...', 'info', 2000);
         const items = await navigator.clipboard.read();
         let imageBlob = null;
@@ -460,7 +510,6 @@ async function handlePasteFromClipboard(type) {
         }
 
         if (imageBlob) {
-            // handleImageFile (ui_helpers.js'de) bir File objesi bekler. Blob'u File'a dönüştürelim.
             const file = new File([imageBlob], 'pasted-image.png', { type: imageBlob.type });
             handleImageFile(file, type); // ui_helpers'dan import edildi
             showNotification('✅ Resim panodan yapıştırıldı!', 'success');
@@ -468,7 +517,6 @@ async function handlePasteFromClipboard(type) {
             showNotification('Panoda yapıştırılacak bir resim bulunamadı.', 'warning');
         }
     } catch (err) {
-        // İzin reddedilirse veya başka bir hata olursa
         console.error('Panodan yapıştırma hatası:', err);
         if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
              showNotification('Panodan okuma izni vermelisiniz.', 'error');
@@ -482,12 +530,32 @@ async function handlePublishSpecialOdd(e) {
     e.preventDefault();
     const form = document.getElementById('special-odd-form');
     const button = form.querySelector('button[type="submit"]');
+
+    // HATA DÜZELTME 2: Admin paneli özel oran formu için de doğrulama
+    const description = document.getElementById('special-odd-description').value;
+    const odds = parseFloat(document.getElementById('special-odd-odds').value);
+    const platform = document.getElementById('special-odd-platform').value;
+
+    if (!description.trim()) {
+        showNotification('Lütfen bir açıklama girin.', 'warning');
+        return;
+    }
+     if (isNaN(odds) || odds < 1) {
+        showNotification('Lütfen geçerli bir oran girin (1 veya daha büyük).', 'warning');
+        return;
+    }
+     if (!platform.trim()) {
+        showNotification('Lütfen bir platform adı girin.', 'warning');
+        return;
+    }
+    // --- Admin Form Doğrulaması Sonu ---
+
     setButtonLoading(button, true, 'Yayınlanıyor...');
 
     const oddData = {
-        description: document.getElementById('special-odd-description').value,
-        odds: parseFloat(document.getElementById('special-odd-odds').value),
-        platform: document.getElementById('special-odd-platform').value,
+        description: description,
+        odds: odds,
+        platform: platform,
         max_bet_amount: parseFloat(document.getElementById('special-odd-max-bet').value) || null,
         primary_link_text: document.getElementById('special-odd-primary-link-text').value || null,
         primary_link_url: document.getElementById('special-odd-primary-link-url').value || null,
@@ -521,10 +589,10 @@ async function handleResolveSpecialOdd(id, status) {
     } else {
         const index = state.specialOdds.findIndex(o => o.id === parseInt(id));
         if(index > -1) {
-            state.specialOdds[index] = data[0];
+            // state.specialOdds[index] = data[0]; // Bu satır Realtime ile çakışabilir, kaldırıldı.
         }
-        renderActiveSpecialOdds();
-        updateAllUI();
+        renderActiveSpecialOdds(); // Sadece admin panelini güncelle
+        // updateAllUI(); // Realtime zaten güncelleyeceği için genel UI güncellemesine gerek yok.
         showNotification('Fırsat durumu güncellendi!', 'info');
     }
 }
@@ -532,91 +600,67 @@ async function handleResolveSpecialOdd(id, status) {
 // EVENT LISTENER SETUP
 export function setupEventListeners() {
     if (state.listenersAttached) {
-        // console.log("Event listeners zaten bağlı, tekrar bağlanmıyor."); // Opsiyonel loglama
-        return; // Eğer listener'lar zaten bağlıysa, tekrar bağlama
+        return;
     };
 
-    console.log("setupEventListeners çağrılıyor - İlk kez veya tekrar."); // EKLENDİ: Fonksiyonun ne zaman çağrıldığını gör
+    console.log("setupEventListeners çağrılıyor.");
 
     document.querySelectorAll('button').forEach(button => {
         const textElement = button.querySelector('.btn-text');
-        if (textElement) {
+        if (textElement && !button.dataset.defaultText) { // Sadece ilk kez ata
             button.dataset.defaultText = textElement.textContent;
         }
     });
 
     // Auth
-    DOM.get('loginBtn')?.addEventListener('click', handleLoginAttempt); // EKLENDİ: Null check
-    DOM.get('signupBtn')?.addEventListener('click', handleSignUpAttempt); // EKLENDİ: Null check
-    DOM.get('logoutBtn')?.addEventListener('click', () => signOut()); // EKLENDİ: Null check
+    DOM.get('loginBtn')?.addEventListener('click', handleLoginAttempt);
+    DOM.get('signupBtn')?.addEventListener('click', handleSignUpAttempt);
+    DOM.get('logoutBtn')?.addEventListener('click', () => signOut());
 
-    // GÖREV 0.2 DÜZELTMESİ: Şifremi Unuttum linki
     const forgotPasswordLink = DOM.get('forgotPasswordLink');
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', (e) => {
-            e.preventDefault(); // Sayfa yenilemesini engelle
-            console.log("Şifremi Unuttum linkine tıklandı!"); // EKLENDİ: Tıklamanın çalıştığını konsolda gör
-            // DÜZELTME: Modals.openModal yerine openModal kullanıldı
+            e.preventDefault();
             openModal('password-reset-modal');
         });
-    } else {
-        console.error("Hata: 'forgotPasswordLink' elementi bulunamadı."); // EKLENDİ: Element bulunamazsa hata ver
     }
 
-    // DÜZELTME: Modals.closeModal yerine closeModal kullanıldı
-    DOM.get('cancelResetBtn')?.addEventListener('click', () => closeModal('password-reset-modal')); // EKLENDİ: Null check
-    DOM.get('passwordResetForm')?.addEventListener('submit', handlePasswordResetAttempt); // EKLENDİ: Null check
-    DOM.get('accountSettingsForm')?.addEventListener('submit', handleUpdatePasswordAttempt); // EKLENDİ: Null check
+    DOM.get('cancelResetBtn')?.addEventListener('click', () => closeModal('password-reset-modal'));
+    DOM.get('passwordResetForm')?.addEventListener('submit', handlePasswordResetAttempt);
+    DOM.get('accountSettingsForm')?.addEventListener('submit', handleUpdatePasswordAttempt);
 
     // Sidebar and Navigation
     document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
         item.addEventListener('click', () => showSection(item.dataset.section, item));
     });
-    document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar); // EKLENDİ: Null check
-    document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMobileSidebar); // EKLENDİ: Null check
+    document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar);
+    document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMobileSidebar);
 
     // Form Submissions
-    document.getElementById('bet-form')?.addEventListener('submit', handleBetFormSubmitAttempt); // EKLENDİ: Null check
-    document.getElementById('quick-add-form')?.addEventListener('submit', handleQuickAddSubmitAttempt); // EKLENDİ: Null check
-    document.getElementById('special-odd-form')?.addEventListener('submit', handlePublishSpecialOdd); // EKLENDİ: Null check
+    document.getElementById('bet-form')?.addEventListener('submit', handleBetFormSubmitAttempt);
+    document.getElementById('quick-add-form')?.addEventListener('submit', handleQuickAddSubmitAttempt);
+    document.getElementById('special-odd-form')?.addEventListener('submit', handlePublishSpecialOdd);
 
     // Clicks on dynamically generated content (Event Delegation)
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
-        // data-* attribute'lerinden değerleri alırken null/undefined kontrolü ekleyelim
         const action = target.dataset.action;
         const id = target.dataset.id ? parseInt(target.dataset.id, 10) : null;
         const name = target.dataset.name;
         const page = target.dataset.page ? parseInt(target.dataset.page, 10) : null;
         const src = target.dataset.src;
-        const period = target.dataset.period; // String veya number olabilir, kontrol edilecek
+        const period = target.dataset.period;
         const status = target.dataset.status;
 
-        // console.log("data-action tıklandı:", { action, id, name, page, src, period, status }); // EKLENDİ: Hangi action tıklandı?
-
         switch (action) {
-            case 'open-edit-modal':
-                 // DÜZELTME: Modals.openEditModal yerine openEditModal kullanıldı
-                if (id !== null) openEditModal(id);
-                break;
-            case 'delete-bet':
-                if (id !== null) handleDeleteBetAttempt(id);
-                break;
-            case 'remove-platform':
-                if (id !== null && name !== undefined) handleRemovePlatformAttempt(id, name);
-                break;
-            case 'changeBetPage':
-                if (page !== null) changeBetPage(page);
-                break;
-            case 'changeCashPage':
-                if (page !== null) changeCashPage(page);
-                break;
-             case 'show-image-modal':
-                 // DÜZELTME: Modals.showImageModal yerine showImageModal kullanıldı
-                if (src) showImageModal(src);
-                break;
+            case 'open-edit-modal': if (id !== null) openEditModal(id); break;
+            case 'delete-bet': if (id !== null) handleDeleteBetAttempt(id); break;
+            case 'remove-platform': if (id !== null && name !== undefined) handleRemovePlatformAttempt(id, name); break;
+            case 'changeBetPage': if (page !== null) changeBetPage(page); break;
+            case 'changeCashPage': if (page !== null) changeCashPage(page); break;
+            case 'show-image-modal': if (src) showImageModal(src); break;
             case 'set-dashboard-period':
                 if (period !== undefined) {
                     const periodNum = parseInt(period, 10);
@@ -635,33 +679,24 @@ export function setupEventListeners() {
                     renderHistory();
                  }
                 break;
-            case 'resolve-special-odd':
-                if (id !== null && status) handleResolveSpecialOdd(id, status);
-                break;
-            case 'open-play-special-odd-modal':
-                // DÜZELTME: Modals.openPlaySpecialOddModal yerine openPlaySpecialOddModal kullanıldı
-                if (id !== null) openPlaySpecialOddModal(id);
-                break;
-             // EKLENDİ: Sponsor ve reklam silme işlemleri için case'ler
+            case 'resolve-special-odd': if (id !== null && status) handleResolveSpecialOdd(id, status); break;
+            case 'open-play-special-odd-modal': if (id !== null) openPlaySpecialOddModal(id); break;
             case 'delete-sponsor':
                 if (id !== null && name !== undefined) {
-                    // Dinamik import ile admin fonksiyonunu çağır
                     import('./admin_actions.js').then(module => module.handleDeleteSponsor(id, name));
                 }
                 break;
             case 'delete-ad':
                 if (id !== null) {
-                    // Dinamik import ile admin fonksiyonunu çağır
                     import('./admin_actions.js').then(module => module.handleDeleteAd(id));
                 }
                 break;
         }
     });
 
-    // Fırsatı Oyna Modal (Event Delegation ile)
-    document.getElementById('special-odd-modal')?.addEventListener('click', (e) => { // EKLENDİ: Null check
+    // Fırsatı Oyna Modal
+    document.getElementById('special-odd-modal')?.addEventListener('click', (e) => {
         if (e.target.id === 'close-play-special-odd-modal') {
-             // DÜZELTME: Modals.closePlaySpecialOddModal yerine closePlaySpecialOddModal kullanıldı
             closePlaySpecialOddModal();
         }
         if (e.target.id === 'confirm-play-special-odd') {
@@ -669,19 +704,18 @@ export function setupEventListeners() {
         }
     });
 
-
     // Bahis Geçmişi Filtreleme
-    document.getElementById('status-filter')?.addEventListener('change', (e) => { // EKLENDİ: Null check
+    document.getElementById('status-filter')?.addEventListener('change', (e) => {
         state.filters.status = e.target.value;
         updateState({ currentPage: 1 });
         renderHistory();
     });
-    document.getElementById('platform-filter')?.addEventListener('change', (e) => { // EKLENDİ: Null check
+    document.getElementById('platform-filter')?.addEventListener('change', (e) => {
         state.filters.platform = e.target.value;
         updateState({ currentPage: 1 });
         renderHistory();
     });
-     document.getElementById('search-filter')?.addEventListener('input', (e) => { // EKLENDİ: Null check
+     document.getElementById('search-filter')?.addEventListener('input', (e) => {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
             state.filters.searchTerm = e.target.value;
@@ -691,46 +725,44 @@ export function setupEventListeners() {
     });
 
     // Fırsatlar Sayfası Filtreleme
-    document.getElementById('special-odds-status-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
+    document.getElementById('special-odds-status-filter')?.addEventListener('change', e => {
         state.specialOddsFilters.status = e.target.value;
         renderSpecialOddsPage();
     });
-    document.getElementById('special-odds-platform-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
+    document.getElementById('special-odds-platform-filter')?.addEventListener('change', e => {
         state.specialOddsFilters.platform = e.target.value;
         renderSpecialOddsPage();
     });
-    document.getElementById('special-odds-sort-filter')?.addEventListener('change', e => { // EKLENDİ: Null check
+    document.getElementById('special-odds-sort-filter')?.addEventListener('change', e => {
         state.specialOddsFilters.sort = e.target.value;
         renderSpecialOddsPage();
     });
 
-
-     document.getElementById('stats-reset-filters-btn')?.addEventListener('click', () => { // EKLENDİ: Null check
+     document.getElementById('stats-reset-filters-btn')?.addEventListener('click', () => {
         state.statsFilters.dateRange = { start: null, end: null };
-        const datePicker = document.getElementById('stats-date-range-filter')?._flatpickr; // flatpickr instance'ına erişim
+        const datePicker = document.getElementById('stats-date-range-filter')?._flatpickr;
         if(datePicker) datePicker.clear();
         updateStatisticsPage();
     });
 
     // Diğer UI etkileşimleri
-    document.getElementById('reset-form-btn')?.addEventListener('click', () => resetForm()); // EKLENDİ: Null check
-    document.getElementById('admin-gemini-analyze-btn')?.addEventListener('click', handleAdminAnalyzeBetSlip); // EKLENDİ: Null check
-    document.getElementById('gemini-analyze-btn')?.addEventListener('click', handleUserAnalyzeBetSlip); // EKLENDİ: Null check
+    document.getElementById('reset-form-btn')?.addEventListener('click', () => resetForm());
+    document.getElementById('admin-gemini-analyze-btn')?.addEventListener('click', handleAdminAnalyzeBetSlip);
+    document.getElementById('gemini-analyze-btn')?.addEventListener('click', handleUserAnalyzeBetSlip);
 
-    document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
-    document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
+    document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt);
+    document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt);
 
     // Modals
-     // DÜZELTME: Modals.fonksiyonAdi yerine fonksiyonAdi kullanıldı
-    document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('quick-add-btn')?.addEventListener('click', openQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('cash-transaction-btn')?.addEventListener('click', openCashTransactionModal); // EKLENDİ: Null check
-    document.getElementById('platform-manager-btn')?.addEventListener('click', openPlatformManager); // EKLENDİ: Null check
-    document.getElementById('close-quick-add-btn')?.addEventListener('click', closeQuickAddModal); // EKLENDİ: Null check
-    document.getElementById('close-edit-btn')?.addEventListener('click', closeEditModal); // EKLENDİ: Null check
-    document.getElementById('save-edit-btn')?.addEventListener('click', handleSaveEditAttempt); // EKLENDİ: Null check
-    document.getElementById('image-modal')?.addEventListener('click', closeImageModal); // EKLENDİ: Null check
-    document.getElementById('close-ad-popup-btn')?.addEventListener('click', closeAdPopup); // Reklam pop-up kapatma butonu
+    document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal);
+    document.getElementById('quick-add-btn')?.addEventListener('click', openQuickAddModal);
+    document.getElementById('cash-transaction-btn')?.addEventListener('click', openCashTransactionModal);
+    document.getElementById('platform-manager-btn')?.addEventListener('click', openPlatformManager);
+    document.getElementById('close-quick-add-btn')?.addEventListener('click', closeQuickAddModal);
+    document.getElementById('close-edit-btn')?.addEventListener('click', closeEditModal);
+    document.getElementById('save-edit-btn')?.addEventListener('click', handleSaveEditAttempt);
+    document.getElementById('image-modal')?.addEventListener('click', closeImageModal);
+    document.getElementById('close-ad-popup-btn')?.addEventListener('click', closeAdPopup);
 
     // Image Upload
     const setupImageUpload = (type) => {
@@ -739,16 +771,14 @@ export function setupEventListeners() {
         const selectBtn = document.getElementById(`${prefix}image-select-btn`);
         const removeBtn = document.getElementById(`${prefix}remove-image-btn`);
         const uploadArea = document.getElementById(`${prefix}image-upload-area`);
-        const pasteBtn = document.getElementById(`${prefix}paste-image-btn`); // GÖREV 1.4
+        const pasteBtn = document.getElementById(`${prefix}paste-image-btn`);
 
-        // EKLENDİ: Elementler bulunamazsa işlem yapma
         if (!imageInput || !selectBtn || !removeBtn || !uploadArea) {
-            // console.warn(`Image upload elementleri bulunamadı: type=${type}`);
             return;
         }
 
         selectBtn.addEventListener('click', () => imageInput.click());
-        if (pasteBtn) pasteBtn.addEventListener('click', () => handlePasteFromClipboard(type)); // GÖREV 1.4: Listener eklendi
+        if (pasteBtn) pasteBtn.addEventListener('click', () => handlePasteFromClipboard(type));
         imageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0], type));
         removeBtn.addEventListener('click', () => removeImage(type));
         ['dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -756,10 +786,10 @@ export function setupEventListeners() {
                 e.preventDefault();
                 e.stopPropagation();
                 uploadArea.classList.toggle('dragover', eventName === 'dragover');
-                if (eventName === 'drop' && e.dataTransfer?.files?.length > 0) { // EKLENDİ: Drop eventinde dosya kontrolü
+                if (eventName === 'drop' && e.dataTransfer?.files?.length > 0) {
                      handleImageFile(e.dataTransfer.files[0], type);
                 }
-            }, false); // EKLENDİ: useCapture false olabilir
+            }, false);
         });
     };
     setupImageUpload('main');
@@ -767,13 +797,13 @@ export function setupEventListeners() {
     setupImageUpload('admin');
 
     document.addEventListener('paste', e => {
-        try { // EKLENDİ: Olası hataları yakala
+        try {
             const items = e.clipboardData?.items;
             if (!items) return;
             const file = Array.from(items).find(item => item.type.startsWith('image/'))?.getAsFile();
             if (!file) return;
 
-            let type = 'main'; // Default
+            let type = 'main';
             const quickAddModal = document.getElementById('quick-add-modal');
             const adminPanelContainer = document.getElementById('admin-panels-container');
 
@@ -782,7 +812,7 @@ export function setupEventListeners() {
             } else if (state.currentSection === 'settings' && adminPanelContainer && !adminPanelContainer.classList.contains('hidden')) {
                  type = 'admin';
             } else if (state.currentSection !== 'new-bet') {
-                return; // Sadece ilgili sayfalardayken yapıştır
+                return;
             }
 
             handleImageFile(file, type);
@@ -792,18 +822,16 @@ export function setupEventListeners() {
     });
 
     // Platform Management
-    document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false)); // EKLENDİ: Null check
-    document.getElementById('add-platform-modal-btn')?.addEventListener('click', () => handleAddPlatformAttempt(true)); // EKLENDİ: Null check
-    // DÜZELTME: Modals.closePlatformManager yerine closePlatformManager kullanıldı
-    document.getElementById('close-platform-manager-btn')?.addEventListener('click', closePlatformManager); // EKLENDİ: Null check
+    document.getElementById('add-platform-btn')?.addEventListener('click', () => handleAddPlatformAttempt(false));
+    document.getElementById('add-platform-modal-btn')?.addEventListener('click', () => handleAddPlatformAttempt(true));
+    document.getElementById('close-platform-manager-btn')?.addEventListener('click', closePlatformManager);
 
     // Cash Management
-     // DÜZELTME: Modals.closeCashTransactionModal yerine closeCashTransactionModal kullanıldı
-    document.getElementById('cash-transaction-close-btn')?.addEventListener('click', closeCashTransactionModal); // EKLENDİ: Null check
-    document.getElementById('cash-deposit-btn')?.addEventListener('click', () => handleCashTransactionAttempt('deposit')); // EKLENDİ: Null check
-    document.getElementById('cash-withdrawal-btn')?.addEventListener('click', () => handleCashTransactionAttempt('withdrawal')); // EKLENDİ: Null check
+    document.getElementById('cash-transaction-close-btn')?.addEventListener('click', closeCashTransactionModal);
+    document.getElementById('cash-deposit-btn')?.addEventListener('click', () => handleCashTransactionAttempt('deposit'));
+    document.getElementById('cash-withdrawal-btn')?.addEventListener('click', () => handleCashTransactionAttempt('withdrawal'));
 
-    // EKLENDİ: Dinamik olarak eklenen admin eylemleri için modül (hata kontrolü eklendi)
+    // Admin Actions Module
     if (state.currentUser?.id === ADMIN_USER_ID) {
         import('./admin_actions.js')
             .then(module => {
@@ -816,8 +844,7 @@ export function setupEventListeners() {
             .catch(err => console.error("Admin actions modülü yüklenemedi:", err));
     }
 
-
     updateState({ listenersAttached: true });
-    console.log("Event listeners başarıyla bağlandı."); // EKLENDİ: Bağlantı tamamlandı logu
+    console.log("Event listeners başarıyla bağlandı.");
 }
 

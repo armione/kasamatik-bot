@@ -35,6 +35,8 @@ export function openCashTransactionModal() {
 export function closeCashTransactionModal() {
     closeModal('cash-transaction-modal');
     document.getElementById('cash-amount').value = '';
+    // GÖREV 3.3: Açıklama alanını da temizle
+    document.getElementById('cash-description').value = '';
 }
 
 export function openQuickAddModal() {
@@ -47,28 +49,40 @@ export function closeQuickAddModal() {
     removeImage('quick');
 }
 
+// REVİZE EDİLDİ: Tek Modal Kullanımı ve Dinamik İçerik
 export function openEditModal(betId) {
     const bet = state.bets.find(b => b.id === betId);
     if (!bet) return;
-    
+
     updateState({ editingBetId: betId, currentlyEditingBet: bet });
 
     const statusSelect = document.getElementById('edit-status');
     const winAmountInput = document.getElementById('edit-win-amount');
     const winAmountSection = document.getElementById('win-amount-section');
-    const tagInput = document.getElementById('edit-tag'); // GÖREV 3.2: Etiket input'unu al
+    const tagInput = document.getElementById('edit-tag');
 
+    // Mevcut değerleri doldur
     statusSelect.value = bet.status;
-    tagInput.value = bet.tag || ''; // GÖREV 3.2: Mevcut etiketi input'a yazdır
-    
+    tagInput.value = bet.tag || '';
+
+    // Kazanç miktarını hesapla ve doldur (eğer kazandıysa mevcut değeri, değilse potansiyeli)
     const potentialWinnings = bet.bet_amount * bet.odds;
     winAmountInput.value = bet.status === 'won' ? bet.win_amount : potentialWinnings.toFixed(2);
-    
-    winAmountSection.style.display = bet.status === 'won' ? 'block' : 'none';
 
-    statusSelect.onchange = () => {
+    // Kazanç Miktarı alanının görünürlüğünü ayarlayan fonksiyon
+    const toggleWinAmountVisibility = () => {
         winAmountSection.style.display = statusSelect.value === 'won' ? 'block' : 'none';
+        // Eğer durum "won" değilse ve input boş değilse, potansiyel kazancı tekrar yaz
+        if (statusSelect.value !== 'won' && winAmountInput.value !== potentialWinnings.toFixed(2)) {
+             winAmountInput.value = potentialWinnings.toFixed(2);
+        }
     };
+
+    // Modal açıldığında ilk görünürlüğü ayarla
+    toggleWinAmountVisibility();
+
+    // Durum değiştiğinde görünürlüğü tekrar ayarla
+    statusSelect.onchange = toggleWinAmountVisibility;
 
     openModal('edit-modal');
 }
@@ -77,12 +91,16 @@ export function closeEditModal() {
     closeModal('edit-modal');
     updateState({ editingBetId: null, currentlyEditingBet: null });
     const statusSelect = document.getElementById('edit-status');
-    const tagInput = document.getElementById('edit-tag'); // GÖREV 3.2: Etiket input'unu temizle
-    if (tagInput) tagInput.value = ''; // GÖREV 3.2: Kapatırken input'u temizle
+    const tagInput = document.getElementById('edit-tag');
+    if (tagInput) tagInput.value = '';
     if (statusSelect) {
         statusSelect.onchange = null; // Bellek sızıntısını önlemek için olay dinleyiciyi temizle
     }
+     // Kazanç alanı inputunu da temizle
+    const winAmountInput = document.getElementById('edit-win-amount');
+    if(winAmountInput) winAmountInput.value = '';
 }
+
 
 export function openPlaySpecialOddModal(oddId) {
     const odd = state.specialOdds.find(o => o.id === oddId);
@@ -103,12 +121,12 @@ export function openPlaySpecialOddModal(oddId) {
         <div class="mt-4">
             <label class="block text-gray-300 text-sm font-medium mb-2">Yatırım Miktarı (₺)</label>
             <input type="number" id="special-odd-bet-amount" class="input-glass w-full p-3 rounded-lg text-gray-800"
-                   min="0" ${odd.max_bet_amount ? `max="${odd.max_bet_amount}"` : ''} step="0.01" required>
+                   min="0.01" ${odd.max_bet_amount ? `max="${odd.max_bet_amount}"` : ''} step="0.01" required> <!-- min değeri 0.01 yapıldı -->
             <div id="risk-analysis-info" class="text-xs text-gray-400 mt-2 h-4"></div>
         </div>
         <div class="flex justify-end space-x-3 mt-6">
-            <button id="close-play-special-odd-modal" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">İptal</button>
-            <button id="confirm-play-special-odd" class="gradient-button px-4 py-2 rounded-lg text-white">
+            <button id="close-play-special-odd-modal" type="button" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">İptal</button> <!-- type="button" eklendi -->
+            <button id="confirm-play-special-odd" type="button" class="gradient-button px-4 py-2 rounded-lg text-white"> <!-- type="button" eklendi -->
                 <span class="btn-text">Bahsi Onayla</span>
                 <span class="btn-loader hidden"></span>
             </button>
@@ -116,7 +134,7 @@ export function openPlaySpecialOddModal(oddId) {
     `;
 
     openModal('special-odd-modal');
-    
+
     // Risk analizi için event listener
     const amountInput = document.getElementById('special-odd-bet-amount');
     const riskInfo = document.getElementById('risk-analysis-info');

@@ -1,4 +1,5 @@
 import { state, updateState } from './state.js';
+import { closeImportModal } from './components/modals.js';
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // ADMIN_USER_ID importu kaldırıldı (Görev 1 iptal edildiği için geri geldi)
 import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
@@ -1336,3 +1337,4 @@ export function setupEventListeners() {
     updateState({ listenersAttached: true });
     console.log("Event listeners başarıyla bağlandı.");
 }
+

@@ -672,6 +672,33 @@ export function setupEventListeners() {
     document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
     document.getElementById('clear-all-settings-btn')?.addEventListener('click', handleClearAllDataAttempt); // EKLENDİ: Null check
 
+    // YENİ EKLENDİ (FAZ 1, GÖREV 1) - İçe/Dışa Aktar Butonları
+    document.getElementById('import-btn')?.addEventListener('click', () => {
+        openModal('import-modal');
+    });
+    document.getElementById('close-import-btn')?.addEventListener('click', () => {
+        closeModal('import-modal');
+    });
+    document.getElementById('export-btn')?.addEventListener('click', () => {
+        // Bir sonraki adımda bu modülü oluşturacağız
+        import('./data_actions.js')
+            .then(module => module.handleExportData())
+            .catch(err => {
+                console.error("Dışa aktarma modülü yüklenemedi:", err);
+                showNotification('Dışa aktarma özelliği henüz hazır değil.', 'info');
+            });
+    });
+    document.getElementById('import-data-btn')?.addEventListener('click', () => {
+        // Bir sonraki adımda bu modülü oluşturacağız
+        import('./data_actions.js')
+            .then(module => module.handleImportData())
+            .catch(err => {
+                console.error("İçe aktarma modülü yüklenemedi:", err);
+                showNotification('İçe aktarma özelliği henüz hazır değil.', 'info');
+            });
+    });
+    // YENİ EKLENDİ SONU
+
     // Modals
      // DÜZELTME: Modals.fonksiyonAdi yerine fonksiyonAdi kullanıldı
     document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal); // EKLENDİ: Null check

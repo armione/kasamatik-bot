@@ -1,6 +1,7 @@
 import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSponsors, setAds, setSpecialOdds } from './state.js';
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
-import { getSupabase, onAuthStateChange } from './api/auth.js';
+// GÜNCELLEME: updateUserPassword import edildi.
+import { getSupabase, onAuthStateChange, updateUserPassword } from './api/auth.js';
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     registerServiceWorker(); 
     initPwaInstaller();
+    // GÜNCELLEME: onAuthStateChange artık (event, session) döndürüyor
     onAuthStateChange(handleAuthStateChange);
 });
 
@@ -63,20 +65,51 @@ function toggleLoading(show) {
     }
 }
 
-async function handleAuthStateChange(session) {
+// GÜNCELLEME: handleAuthStateChange artık 'event' parametresini de alıyor.
+async function handleAuthStateChange(event, session) {
     toggleLoading(true);
+    
+    // GÜNCELLEME (Faz 1, Görev 3): auth.js'den kaldırılan UI mantığı buraya eklendi.
+    if (event === 'PASSWORD_RECOVERY') {
+        toggleLoading(false); // Yükleme ekranını kapat (varsa)
+        try {
+            const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
+            if (newPassword && newPassword.length >= 6) {
+                const { error } = await updateUserPassword(newPassword);
+                if (error) {
+                    showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
+                } else {
+                    showNotification('Şifreniz başarıyla güncellendi!', 'success');
+                }
+            } else if (newPassword) {
+                 showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
+            }
+        } catch (error) {
+             showNotification(`Bir hata oluştu: ${error.message}`, 'error');
+        }
+        // Şifre sıfırlama sonrası UI'da kal, session değişirse (alt satırlarda) devam et.
+        // Eğer session değişmediyse (sadece event geldi) yüklemeyi tekrar kapat.
+        toggleLoading(false);
+    }
+    
     const user = session?.user || null;
 
     if (user?.id === state.currentUser?.id && document.getElementById('app-container').style.display === 'block') {
-        toggleLoading(false);
-        return;
+        // Eğer event PASSWORD_RECOVERY değilse ve kullanıcı zaten giriş yapmışsa,
+        // tekrar yükleme yapmaya gerek yok.
+        if (event !== 'PASSWORD_RECOVERY') {
+             toggleLoading(false);
+             return;
+        }
     }
     
     setCurrentUser(user);
 
     if (user) {
+        // Kullanıcı giriş yaptıysa veya zaten giriş yapmışsa (örn: sayfa yenileme, şifre sıfırlama sonrası)
         await initializeApp();
     } else {
+        // Kullanıcı çıkış yaptı
         document.getElementById('auth-container').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
         updateState({
@@ -186,4 +219,3 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
-

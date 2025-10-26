@@ -1011,5 +1011,3 @@ export function setupEventListeners() {
     console.log("Event listeners başarıyla kuruldu.");
 }
 
-}
-

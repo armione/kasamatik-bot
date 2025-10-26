@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasamatik - Gemini & Supabase Destekli Bahis Takibi</title>
-
+    
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#292c30"/>
@@ -16,12 +16,12 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+    
     <script>
       window.si = window.si || function () { (window.si.q = window.si.q || []).push(arguments); };
     </script>
     <script src="/_vercel/speed-insights/script.js"></script>
-
+    
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body class="text-white">
@@ -72,7 +72,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="pwa-install-modal" class="fixed bottom-4 right-4 bg-gray-800 text-white p-5 rounded-xl shadow-2xl max-w-sm z-[1002] hidden animate-slide-in-up">
         <div class="flex items-start space-x-4">
             <img src="assets/logo_192.png" alt="Kasamatik Logo" class="w-16 h-16 rounded-lg">
@@ -131,7 +131,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <nav class="mt-6 flex-grow overflow-y-auto">
                 <div class="sidebar-item active" data-section="dashboard">
                     <span class="sidebar-icon">🏠</span>
@@ -170,7 +170,7 @@
                     <span class="sidebar-text">Ayarlar</span>
                 </div>
             </nav>
-
+            
             <div class="p-6 flex-shrink-0">
                  <button id="logout-btn" class="w-full sidebar-item justify-center mb-2 bg-red-800/80 hover:bg-red-700/80">
                     <span class="sidebar-icon">🚪</span>
@@ -181,14 +181,14 @@
                     <span class="sidebar-text">Daralt</span>
                 </button>
                 <div class="text-center mt-2">
-                    <p class="text-xs text-gray-500 sidebar-text">v2.21</p> <!-- Sürüm güncellendi -->
+                    <p class="text-xs text-gray-500 sidebar-text">v2.19</p> <!-- Sürüm güncellendi -->
                 </div>
             </div>
         </div>
 
         <div class="main-content" id="main-content">
             <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
-
+    
             <div id="dashboard" class="page-section active">
                 <h2 class="text-2xl font-montserrat font-bold gradient-text mb-2">Genel Bakış</h2>
                 <div class="stats-grid">
@@ -197,19 +197,19 @@
                         <p class="text-2xl font-montserrat font-bold text-white" id="total-bankroll">0 ₺</p>
                         <div class="text-xs text-gray-400 mt-1">Tüm işlemler sonrası mevcut bakiye</div>
                     </div>
-
+    
                     <div class="stat-card">
                         <h3 class="text-gray-300 font-medium text-sm mb-2">💹 Net Kar/Zarar (Bahislerden)</h3>
                         <p class="text-2xl font-montserrat font-bold text-white" id="net-profit-loss">0 ₺</p>
                         <div class="text-xs text-gray-400 mt-1">Sadece bahislerden gelen net sonuç</div>
                     </div>
-
+    
                     <div class="stat-card">
                         <h3 class="text-gray-300 font-medium text-sm mb-2">💸 Toplam Yatırım (Bahislere)</h3>
                         <p class="text-2xl font-montserrat font-bold text-teal-300" id="total-investment">0 ₺</p>
                         <div class="text-xs text-gray-400 mt-1">Bahislere yatırılan toplam miktar</div>
                     </div>
-
+    
                     <div class="stat-card">
                         <h3 class="text-gray-300 font-medium text-sm mb-2">🎲 Toplam Bahis Sayısı</h3>
                         <p class="text-2xl font-montserrat font-bold text-white" id="total-bets">0</p>
@@ -237,7 +237,7 @@
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="dashboard-grid">
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-lg font-montserrat font-bold gradient-text mb-4">⚡ Hızlı İşlemler</h3>
@@ -250,7 +250,7 @@
                             </button>
                         </div>
                     </div>
-
+                    
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-lg font-montserrat font-bold gradient-text mb-4">🚀 Hızlı Başlangıç</h3>
                         <div class="space-y-3 text-sm">
@@ -275,12 +275,11 @@
                 </div>
 
                 <div id="dashboard-ad-banner" class="mb-6"></div>
-
+    
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text">📋 Son Bahisler</h3>
-                        <!-- Buton düzeltildi: data-action eklendi -->
-                        <button id="show-history-btn" data-action="navigate-section" data-section="history" class="text-blue-400 hover:text-blue-300 text-sm">
+                        <button id="show-history-btn" class="text-blue-400 hover:text-blue-300 text-sm">
                             Tümünü Gör →
                         </button>
                     </div>
@@ -297,7 +296,7 @@
                             <p class="text-gray-400 text-sm">Yönetim tarafından yayınlanan, kaçırılmayacak fırsatlar</p>
                         </div>
                     </div>
-
+                    
                     <!-- Gelişmiş Filtreleme Barı -->
                     <div class="glass-card rounded-2xl p-4 mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -338,13 +337,13 @@
                     </div>
                 </div>
             </div>
-
+    
             <div id="new-bet" class="page-section">
                 <div class="form-card">
                     <h2 class="text-2xl font-montserrat font-bold gradient-text mb-6">
                         ➕ Yeni Bahis Kaydı
                     </h2>
-
+                    
                     <form id="bet-form" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -352,14 +351,13 @@
                                 <div class="flex space-x-2">
                                     <select id="platform" required class="input-glass flex-1 p-3 rounded-lg text-gray-800">
                                         <option value="">Platform Seçin</option>
-                                        <option value="all" disabled>Platform Seçin</option> <!-- "all" seçeneğini devre dışı bırak -->
                                     </select>
                                     <button type="button" id="platform-manager-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
                                         ⚙️
                                     </button>
                                 </div>
                             </div>
-
+                            
                             <div>
                                 <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Türü</label>
                                 <select id="bet-type" required class="input-glass w-full p-3 rounded-lg text-gray-800">
@@ -368,50 +366,44 @@
                                 </select>
                             </div>
                         </div>
-
+    
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Açıklaması</label>
-                                <input type="text" id="description" placeholder="Örn: Galatasaray - Fenerbahçe (1)"
+                                <input type="text" id="description" placeholder="Örn: Galatasaray - Fenerbahçe (1)" 
                                        class="input-glass w-full p-3 rounded-lg text-gray-800">
                             </div>
-
+    
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label class="block text-gray-300 text-sm font-medium mb-2">Bahis Miktarı (₺)</label>
-                                    <input type="number" id="bet-amount" required min="0.01" step="0.01" placeholder="100" <!-- min değeri 0.01 yapıldı -->
+                                    <input type="number" id="bet-amount" min="0" step="0.01" placeholder="100"
                                            class="input-glass w-full p-3 rounded-lg text-gray-800">
                                 </div>
-
+                                
                                 <div>
                                     <label class="block text-gray-300 text-sm font-medium mb-2">Oran</label>
-                                    <input type="number" id="odds" required min="1" step="0.01" placeholder="2.50"
+                                    <input type="number" id="odds" min="1" step="0.01" placeholder="2.50"
                                            class="input-glass w-full p-3 rounded-lg text-gray-800">
                                 </div>
-
+                                
                                 <div>
                                     <label class="block text-gray-300 text-sm font-medium mb-2">Tarih</label>
-                                    <input type="date" id="bet-date" required <!-- required eklendi -->
+                                    <input type="date" id="bet-date" 
                                            class="input-glass w-full p-3 rounded-lg text-gray-800">
                                 </div>
                             </div>
                         </div>
-
+    
                         <div class="image-upload-area rounded-lg p-6 text-center mb-6 border-2 border-dashed border-gray-600" id="image-upload-area">
                             <div id="upload-area" class="space-y-3 flex flex-col items-center">
                                 <div class="text-4xl">📸</div>
                                 <p class="font-bold text-white">Önce Kuponunu Yükle, Zaman Kazan!</p>
                                 <p class="text-gray-300">Bahis kuponu resmini buraya sürükleyin veya Ctrl+V ile yapıştırın</p>
                                 <input type="file" id="image-input" accept="image/*" class="hidden">
-                                <div class="flex flex-wrap justify-center gap-3"> <!-- Butonları yan yana almak için flex -->
-                                    <button type="button" id="image-select-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
-                                        📁 Dosya Seç
-                                    </button>
-                                    <!-- GÖREV 1.4: Panodan Yapıştır Butonu Eklendi -->
-                                    <button type="button" id="paste-image-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
-                                        📋 Panodan Yapıştır
-                                    </button>
-                                </div>
+                                <button type="button" id="image-select-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
+                                    📁 Dosya Seç
+                                </button>
                             </div>
                             <div id="image-preview" class="hidden mt-4">
                                 <img id="preview-img" class="max-w-full max-h-48 mx-auto rounded-lg">
@@ -426,7 +418,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="flex justify-end space-x-4 pt-6">
                             <button type="button" id="reset-form-btn" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                                 Temizle
@@ -439,7 +431,7 @@
                     </form>
                 </div>
             </div>
-
+    
             <div id="history" class="page-section">
                  <div class="mb-8">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
@@ -512,15 +504,15 @@
                             <p class="text-2xl font-montserrat font-bold" id="filtered-win-rate">0%</p>
                         </div>
                     </div>
-
+                    
                     <div id="bet-history">
                     </div>
-
+                    
                     <div id="pagination-container" class="pagination">
                     </div>
                 </div>
             </div>
-
+    
             <div id="cash-history" class="page-section">
                 <div class="mb-8">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
@@ -529,7 +521,7 @@
                             <p class="text-gray-400 text-sm">Tüm para yatırma ve çekme işlemleriniz</p>
                         </div>
                     </div>
-
+                    
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div class="glass-card rounded-xl p-4 text-center">
                             <div class="text-2xl mb-1 text-green-400" id="cash-history-deposit">0 ₺</div>
@@ -548,19 +540,19 @@
                             <div class="text-xs text-gray-400">Toplam İşlem</div>
                         </div>
                     </div>
-
+                    
                     <div id="cash-history-list">
                     </div>
-
+                    
                     <div id="cash-pagination-container" class="pagination">
                     </div>
                 </div>
             </div>
-
+    
             <div id="statistics" class="page-section">
                 <div class="mb-8">
                     <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📊 İstatistikler</h2>
-
+                    
                      <div class="glass-card rounded-xl p-4 mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                             <div>
@@ -589,7 +581,7 @@
                             <div class="text-xs text-gray-400">Kasa işlemleri hariç toplam bahis sayısı</div>
                             <div class="mt-2 text-xs text-blue-300" id="stats-bet-breakdown">Spor: 0 | Canlı: 0</div>
                         </div>
-
+    
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-3">
@@ -605,7 +597,7 @@
                             <div class="text-xs text-gray-400">Sonuçlanan bahislerdeki başarı oranı</div>
                             <div class="mt-2 text-xs text-green-300" id="stats-win-breakdown">Kazanan: 0 | Kaybeden: 0</div>
                         </div>
-
+    
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-3">
@@ -621,7 +613,7 @@
                             <div class="text-xs text-gray-400">Spor bahislerinin ortalama oranı</div>
                             <div class="mt-2 text-xs text-yellow-300" id="stats-odds-range">En düşük: 0.00 | En yüksek: 0.00</div>
                         </div>
-
+    
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-3">
@@ -637,7 +629,7 @@
                             <div class="text-xs text-gray-400">Yatırım getirisi (Net kar / Toplam yatırım)</div>
                             <div class="mt-2 text-xs" id="stats-roi-breakdown">Yatırım: 0₺ | Net kar: 0₺</div>
                         </div>
-
+    
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-3">
@@ -653,7 +645,7 @@
                             <div class="text-xs text-gray-400">Bahis başına ortalama yatırım miktarı</div>
                             <div class="mt-2 text-xs text-blue-300" id="stats-bet-range">En düşük: 0₺ | En yüksek: 0₺</div>
                         </div>
-
+    
                         <div class="stat-card">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-3">
@@ -670,7 +662,7 @@
                             <div class="mt-2 text-xs text-teal-300" id="stats-platform-profit">Kar: 0₺</div>
                         </div>
                     </div>
-
+    
                     <div class="dashboard-grid">
                         <div class="glass-card rounded-2xl p-6">
                             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📈 Kar/Zarar Trendi</h3>
@@ -678,7 +670,7 @@
                                 <canvas id="profitChart"></canvas>
                             </div>
                         </div>
-
+    
                         <div class="glass-card rounded-2xl p-6">
                             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Dağılımı</h3>
                             <div style="height: 300px;">
@@ -688,16 +680,16 @@
                     </div>
                 </div>
             </div>
-
+    
             <div id="guide" class="page-section">
                 <div class="mb-8">
                     <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">📖 Kullanım Rehberi ve Kurulum</h2>
-
+                    
                     <div class="space-y-6">
                         <div class="glass-card rounded-2xl p-6">
                             <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📱 Kasamatik'i Ana Ekranınıza Ekleyin!</h3>
                             <p class="text-gray-300 mb-6">Kasamatik'i bir uygulama gibi kullanarak fırsatlara anında erişin. Tarayıcınıza göre aşağıdaki adımları izleyebilirsiniz:</p>
-
+                            
                             <div class="my-6">
                                 <button type="button" id="pwa-install-btn-guide" class="pwa-install-button hidden w-full gradient-button py-4 rounded-lg text-lg font-semibold">
                                     ⬇️ Tek Tıkla Yükle
@@ -781,10 +773,9 @@
                 <h2 class="text-3xl font-montserrat font-bold gradient-text mb-6">🏆 Sponsorlarımız</h2>
                 <p class="text-gray-400 mb-8">Projeye destek veren değerli sponsorlarımız.</p>
                 <div id="sponsors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Sponsorlar buraya render edilecek -->
-                </div>
+                    </div>
             </div>
-
+    
             <div id="settings" class="page-section">
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="glass-card rounded-2xl p-6">
@@ -811,18 +802,17 @@
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">🏢 Platform Yönetimi</h3>
                         <div class="space-y-4">
                             <div class="flex space-x-2">
-                                <input type="text" id="new-platform-name" placeholder="Platform adı"
+                                <input type="text" id="new-platform-name" placeholder="Platform adı" 
                                        class="input-glass flex-1 p-3 rounded-lg text-gray-800">
                                 <button id="add-platform-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
                                     ➕
                                 </button>
                             </div>
                             <div id="custom-platforms-list" class="space-y-2 max-h-48 overflow-y-auto">
-                                <!-- Özel platformlar buraya render edilecek -->
                             </div>
                         </div>
                     </div>
-
+    
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">📊 Veri Yönetimi</h3>
                         <div class="space-y-3">
@@ -842,19 +832,16 @@
                     <div id="admin-panels-container" class="hidden xl:col-span-3 space-y-6">
                          <div id="special-odds-panel" class="glass-card rounded-2xl p-6">
                             <h3 class="text-xl font-montserrat font-bold gradient-text mb-6">📢 Özel Oran Yönetim Paneli (Admin)</h3>
-
+                            
                             <!-- Fırsat Yayınlama Formu -->
                             <form id="special-odd-form" class="space-y-4 mb-8 p-4 border border-gray-700 rounded-xl">
                                 <h4 class="text-lg font-semibold text-gray-300 mb-3">Yeni Fırsat Yayınla</h4>
-
+                                
                                 <div class="image-upload-area rounded-lg p-4 text-center border-dashed border-gray-600" id="admin-image-upload-area">
                                     <p class="text-sm text-gray-400 mb-2">Özel oran ekran görüntüsünü yükle:</p>
                                     <div id="admin-upload-area" class="space-y-2">
                                         <input type="file" id="admin-image-input" accept="image/*" class="hidden">
-                                        <div class="flex flex-wrap justify-center gap-3"> <!-- Butonları yan yana almak için flex -->
-                                            <button type="button" id="admin-image-select-btn" class="gradient-button px-4 py-2 rounded-lg text-white text-sm">📁 Dosya Seç</button>
-                                            <button type="button" id="admin-paste-image-btn" class="gradient-button px-4 py-2 rounded-lg text-white text-sm">📋 Panodan Yapıştır</button>
-                                        </div>
+                                        <button type="button" id="admin-image-select-btn" class="gradient-button px-4 py-2 rounded-lg text-white text-sm">📁 Dosya Seç</button>
                                     </div>
                                     <div id="admin-image-preview" class="hidden mt-2">
                                         <img id="admin-preview-img" class="max-w-full max-h-32 mx-auto rounded-lg">
@@ -865,7 +852,7 @@
                                     <span id="admin-gemini-button-icon">✨</span>
                                     <span id="admin-gemini-button-text">Kuponu Oku</span>
                                 </button>
-
+                                
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-gray-400 text-xs font-medium mb-1">Açıklama</label>
@@ -873,7 +860,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-gray-400 text-xs font-medium mb-1">Oran</label>
-                                        <input type="number" id="special-odd-odds" required step="0.01" min="1" class="input-glass w-full p-2 rounded-lg text-gray-800"> <!-- min="1" eklendi -->
+                                        <input type="number" id="special-odd-odds" required step="0.01" class="input-glass w-full p-2 rounded-lg text-gray-800">
                                     </div>
                                      <div>
                                         <label class="block text-gray-400 text-xs font-medium mb-1">Platform</label>
@@ -881,7 +868,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-gray-400 text-xs font-medium mb-1">Maks. Bahis (₺)</label>
-                                        <input type="number" id="special-odd-max-bet" step="0.01" min="0" class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="Opsiyonel"> <!-- min="0" eklendi -->
+                                        <input type="number" id="special-odd-max-bet" step="0.01" class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="Opsiyonel">
                                     </div>
                                 </div>
                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-700">
@@ -898,7 +885,7 @@
                                         <input type="text" id="special-odd-secondary-link-text" class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="Örn: X-BONUS | ÖZEL ORAN">
                                     </div>
                                     <div>
-                                        <label class="block text-gray-400 text-xs font-medium mb-1">İkincil Link URL (Opsiyonel)</label>
+                                        <label class="block text-gray-400 text-xs font-medium mb-1">İkincil Link URL (Opsiyonel)</lebel>
                                         <input type="url" id="special-odd-secondary-link-url" class="input-glass w-full p-2 rounded-lg text-gray-800" placeholder="https://...">
                                     </div>
                                 </div>
@@ -931,7 +918,6 @@
                             </form>
                             <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Sponsorlar</h4>
                             <div id="sponsors-list" class="space-y-2 max-h-48 overflow-y-auto">
-                                <!-- Sponsorlar buraya render edilecek -->
                             </div>
                         </div>
 
@@ -953,42 +939,40 @@
                             </form>
                             <h4 class="text-lg font-semibold text-gray-300 mb-3">Mevcut Reklamlar</h4>
                             <div id="ads-list" class="space-y-2 max-h-48 overflow-y-auto">
-                                <!-- Reklamlar buraya render edilecek -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+    
         <div class="floating-action" id="floating-add-btn">
             ➕
         </div>
-
+    
         <div id="platform-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Platform Yönetimi</h3>
-
+                
                 <div class="space-y-4">
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Yeni Platform Ekle</label>
                         <div class="flex space-x-2">
-                            <input type="text" id="new-platform-name-modal" placeholder="Platform adı"
+                            <input type="text" id="new-platform-name-modal" placeholder="Platform adı" 
                                    class="input-glass flex-1 p-3 rounded-lg text-gray-800">
                             <button id="add-platform-modal-btn" class="gradient-button px-4 py-3 rounded-lg text-white">
                                 ➕
                             </button>
                         </div>
                     </div>
-
+                    
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Özel Platformlar</label>
                         <div id="custom-platforms-list-modal" class="space-y-2 max-h-32 overflow-y-auto">
-                            <!-- Özel platformlar buraya render edilecek -->
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="flex justify-end space-x-3 mt-6">
                     <button id="close-platform-manager-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                         Kapat
@@ -996,20 +980,14 @@
                 </div>
             </div>
         </div>
-
+    
         <div id="cash-transaction-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">💸 Kasa İşlemi</h3>
                 <div class="space-y-4">
                      <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
-                        <input type="number" id="cash-amount" required min="0.01" step="0.01" placeholder="1000" <!-- min değeri 0.01 yapıldı -->
-                               class="input-glass w-full p-3 rounded-lg text-gray-800">
-                    </div>
-                    <!-- GÖREV 3.3: Açıklama Input Alanı -->
-                     <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Açıklama (Opsiyonel)</label>
-                        <input type="text" id="cash-description" placeholder="Örn: Papara Transferi"
+                        <input type="number" id="cash-amount" required min="0" step="0.01" placeholder="1000"
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
                     <div class="flex justify-end space-x-3 pt-2">
@@ -1026,47 +1004,41 @@
                 </div>
             </div>
         </div>
-
+    
         <div id="quick-add-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Hızlı Bahis Ekle</h3>
-
+                
                 <form id="quick-add-form" class="space-y-4">
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Platform</label>
                         <select id="quick-platform" required class="input-glass w-full p-3 rounded-lg text-gray-800">
-                             <option value="">Platform Seçin</option>
-                             <option value="all" disabled>Platform Seçin</option> <!-- "all" seçeneğini devre dışı bırak -->
+                            <option value="">Platform Seçin</option>
                         </select>
                     </div>
-
+                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-gray-300 text-sm font-medium mb-2">Miktar (₺)</label>
-                            <input type="number" id="quick-amount" required min="0.01" step="0.01" placeholder="100" <!-- min değeri 0.01 yapıldı -->
+                            <input type="number" id="quick-amount" required min="0" step="0.01" placeholder="100"
                                    class="input-glass w-full p-3 rounded-lg text-gray-800">
                         </div>
-
+                        
                         <div>
                             <label class="block text-gray-300 text-sm font-medium mb-2">Oran</label>
                             <input type="number" id="quick-odds" required min="1" step="0.01" placeholder="2.50"
                                    class="input-glass w-full p-3 rounded-lg text-gray-800">
                         </div>
                     </div>
-
+    
                     <div class="image-upload-area rounded-lg p-4 text-center" id="quick-image-upload-area">
                         <div id="quick-upload-area" class="space-y-2">
                             <div class="text-2xl">📸</div>
                             <p class="text-gray-300 text-sm">Kupon resmi sürükleyin veya Ctrl+V ile yapıştırın</p>
                             <input type="file" id="quick-image-input" accept="image/*" class="hidden">
-                             <div class="flex flex-wrap justify-center gap-3"> <!-- Butonları yan yana almak için flex -->
-                                <button type="button" id="quick-image-select-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
-                                    📁 Seç
-                                </button>
-                                <button type="button" id="quick-paste-image-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
-                                    📋 Yapıştır
-                                </button>
-                            </div>
+                            <button type="button" id="quick-image-select-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
+                                📁 Seç
+                            </button>
                         </div>
                         <div id="quick-image-preview" class="hidden mt-3">
                             <img id="quick-preview-img" class="max-w-full max-h-32 mx-auto rounded-lg">
@@ -1075,7 +1047,7 @@
                             </button>
                         </div>
                     </div>
-
+    
                     <div class="flex justify-end space-x-3">
                         <button type="button" id="close-quick-add-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                             İptal
@@ -1096,23 +1068,23 @@
                 </div>
             </div>
         </div>
-
+    
         <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Veri İçe Aktarma</h3>
-
+                
                 <div class="space-y-4">
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">JSON Dosyası Seç</label>
                         <input type="file" id="import-file" accept=".json" class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
-
+                    
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">Veya JSON Metni Yapıştır</label>
-                        <textarea id="import-text" placeholder="JSON verisini buraya yapıştırın..."
+                        <textarea id="import-text" placeholder="JSON verisini buraya yapıştırın..." 
                                   class="input-glass w-full p-3 rounded-lg text-gray-800 h-32 resize-none"></textarea>
                     </div>
-
+                    
                     <div>
                         <label class="block text-gray-300 text-sm font-medium mb-2">İçe Aktarma Modu</label>
                         <select id="import-mode" class="input-glass w-full p-3 rounded-lg text-gray-800">
@@ -1121,7 +1093,7 @@
                         </select>
                     </div>
                 </div>
-
+    
                 <div class="flex justify-end space-x-3 mt-6">
                     <button id="close-import-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                         İptal
@@ -1132,88 +1104,39 @@
                 </div>
             </div>
         </div>
-
-        <!-- ESKİ Düzenleme Modalı (Sadece Etiket ve Sonuç Düzeltme için) -->
+    
         <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
             <div class="glass-card rounded-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Düzenle/Etiketle</h3> <!-- Başlık güncellendi -->
-
+                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Güncelle</h3>
+                
                 <div class="space-y-4">
-                     <!-- Etiket Alanı (Her zaman görünür) -->
                     <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Etiket</label>
-                        <input type="text" id="edit-tag" placeholder="Kupona bir etiket ekle..."
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Durum</label>
+                        <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
+                            <option value="pending">Bekleyen</option>
+                            <option value="won">Kazandı</option>
+                            <option value="lost">Kaybetti</option>
+                        </select>
+                    </div>
+                    
+                    <div id="win-amount-section" style="display: none;">
+                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺)</label>
+                        <input type="number" id="edit-win-amount" min="0" step="0.01" placeholder="Örn: 1500"
                                class="input-glass w-full p-3 rounded-lg text-gray-800">
                     </div>
-
-                    <!-- Durum ve Kazanç Alanları (Sadece sonuçlanmışsa anlamlı, ama düzeltme için gösterilebilir) -->
-                     <div id="edit-result-section"> <!-- Bu bölümü gizleyip açacağız -->
-                        <hr class="border-gray-600 my-4"> <!-- Ayraç -->
-                        <div>
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Durum (Düzeltme)</label>
-                            <select id="edit-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                                <option value="pending">Bekleyen</option> <!-- Bekleyene geri alma seçeneği -->
-                                <option value="won">Kazandı</option>
-                                <option value="lost">Kaybetti</option>
-                                <option value="refunded">İade Edildi</option>
-                            </select>
-                        </div>
-
-                        <div id="edit-win-amount-section" style="display: none;">
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺) (Düzeltme)</label>
-                            <input type="number" id="edit-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
-                                   class="input-glass w-full p-3 rounded-lg text-gray-800">
-                        </div>
-                    </div>
                 </div>
-
+    
                 <div class="flex justify-end space-x-3 mt-6">
                     <button id="close-edit-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                         İptal
                     </button>
                     <button id="save-edit-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        Değişiklikleri Kaydet
+                        Kaydet
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- YENİ Basit Sonuçlandırma Modalı -->
-        <div id="resolve-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40 p-4">
-            <div class="glass-card rounded-2xl p-6 w-full max-w-sm"> <!-- Daha küçük -->
-                <h3 class="text-xl font-montserrat font-bold gradient-text mb-4">Bahis Sonuçlandır</h3>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Sonuç</label>
-                        <select id="resolve-status" class="input-glass w-full p-3 rounded-lg text-gray-800">
-                             <!-- Varsayılan boş olsun ki kullanıcı seçsin -->
-                             <option value="" disabled selected>Sonuç Seçin...</option>
-                            <option value="won">Kazandı</option>
-                            <option value="lost">Kaybetti</option>
-                            <option value="refunded">İade Edildi</option>
-                        </select>
-                    </div>
-
-                    <div id="resolve-win-amount-section" style="display: none;"> <!-- Başlangıçta gizli -->
-                        <label class="block text-gray-300 text-sm font-medium mb-2">Toplam Kazanç (₺)</label>
-                        <input type="number" id="resolve-win-amount" min="0.01" step="0.01" placeholder="Örn: 1500"
-                               class="input-glass w-full p-3 rounded-lg text-gray-800">
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button id="close-resolve-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        İptal
-                    </button>
-                    <button id="save-resolve-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        Sonuçlandır
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
+    
         <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
             <div class="max-w-4xl max-h-full">
                 <img id="modal-image" class="max-w-full max-h-full rounded-lg">
@@ -1224,4 +1147,3 @@
     <script type="module" src="src/js/main.js" defer></script>
 </body>
 </html>
-

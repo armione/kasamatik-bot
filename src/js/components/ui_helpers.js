@@ -30,7 +30,7 @@ export function toggleMobileSidebar() {
 export function populatePlatformOptions() {
     const allPlatforms = [...DEFAULT_PLATFORMS, ...state.customPlatforms.map(p => p.name)].sort();
     const platformSelects = [
-        document.getElementById('platform'),
+        document.getElementById('platform'), 
         document.getElementById('quick-platform'),
         document.getElementById('platform-filter')
     ];
@@ -38,8 +38,8 @@ export function populatePlatformOptions() {
         if (select) {
             const currentValue = select.value;
             const defaultOptionText = select.id === 'platform-filter' ? 'Tüm Platformlar' : 'Platform Seçin';
-            select.innerHTML = `<option value="all">${defaultOptionText}</option>`; // 'all' yerine "" olmalı mı? Hayır, filter için 'all' kalmalı.
-
+            select.innerHTML = `<option value="all">${defaultOptionText}</option>`;
+            
             allPlatforms.forEach(platform => {
                 const option = document.createElement('option');
                 option.value = platform;
@@ -48,13 +48,9 @@ export function populatePlatformOptions() {
             });
              if (allPlatforms.includes(currentValue)) {
                 select.value = currentValue;
-             } else if (select.id !== 'platform-filter' && select.options.length > 1) {
-                 // Eğer filtre değilse ve platformlar varsa, ilkini seç (genellikle boş seçenek sonrası ilk platform)
-                 select.selectedIndex = 1; // Ya da select.value = 'all' kalsın? Kullanıcı seçsin. Şimdilik 'all' kalsın.
-                 // select.value = allPlatforms[0]; // Bu belki daha iyi? Hayır, placeholder kalsın.
-             } else if (select.id !== 'platform-filter') {
-                 select.value = 'all'; // Eğer hiç platform yoksa 'all' (yani placeholder) kalsın.
-             }
+            } else if (select.id !== 'platform-filter') {
+                select.value = 'all';
+            }
         }
     });
 }
@@ -221,7 +217,7 @@ export function renderSpecialOddsPage() {
     container.innerHTML = filteredOdds.map(odd => {
         const statusClasses = { pending: 'pending', won: 'won', lost: 'lost', refunded: 'refunded' };
         const statusTexts = { pending: 'Bekleniyor', won: 'Kazandı', lost: 'Kaybetti', refunded: 'İade Edildi' };
-
+        
         let linkButtonsHTML = '';
         if (odd.primary_link_url && odd.primary_link_text) {
             linkButtonsHTML += `<a href="${odd.primary_link_url}" target="_blank" rel="noopener noreferrer" class="link-button link-button-primary">${odd.primary_link_text}</a>`;
@@ -271,7 +267,7 @@ export function resetForm(formId = 'bet-form') {
             dateInput.value = new Date().toISOString().split('T')[0];
         }
     }
-    removeImage('main'); // 'main' tipini burada sabit olarak kullanıyoruz, varsayılan form bu.
+    removeImage('main');
 }
 
 export function handleImageFile(file, type) {
@@ -280,20 +276,12 @@ export function handleImageFile(file, type) {
     reader.onload = e => {
         const imageData = e.target.result;
         const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
+        state[`${type}ImageData`] = imageData;
 
-        // HATA DÜZELTME: 'main' tipi için state.currentImageData kullanılmalı.
-        if (type === 'main') {
-            state.currentImageData = imageData;
-        } else {
-            state[`${type}ImageData`] = imageData;
-        }
-
-        // Gemini butonu aktivasyonu sadece 'main' ve 'admin' için geçerli.
         if (type === 'main' || type === 'admin') {
             document.getElementById(`${prefix}gemini-analyze-btn`).disabled = false;
         }
 
-        // Görüntü önizlemesini ayarla
         document.getElementById(`${prefix}preview-img`).src = imageData;
         document.getElementById(`${prefix}upload-area`).classList.add('hidden');
         document.getElementById(`${prefix}image-preview`).classList.remove('hidden');
@@ -303,27 +291,15 @@ export function handleImageFile(file, type) {
 
 export function removeImage(type) {
     const prefix = type === 'main' ? '' : (type === 'quick' ? 'quick-' : 'admin-');
+    state[`${type}ImageData`] = null;
 
-    // HATA DÜZELTME: 'main' tipi için state.currentImageData null yapılmalı.
-    if (type === 'main') {
-        state.currentImageData = null;
-    } else {
-        state[`${type}ImageData`] = null;
-    }
-
-    // Gemini butonu deaktivasyonu sadece 'main' ve 'admin' için.
     if (type === 'main' || type === 'admin') {
-        const geminiBtn = document.getElementById(`${prefix}gemini-analyze-btn`);
-        if (geminiBtn) geminiBtn.disabled = true;
+        document.getElementById(`${prefix}gemini-analyze-btn`).disabled = true;
     }
-
-    // Görüntü önizlemesini kaldır ve yükleme alanını göster
-    const uploadArea = document.getElementById(`${prefix}upload-area`);
-    const imagePreview = document.getElementById(`${prefix}image-preview`);
-    if (uploadArea) uploadArea.classList.remove('hidden');
-    if (imagePreview) imagePreview.classList.add('hidden');
-
-    // Dosya input'unu temizle
+    
+    document.getElementById(`${prefix}upload-area`)?.classList.remove('hidden');
+    document.getElementById(`${prefix}image-preview`)?.classList.add('hidden');
     const imageInput = document.getElementById(`${prefix}image-input`);
     if (imageInput) imageInput.value = '';
 }
+

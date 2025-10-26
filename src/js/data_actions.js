@@ -3,6 +3,7 @@ import { addBet, addPlatform, clearAllBetsForUser, clearAllPlatformsForUser } fr
 import { showNotification, setButtonLoading } from './utils/helpers.js';
 import { updateAllUI } from './main.js';
 import { closeModal } from './components/modals.js';
+import { closeImportModal } from './components/modals.js';
 
 /**
  * Kullanıcının mevcut bahis ve platform verilerini bir JSON dosyası olarak indirmesini sağlar.
@@ -137,3 +138,4 @@ export async function handleImportData() {
         setButtonLoading(importButton, false);
     }
 }
+

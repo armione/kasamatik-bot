@@ -1,5 +1,7 @@
 import { state, updateState } from '../state.js';
 import { ITEMS_PER_PAGE } from '../utils/constants.js';
+// GÖREV 2: Merkezi calculateProfitLoss fonksiyonunu import et
+import { calculateProfitLoss } from '../utils/helpers.js';
 
 // Sayfalama (Pagination) HTML'ini oluşturur
 function renderPagination(type, totalPages, current, changeFnName) {
@@ -17,8 +19,32 @@ function renderPagination(type, totalPages, current, changeFnName) {
     html += `<button class="pagination-btn" ${current === 1 ? 'disabled' : ''} data-action="${changeFnName}" data-page="${current - 1}">←</button>`;
 
     // Sayfa numaraları (optimize edilebilir, şimdilik basit)
-    for (let i = 1; i <= totalPages; i++) {
+    // Çok fazla sayfa varsa hepsini göstermek yerine '...' ekleyebiliriz.
+    const maxVisiblePages = 5; // Gösterilecek maksimum sayfa butonu sayısı
+    let startPage = Math.max(1, current - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Eğer sona yaklaşıldıysa başlangıcı ayarla
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" data-action="${changeFnName}" data-page="1">1</button>`;
+        if (startPage > 2) {
+            html += `<span class="pagination-dots px-2">...</span>`; // Başlangıçta '...'
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
         html += `<button class="pagination-btn ${i === current ? 'active' : ''}" data-action="${changeFnName}" data-page="${i}">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+             html += `<span class="pagination-dots px-2">...</span>`; // Sonda '...'
+        }
+        html += `<button class="pagination-btn" data-action="${changeFnName}" data-page="${totalPages}">${totalPages}</button>`;
     }
 
     // İleri butonu
@@ -33,8 +59,8 @@ function applyFilters(bets) {
     let dateFilteredBets = bets;
     // Periyoda göre filtreleme
     if (period !== 'all') {
-        const endDate = new Date();
-        const startDate = new Date();
+        const endDate = new Date(); // Bugünün sonu
+        const startDate = new Date(); // Başlangıç tarihi hesaplanacak
 
         if (period === 1) { // Son 24 saat
             startDate.setTime(endDate.getTime() - 24 * 60 * 60 * 1000);
@@ -42,9 +68,14 @@ function applyFilters(bets) {
             startDate.setDate(endDate.getDate() - (period - 1));
             startDate.setHours(0, 0, 0, 0); // Günün başlangıcı
         }
+        // Saat dilimi sorunlarını önlemek için tarihleri UTC'ye çevirmek daha güvenli olabilir
+        // Ancak şimdilik yerel saatle devam edelim.
 
         dateFilteredBets = bets.filter(bet => {
+            // Bet tarihini de Date objesine çevir
             const betDate = new Date(bet.date);
+            // Tarih alanının geçerli olduğundan emin ol
+            if (isNaN(betDate)) return false;
             return betDate >= startDate && betDate <= endDate;
         });
     }
@@ -52,11 +83,13 @@ function applyFilters(bets) {
     // Diğer filtrelere göre süzme
     return dateFilteredBets.filter(bet => {
         // Özel oran durumunu normal durumdan öncelikli al
+        // Null check eklendi: bet.special_odds var mı?
         const currentStatus = bet.special_odd_id ? (bet.special_odds?.status || 'pending') : bet.status;
 
         const statusMatch = status === 'all' || currentStatus === status;
         const platformMatch = platform === 'all' || bet.platform === platform;
-        const searchMatch = !searchTerm || (bet.description && bet.description.toLowerCase().includes(searchTerm.toLowerCase())); // Açıklama varsa ara
+        // Search term küçük harfe çevrilerek arama yapılıyor
+        const searchMatch = !searchTerm || (bet.description && bet.description.toLowerCase().includes(searchTerm.toLowerCase())) || (bet.tag && bet.tag.toLowerCase().includes(searchTerm.toLowerCase())); // Etiket araması da eklendi
 
         return statusMatch && platformMatch && searchMatch;
     });
@@ -66,10 +99,11 @@ function applyFilters(bets) {
 function updateHistorySummary(filteredBets) {
     const totalInvestment = filteredBets.reduce((sum, bet) => sum + bet.bet_amount, 0);
 
-    // Kar/Zarar hesaplaması için helper fonksiyonunu kullan
+    // GÖREV 2: Merkezi calculateProfitLoss fonksiyonunu kullan
     const netProfit = filteredBets.reduce((sum, bet) => sum + calculateProfitLoss(bet), 0);
 
-    // Kazanma oranı hesaplaması
+    // Kazanma oranı hesaplaması (Sadece sonuçlanmış bahisler üzerinden)
+    // Null check eklendi: bet.special_odds var mı?
     const settledBets = filteredBets.filter(b => (b.special_odd_id ? b.special_odds?.status : b.status) !== 'pending');
     const wonBets = settledBets.filter(b => (b.special_odd_id ? b.special_odds?.status : b.status) === 'won');
     const winRate = settledBets.length > 0 ? (wonBets.length / settledBets.length) * 100 : 0;
@@ -85,12 +119,20 @@ function updateHistorySummary(filteredBets) {
 
     if (profitEl) {
         profitEl.textContent = `${netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)} ₺`;
-        profitEl.className = `text-2xl font-montserrat font-bold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        // Renk sınıfını temizleyip doğru olanı ekle
+        profitEl.classList.remove('text-green-400', 'text-red-400', 'text-gray-400');
+        if (netProfit > 0) profitEl.classList.add('text-green-400');
+        else if (netProfit < 0) profitEl.classList.add('text-red-400');
+        else profitEl.classList.add('text-gray-400');
     }
 
     if (winRateEl) {
         winRateEl.textContent = `${winRate.toFixed(1)}%`;
-        winRateEl.className = `text-2xl font-montserrat font-bold ${winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}`;
+        // Renk sınıfını temizleyip doğru olanı ekle
+        winRateEl.classList.remove('text-green-400', 'text-yellow-400', 'text-red-400');
+        if (winRate >= 60) winRateEl.classList.add('text-green-400'); // %60 ve üstü yeşil
+        else if (winRate >= 40) winRateEl.classList.add('text-yellow-400'); // %40-%60 sarı
+        else winRateEl.classList.add('text-red-400'); // %40 altı kırmızı
     }
 }
 
@@ -107,7 +149,10 @@ export function renderHistory() {
 
     const historyContainer = document.getElementById('bet-history');
     const paginationContainer = document.getElementById('pagination-container');
-    if (!historyContainer || !paginationContainer) return; // Elementler yoksa çık
+    if (!historyContainer || !paginationContainer) {
+        console.error("History container or pagination container not found!");
+        return; // Elementler yoksa çık
+    }
 
     // Filtrelenmiş bahis yoksa mesaj göster ve bitir
     if (filteredBets.length === 0) {
@@ -119,18 +164,26 @@ export function renderHistory() {
     // Sayfalama hesaplamaları
     const totalPages = Math.ceil(filteredBets.length / ITEMS_PER_PAGE);
     // Sayfa numarasının geçerli aralıkta olduğundan emin ol
-    if (state.currentPage > totalPages) updateState({ currentPage: totalPages });
-    if (state.currentPage < 1) updateState({ currentPage: 1 });
+    let currentPage = state.currentPage;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    // Eğer sayfa değiştiyse state'i güncelle (örn: son sayfadaki son item silindiğinde)
+    if (currentPage !== state.currentPage) {
+        updateState({ currentPage: currentPage });
+    }
 
     // Mevcut sayfadaki bahisleri al
-    const paginatedBets = filteredBets.slice((state.currentPage - 1) * ITEMS_PER_PAGE, state.currentPage * ITEMS_PER_PAGE);
+    const paginatedBets = filteredBets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     // Bahis kartlarının HTML'ini oluştur
     historyContainer.innerHTML = paginatedBets.map(bet => {
+        // GÖREV 2: Merkezi calculateProfitLoss fonksiyonunu kullan
+        const profit_loss = calculateProfitLoss(bet);
+
         // Durumu ve kar/zararı hesapla
+        // Null check eklendi: bet.special_odds var mı?
         const isSpecialOdd = !!bet.special_odd_id;
         const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
-        const profit_loss = calculateProfitLoss(bet);
 
         // Duruma göre stil ve metinleri belirle
         const statusClassMap = { pending: 'pending', won: 'won', lost: 'lost', refunded: 'refunded' };
@@ -138,24 +191,24 @@ export function renderHistory() {
         const profitColor = profit_loss > 0 ? 'text-green-400' : profit_loss < 0 ? 'text-red-400' : 'text-gray-400';
         const betTypeIconMap = { 'Spor Bahis': '⚽', 'Canlı Bahis': '🔴', 'Özel Oran': '✨' };
 
-        // Etiket varsa HTML'ini hazırla
-        const tagHtml = bet.tag ? `<span class="text-lg ml-2">${bet.tag}</span>` : '';
+        // Etiket varsa HTML'ini hazırla (emoji veya metin)
+        const tagHtml = bet.tag ? `<span class="text-lg ml-2" title="Etiket: ${bet.tag}">${bet.tag}</span>` : '';
 
         // Aksiyon Butonlarını belirle
         let actionButtonsHtml;
         if (isSpecialOdd) {
-            // Özel oranlar düzenlenemez/sonuçlandırılamaz (admin panelinden yapılır)
-             actionButtonsHtml = `<div class="flex-1 text-center text-sm text-gray-400 italic py-2">Sadece yönetici sonuçlandırabilir.</div>`;
+            // Özel oranlar için aksiyon yok (admin panelinden yönetilir)
+             actionButtonsHtml = `<div class="flex-1 text-center text-sm text-gray-400 italic py-2">Fırsat bahsi</div>`;
         } else if (status === 'pending') {
             // Bekleyen bahis: Sonuçlandır ve Etiketle butonları
             actionButtonsHtml = `
-                <button data-action="open-resolve-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>
-                <button data-action="open-edit-modal" data-id="${bet.id}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">🏷️ Etiketle</button>
+                <button data-action="open-resolve-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">Sonuçlandır</button>
+                <button data-action="open-edit-modal" data-id="${bet.id}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">Etiketle</button>
             `;
         } else {
-            // Sonuçlanmış bahis: Sadece Düzenle butonu (etiket veya sonuç düzeltme)
+            // Sonuçlanmış bahis: Sadece Düzenle butonu (etiket ekleme/değiştirme veya sonuç düzeltme)
             actionButtonsHtml = `
-                <button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">✏️ Düzenle</button>
+                <button data-action="open-edit-modal" data-id="${bet.id}" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">Düzenle</button>
             `;
         }
 
@@ -181,7 +234,7 @@ export function renderHistory() {
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Tarih</div><div class="font-semibold">${new Date(bet.date).toLocaleDateString('tr-TR')}</div></div>
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Miktar</div><div class="font-semibold">${bet.bet_amount.toFixed(2)} ₺</div></div>
                     <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Oran</div><div class="font-semibold">${bet.odds}</div></div>
-                    ${status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${profit_loss >= 0 ? '+' : ''}${profit_loss.toFixed(2)} ₺</div></div>` : ''}
+                    ${status !== 'pending' ? `<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center"><div class="text-xs text-gray-400 mb-1">Kar/Zarar</div><div class="font-bold ${profitColor}">${profit_loss >= 0 ? '+' : ''}${profit_loss.toFixed(2)} ₺</div></div>` : '<div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center invisible"><div class="text-xs text-gray-400 mb-1">-</div><div class="font-semibold">-</div></div>' /* Placeholder for alignment */}
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-gray-600">
                     ${actionButtonsHtml} <!-- Duruma göre butonlar -->
@@ -192,19 +245,26 @@ export function renderHistory() {
     }).join('');
 
     // Sayfalamayı render et
-    renderPagination('bets', totalPages, state.currentPage, 'changeBetPage');
+    renderPagination('bets', totalPages, currentPage, 'changeBetPage');
 }
 
 // Kasa Geçmişi sayfasını render eder
 export function renderCashHistory() {
-    // Sadece Kasa İşlemlerini al
-    const cashTransactions = state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi');
+    // Sadece Kasa İşlemlerini al ve en yeniden eskiye sırala (state'den ters geliyorsa)
+    // Eğer state.bets zaten sıralıysa buna gerek yok.
+    const cashTransactions = state.bets
+        .filter(bet => bet.bet_type === 'Kasa İşlemi')
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Veritabanı created_at'e göre sırala
+
     // Kasa özeti istatistiklerini güncelle
     updateCashHistoryStats(cashTransactions);
 
     const container = document.getElementById('cash-history-list');
     const paginationContainer = document.getElementById('cash-pagination-container');
-    if (!container || !paginationContainer) return;
+    if (!container || !paginationContainer) {
+        console.error("Cash history container or pagination container not found!");
+        return; // Elementler yoksa çık
+    }
 
     // Kasa işlemi yoksa mesaj göster
     if (cashTransactions.length === 0) {
@@ -215,23 +275,28 @@ export function renderCashHistory() {
 
     // Sayfalama
     const totalPages = Math.ceil(cashTransactions.length / ITEMS_PER_PAGE);
-    if (state.cashCurrentPage > totalPages) updateState({ cashCurrentPage: totalPages });
-    if (state.cashCurrentPage < 1) updateState({ cashCurrentPage: 1 });
+    let cashCurrentPage = state.cashCurrentPage;
+    if (cashCurrentPage > totalPages) cashCurrentPage = totalPages;
+    if (cashCurrentPage < 1) cashCurrentPage = 1;
+    if (cashCurrentPage !== state.cashCurrentPage) {
+         updateState({ cashCurrentPage: cashCurrentPage });
+    }
 
-    const paginatedTxs = cashTransactions.slice((state.cashCurrentPage - 1) * ITEMS_PER_PAGE, state.cashCurrentPage * ITEMS_PER_PAGE);
+    const paginatedTxs = cashTransactions.slice((cashCurrentPage - 1) * ITEMS_PER_PAGE, cashCurrentPage * ITEMS_PER_PAGE);
 
     // Liste HTML'ini oluştur
     container.innerHTML = paginatedTxs.map(tx => {
         const isDeposit = tx.profit_loss > 0;
         const amountColor = isDeposit ? 'text-green-400' : 'text-red-400';
         const icon = isDeposit ? '📥' : '📤';
+        const description = tx.description || (isDeposit ? 'Para Yatırma' : 'Para Çekme'); // Açıklama yoksa varsayılan
         return `
-            <div class="bet-card">
+            <div class="bet-card"> {/* Kasa işlemleri için de bet-card stilini kullanabiliriz */}
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="text-3xl">${icon}</div>
                         <div>
-                            <h3 class="font-bold text-white">${tx.description || (isDeposit ? 'Para Yatırma' : 'Para Çekme')}</h3>
+                            <h3 class="font-bold text-white">${description}</h3>
                             <p class="text-sm text-gray-400">${new Date(tx.date).toLocaleDateString('tr-TR')}</p>
                         </div>
                     </div>
@@ -244,13 +309,14 @@ export function renderCashHistory() {
     }).join('');
 
     // Kasa sayfası için sayfalamayı render et
-    renderPagination('cash', totalPages, state.cashCurrentPage, 'changeCashPage');
+    renderPagination('cash', totalPages, cashCurrentPage, 'changeCashPage');
 }
 
 // Kasa geçmişi özet istatistiklerini günceller
 function updateCashHistoryStats(transactions) {
     const totalDeposit = transactions.reduce((sum, tx) => sum + (tx.profit_loss > 0 ? tx.profit_loss : 0), 0);
     const totalWithdrawal = Math.abs(transactions.reduce((sum, tx) => sum + (tx.profit_loss < 0 ? tx.profit_loss : 0), 0));
+    const netBalance = totalDeposit - totalWithdrawal;
 
     const depositEl = document.getElementById('cash-history-deposit');
     const withdrawalEl = document.getElementById('cash-history-withdrawal');
@@ -259,46 +325,42 @@ function updateCashHistoryStats(transactions) {
 
     if (depositEl) depositEl.textContent = `+${totalDeposit.toFixed(2)} ₺`;
     if (withdrawalEl) withdrawalEl.textContent = `-${totalWithdrawal.toFixed(2)} ₺`;
-    if (netEl) netEl.textContent = `${(totalDeposit - totalWithdrawal).toFixed(2)} ₺`;
+    if (netEl) {
+        netEl.textContent = `${netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)} ₺`;
+        // Net bakiye rengini ayarla
+        netEl.classList.remove('text-green-400', 'text-red-400', 'text-white');
+        if (netBalance > 0) netEl.classList.add('text-green-400');
+        else if (netBalance < 0) netEl.classList.add('text-red-400');
+        else netEl.classList.add('text-white'); // Nötr renk
+    }
     if (countEl) countEl.textContent = transactions.length;
 }
 
 // Bahis Geçmişi sayfa değiştirme fonksiyonu
 export function changeBetPage(page) {
-    if (page < 1) page = 1; // Minimum sayfa 1
-    updateState({ currentPage: page });
+    // Sayfa numarasının geçerli olduğundan emin ol (renderPagination zaten yapıyor ama yine de kontrol edelim)
+    const totalPages = Math.ceil(applyFilters(state.bets.filter(bet => bet.bet_type !== 'Kasa İşlemi')).length / ITEMS_PER_PAGE);
+    if (page < 1) page = 1;
+    if (page > totalPages && totalPages > 0) page = totalPages;
+
+    updateState({ currentPage: page }); // State'i güncelle
     renderHistory(); // Sayfayı yeniden çiz
-    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' }); // Sayfanın başına git
+    // Sayfanın başına gitmek için history elementini hedef al
+    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Kasa Geçmişi sayfa değiştirme fonksiyonu
 export function changeCashPage(page) {
-    if (page < 1) page = 1; // Minimum sayfa 1
-    updateState({ cashCurrentPage: page });
+    // Sayfa numarasının geçerli olduğundan emin ol
+    const totalPages = Math.ceil(state.bets.filter(bet => bet.bet_type === 'Kasa İşlemi').length / ITEMS_PER_PAGE);
+    if (page < 1) page = 1;
+    if (page > totalPages && totalPages > 0) page = totalPages;
+
+    updateState({ cashCurrentPage: page }); // State'i güncelle
     renderCashHistory(); // Sayfayı yeniden çiz
-    document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' }); // Sayfanın başına git
+    // Sayfanın başına gitmek için cash-history elementini hedef al
+    document.getElementById('cash-history')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Genel Helper (calculateProfitLoss - history içinde kullanıldığı için buraya taşıdım)
-function calculateProfitLoss(bet) {
-    if (!bet) return 0;
-    const isSpecialOdd = !!bet.special_odd_id;
-    const status = isSpecialOdd ? (bet.special_odds?.status || 'pending') : bet.status;
-
-    if (status === 'pending' || status === 'refunded') return 0;
-    if (status === 'won') {
-        // Özel oransa ve odds bilgisi varsa oran üzerinden hesapla
-        if (isSpecialOdd && bet.odds) {
-             return (bet.bet_amount * bet.odds) - bet.bet_amount;
-        }
-        // Normal bahisse veya özel oranın odds bilgisi yoksa win_amount kullan
-        // win_amount'ın geçerli bir sayı olduğunu varsayıyoruz (kayıt/güncelleme sırasında kontrol edilmeli)
-        return (bet.win_amount || 0) - bet.bet_amount;
-    }
-    if (status === 'lost') {
-        return -bet.bet_amount;
-    }
-    return 0;
-}
-
+// GÖREV 2: Kopyalanmış calculateProfitLoss fonksiyonu buradan silindi.
 

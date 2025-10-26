@@ -1,7 +1,6 @@
 import { state, updateState, setCurrentUser, setBets, setCustomPlatforms, setSponsors, setAds, setSpecialOdds } from './state.js';
 import { DOM, ADMIN_USER_ID } from './utils/constants.js';
-// GÜNCELLEME: updateUserPassword import edildi.
-import { getSupabase, onAuthStateChange, updateUserPassword } from './api/auth.js';
+import { getSupabase, onAuthStateChange, updateUserPassword } from './api/auth.js'; // updateUserPassword eklendi
 import { loadInitialData } from './api/database.js';
 import { setupEventListeners } from './event_listeners.js';
 import { showNotification, getTodaysDate } from './utils/helpers.js';
@@ -17,44 +16,79 @@ function handleRealtimeUpdate(payload) {
     console.log('Realtime update received:', payload);
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
-    if (eventType === 'INSERT') {
-        state.specialOdds.unshift(newRecord);
-        showNotification(`Yeni Fırsat: ${newRecord.platform}'da yeni özel oran!`, 'info');
-    } else if (eventType === 'UPDATE') {
-        const index = state.specialOdds.findIndex(o => o.id === newRecord.id);
-        if (index > -1) {
-            state.specialOdds[index] = { ...state.specialOdds[index], ...newRecord };
-             if (oldRecord.status === 'pending' && newRecord.status === 'won') {
-               showNotification(`🏆 Sonuçlandı: ${newRecord.platform} fırsatı kazandı!`, 'success');
-             }
+    if (payload.table === 'special_odds') {
+        if (eventType === 'INSERT') {
+            state.specialOdds.unshift(newRecord);
+            showNotification(`Yeni Fırsat: ${newRecord.platform}'da yeni özel oran!`, 'info');
+        } else if (eventType === 'UPDATE') {
+            const index = state.specialOdds.findIndex(o => o.id === newRecord.id);
+            if (index > -1) {
+                state.specialOdds[index] = { ...state.specialOdds[index], ...newRecord };
+                // Eğer durum değişikliği varsa ve admin değilse bildirim göster
+                if (state.currentUser?.id !== ADMIN_USER_ID) {
+                    if (oldRecord.status === 'pending' && newRecord.status === 'won') {
+                        showNotification(`🏆 Sonuçlandı: ${newRecord.platform} fırsatı kazandı!`, 'success');
+                    } else if (oldRecord.status === 'pending' && newRecord.status === 'lost') {
+                         showNotification(`❌ Sonuçlandı: ${newRecord.platform} fırsatı kaybetti.`, 'warning');
+                    }
+                }
+            }
         }
+        // UI'ın sadece ilgili bölümünü güncelle
+        renderSpecialOddsPage();
+        updateAllUI(); // Dashboard vb. de etkilenebilir
     }
-    
-    updateAllUI();
 }
 
 
 // ---- ANA UYGULAMA MANTIĞI ----
 
+/**
+ * Service Worker'ı kaydeder ve güncelleme olduğunda otomatik yenileme mekanizmasını kurar.
+ */
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
                 .then(registration => {
                     console.log('Service Worker başarıyla kaydedildi: ', registration.scope);
+                    
+                    // Yeni bir SW'nin kurulup "waiting" durumuna geçip geçmediğini kontrol et
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Yeni bir SW yüklendi ancak henüz aktive edilmedi (eski sekme açık).
+                                    // skipWaiting() kullandığımız için bu genelde hızlıca 'activated' olur.
+                                    console.log('[SW] Yeni bir sürüm yüklendi ve aktive edilmeyi bekliyor.');
+                                }
+                            });
+                        }
+                    });
                 })
                 .catch(error => {
                     console.log('Service Worker kaydı başarısız oldu: ', error);
                 });
         });
+
+        // Bu kısım KRİTİK: Yeni bir SW'nin kontrolü devraldığını algılar
+        // Bu, F5 sorununu yaşayan mevcut kullanıcıları otomatik olarak günceller.
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            console.log('[SW] Kontrolcü değişti! Sayfa yeniden yükleniyor...');
+            refreshing = true;
+            window.location.reload();
+        });
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     registerServiceWorker(); 
     initPwaInstaller();
-    // GÜNCELLEME: onAuthStateChange artık (event, session) döndürüyor
     onAuthStateChange(handleAuthStateChange);
 });
 
@@ -65,51 +99,46 @@ function toggleLoading(show) {
     }
 }
 
-// GÜNCELLEME: handleAuthStateChange artık 'event' parametresini de alıyor.
-async function handleAuthStateChange(event, session) {
+async function handleAuthStateChange(session) {
     toggleLoading(true);
-    
-    // GÜNCELLEME (Faz 1, Görev 3): auth.js'den kaldırılan UI mantığı buraya eklendi.
-    if (event === 'PASSWORD_RECOVERY') {
-        toggleLoading(false); // Yükleme ekranını kapat (varsa)
-        try {
-            const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
-            if (newPassword && newPassword.length >= 6) {
-                const { error } = await updateUserPassword(newPassword);
-                if (error) {
-                    showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
-                } else {
-                    showNotification('Şifreniz başarıyla güncellendi!', 'success');
-                }
-            } else if (newPassword) {
-                 showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
-            }
-        } catch (error) {
-             showNotification(`Bir hata oluştu: ${error.message}`, 'error');
-        }
-        // Şifre sıfırlama sonrası UI'da kal, session değişirse (alt satırlarda) devam et.
-        // Eğer session değişmediyse (sadece event geldi) yüklemeyi tekrar kapat.
-        toggleLoading(false);
-    }
-    
     const user = session?.user || null;
-
-    if (user?.id === state.currentUser?.id && document.getElementById('app-container').style.display === 'block') {
-        // Eğer event PASSWORD_RECOVERY değilse ve kullanıcı zaten giriş yapmışsa,
-        // tekrar yükleme yapmaya gerek yok.
-        if (event !== 'PASSWORD_RECOVERY') {
-             toggleLoading(false);
-             return;
+    
+    // YENİ EKLENDİ (Faz 1, Görev 3): Şifre sıfırlama (PASSWORD_RECOVERY) UI mantığı
+    if (session && session.event === 'PASSWORD_RECOVERY') {
+        console.log("Şifre sıfırlama event'i yakalandı.");
+        // Kullanıcı şifre sıfırlama linkinden geldiyse, yeni şifre girmesi için bir UI göster
+        const newPassword = prompt("Lütfen yeni şifrenizi girin (en az 6 karakter):");
+        if (newPassword && newPassword.length >= 6) {
+            const { error } = await updateUserPassword(newPassword);
+            if (error) {
+                showNotification(`Şifre güncellenemedi: ${error.message}`, 'error');
+            } else {
+                showNotification('Şifreniz başarıyla güncellendi! Lütfen yeni şifrenizle giriş yapın.', 'success');
+            }
+        } else if (newPassword) {
+            showNotification('Şifre en az 6 karakter olmalıdır.', 'warning');
         }
+        // Bu event'ten sonra genellikle 'SIGNED_OUT' event'i tetiklenir, 
+        // bu yüzden loading'i burada kapatıp auth-container'ı göstermeye zorlamaya gerek yok.
+        // Ancak ne olur ne olmaz diye, auth ekranına yönlendirelim ve yüklemeyi durduralım.
+        toggleLoading(false);
+        document.getElementById('auth-container').style.display = 'flex';
+        document.getElementById('app-container').style.display = 'none';
+        return; // Fonksiyonun geri kalanının çalışmasını engelle
+    }
+
+    // Mevcut kullanıcı ID'si ile yeni kullanıcı ID'si aynıysa ve uygulama zaten görünürse
+    // (örn: token refresh olduysa) tekrar tam yükleme yapma.
+    if (user?.id === state.currentUser?.id && document.getElementById('app-container').style.display === 'block') {
+        toggleLoading(false);
+        return;
     }
     
     setCurrentUser(user);
 
     if (user) {
-        // Kullanıcı giriş yaptıysa veya zaten giriş yapmışsa (örn: sayfa yenileme, şifre sıfırlama sonrası)
         await initializeApp();
     } else {
-        // Kullanıcı çıkış yaptı
         document.getElementById('auth-container').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
         updateState({
@@ -134,14 +163,32 @@ async function initializeApp() {
         initializeUI();
 
         const supabase = getSupabase();
-        supabase
+        
+        // Mevcut kanalları kontrol et ve gerekirse kapat
+        supabase.getChannels().forEach(channel => {
+            if(channel.topic === 'realtime:public:special_odds') {
+                 console.log("Mevcut 'special_odds_changes' kanalı bulunamadı veya temizleniyor.");
+                 supabase.removeChannel(channel);
+            }
+        });
+
+        // Yeni kanala abone ol
+        const channel = supabase
           .channel('special_odds_changes')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'special_odds' }, handleRealtimeUpdate)
-          .subscribe((status) => {
+          .on('postgres_changes', 
+              { event: '*', schema: 'public', table: 'special_odds' }, 
+              handleRealtimeUpdate
+          );
+          
+        channel.subscribe((status, err) => {
               if (status === 'SUBSCRIBED') {
                   console.log('✅ Fırsatlar sayfasına anlık güncellemeler için başarıyla abone olundu!');
               }
-          });
+              if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                   console.error('❌ Realtime abonelik hatası:', err);
+              }
+        });
+
 
         document.getElementById('auth-container').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';
@@ -164,9 +211,16 @@ function initializeDatePickers() {
         dateFormat: "Y-m-d",
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
-                state.statsFilters.dateRange.start = selectedDates[0];
-                state.statsFilters.dateRange.end = selectedDates[1];
+                // Saat dilimi sorunlarını önlemek için tarihleri ayarla
+                const start = selectedDates[0];
+                start.setHours(0, 0, 0, 0);
+                const end = selectedDates[1];
+                end.setHours(23, 59, 59, 999);
+                
+                state.statsFilters.dateRange.start = start;
+                state.statsFilters.dateRange.end = end;
                 updateStatisticsPage();
+                updateCharts(); // Tarih değişiminde grafikleri de güncelle
             }
         }
     };
@@ -179,10 +233,20 @@ function setupUserInterface() {
     
     document.getElementById('admin-panels-container').style.display = isAdmin ? 'block' : 'none';
     
-    const sponsorPanel = document.getElementById('sponsorManagementPanel');
-    const adPanel = document.getElementById('adManagementPanel');
-    if(sponsorPanel) sponsorPanel.style.display = 'block'; 
-    if(adPanel) adPanel.style.display = 'block';
+    // Bu elementlerin varlığını kontrol et
+    const sponsorPanel = document.getElementById('sponsor-management-panel');
+    const adPanel = document.getElementById('ad-management-panel');
+    const specialOddsPanel = document.getElementById('special-odds-panel');
+
+    if(isAdmin) {
+        if(sponsorPanel) sponsorPanel.style.display = 'block'; 
+        if(adPanel) adPanel.style.display = 'block';
+        if(specialOddsPanel) specialOddsPanel.style.display = 'block';
+    } else {
+        if(sponsorPanel) sponsorPanel.style.display = 'none'; 
+        if(adPanel) adPanel.style.display = 'none';
+        if(specialOddsPanel) specialOddsPanel.style.display = 'none';
+    }
 }
 
 function initializeUI() {
@@ -199,6 +263,7 @@ function initializeUI() {
     initializeVisitorCounter();
     initializeDatePickers();
     updateAllUI();
+    showSection('dashboard', document.querySelector('.sidebar-item[data-section="dashboard"]')); // Başlangıçta dashboard'u göster
 }
 
 export function updateAllUI() {
@@ -208,7 +273,7 @@ export function updateAllUI() {
     renderHistory();
     renderRecentBets();
     renderCashHistory();
-    renderSpecialOddsPage();
+    renderSpecialOddsPage(); // Fırsatlar sayfası da güncellenmeli
     if (state.currentSection === 'statistics' && document.getElementById('profitChart')?.offsetParent !== null) {
         updateCharts();
     }
@@ -219,3 +284,4 @@ function showWelcomeNotification() {
         showNotification(`🚀 Hoş geldin ${state.currentUser.email}!`, 'success');
     }, 1000);
 }
+

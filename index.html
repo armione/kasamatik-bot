@@ -1099,8 +1099,7 @@
                         İptal
                     </button>
                     <button id="import-data-btn" class="gradient-button px-4 py-2 rounded-lg text-white">
-                        <span class="btn-text">İçe Aktar</span>
-                        <span class="btn-loader hidden"></span>
+                        İçe Aktar
                     </button>
                 </div>
             </div>
@@ -1145,75 +1144,6 @@
         </div>
     </div>
 
-    <!-- Bet Card Template -->
-    <template id="bet-card-template">
-        <div class="bet-card" data-field="bet-card-root">
-            <div class="flex flex-col space-y-4">
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center space-x-3">
-                        <div data-field="bet-type-icon" class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg"></div>
-                        <div>
-                            <h3 data-field="platform" class="font-bold text-white text-lg">Platform</h3>
-                            <p data-field="bet-type-name" class="text-gray-400 text-sm">Bahis Türü</p>
-                        </div>
-                    </div>
-                    <span data-field="status-badge" class="px-4 py-2 rounded-full text-sm font-medium">Durum</span>
-                </div>
-                <div class="bg-gray-800 bg-opacity-30 rounded-lg p-3">
-                    <p data-field="description">Açıklama</p>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center">
-                        <div class="text-xs text-gray-400 mb-1">Tarih</div>
-                        <div data-field="date" class="font-semibold">01.01.2025</div>
-                    </div>
-                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center">
-                        <div class="text-xs text-gray-400 mb-1">Miktar</div>
-                        <div data-field="amount" class="font-semibold">0.00 ₺</div>
-                    </div>
-                    <div class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center">
-                        <div class="text-xs text-gray-400 mb-1">Oran</div>
-                        <div data-field="odds" class="font-semibold">1.00</div>
-                    </div>
-                    <div data-field="profit-loss-box" class="bg-gray-700 bg-opacity-40 rounded-lg p-3 text-center hidden">
-                        <div class="text-xs text-gray-400 mb-1">Kar/Zarar</div>
-                        <div data-field="profit-loss-value" class="font-bold">0.00 ₺</div>
-                    </div>
-                </div>
-                <div class="flex gap-3 pt-4 border-t border-gray-600">
-                    <div data-field="action-buttons" class="flex-1 hidden">
-                        <button data-action="open-edit-modal" data-field="edit-button" class="w-full px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700">✏️ Sonuçlandır</button>
-                    </div>
-                    <div data-field="special-odd-note" class="flex-1 text-center text-sm text-gray-400 italic py-2 hidden">
-                        Sadece yönetici sonuçlandırabilir.
-                    </div>
-                    <button data-action="delete-bet" data-field="delete-button" class="px-4 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️ Sil</button>
-                </div>
-            </div>
-        </div>
-    </template>
-    
-    <!-- Cash History Item Template (YENİ EKLENDİ) -->
-    <template id="cash-history-item-template">
-         <div class="bet-card">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div data-field="icon" class="text-3xl"></div>
-                    <div>
-                        <h3 data-field="description" class="font-bold text-white">Açıklama</h3>
-                        <p data-field="date" class="text-sm text-gray-400">01.01.2025</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <p data-field="amount" class="text-lg font-bold">0.00 ₺</p>
-                    <button data-action="delete-bet" data-field="delete-button" class="px-3 py-2 bg-red-800 text-white text-sm rounded-lg hover:bg-red-700">🗑️</button>
-                </div>
-            </div>
-        </div>
-    </template>
-    <!-- Şablon Sonu -->
-
     <script type="module" src="src/js/main.js" defer></script>
 </body>
 </html>
-

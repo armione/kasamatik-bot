@@ -1,5 +1,5 @@
 import { state, updateState } from './state.js';
-import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // ADMIN_USER_ID importu kaldırıldı (Görev 1 iptal edildiği için geri geldi)
+import { DOM, DEFAULT_PLATFORMS, ADMIN_USER_ID } from './utils/constants.js'; // ADMIN_USER_ID geri geldi (Görev 1 iptal)
 import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
 import { addBet, updateBet, deleteBet, addPlatform, deletePlatform, clearAllBetsForUser, clearAllPlatformsForUser, addSpecialOdd, updateSpecialOdd } from './api/database.js';
@@ -7,12 +7,13 @@ import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderActiveSpecialOdds, renderSpecialOddsPage } from './components/ui_helpers.js';
-// GÖREV 5 & HATA DÜZELTME: openImportModal ve closeImportModal sadece BİR KEZ import edildi
-import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openResolveModal, closeResolveModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal, openImportModal, closeImportModal } from './components/modals.js';
+// Import satırı ikiye bölündü:
+import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openResolveModal, closeResolveModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal } from './components/modals.js';
+// Import/Export modal fonksiyonları ayrı import edildi:
+import { openImportModal, closeImportModal } from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
 import { updatePerformanceSummary } from './components/dashboard.js';
-// ADMIN_USER_ID importu Görev 1 iptal edildiği için geri eklendi
-import { ADMIN_USER_ID } from './utils/constants.js';
+// ADMIN_USER_ID yukarıdaki constants importuna taşındı.
 
 
 let searchDebounceTimer;
@@ -1070,7 +1071,7 @@ export function setupEventListeners() {
     document.getElementById('floating-add-btn')?.addEventListener('click', openQuickAddModal); // Floating button
     // GÖREV 5: Hızlı Ekle Modalı Kapatma Butonu Listener'ı eklendi
     document.getElementById('close-quick-add-btn')?.addEventListener('click', closeQuickAddModal);
-    document.getElementById('close-play-special-odd-modal')?.addEventListener('click', closePlaySpecialOddModal); // Modalı doğrudan kapatır
+    document.getElementById('close-play-special-odd-modal-btn')?.addEventListener('click', closePlaySpecialOddModal); // ID düzeltildi
     document.getElementById('close-edit-btn')?.addEventListener('click', closeEditModal);
     document.getElementById('close-resolve-btn')?.addEventListener('click', closeResolveModal);
     document.getElementById('image-modal')?.addEventListener('click', closeImageModal); // Resim modalı dışına tıklayınca kapat
@@ -1337,4 +1338,3 @@ export function setupEventListeners() {
     console.log("Event listeners başarıyla bağlandı.");
 }
 
-}

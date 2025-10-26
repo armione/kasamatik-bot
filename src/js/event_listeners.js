@@ -1,5 +1,4 @@
 import { state, updateState } from './state.js';
-import { closeImportModal } from './components/modals.js';
 import { DOM, DEFAULT_PLATFORMS } from './utils/constants.js'; // ADMIN_USER_ID importu kaldırıldı (Görev 1 iptal edildiği için geri geldi)
 import { showNotification, setButtonLoading, calculateProfitLoss } from './utils/helpers.js';
 import { signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword } from './api/auth.js';
@@ -8,7 +7,7 @@ import { analyzeBetSlipApi } from './api/gemini.js';
 import { updateAllUI } from './main.js';
 import { changeBetPage, changeCashPage, renderHistory } from './components/history.js';
 import { showSection, toggleSidebar, toggleMobileSidebar, populatePlatformOptions, renderCustomPlatforms, resetForm, handleImageFile, removeImage, renderActiveSpecialOdds, renderSpecialOddsPage } from './components/ui_helpers.js';
-// GÖREV 5: openImportModal ve closeImportModal import edildi
+// GÖREV 5 & HATA DÜZELTME: openImportModal ve closeImportModal sadece BİR KEZ import edildi
 import { openModal, closeModal, openPlatformManager, closePlatformManager, openCashTransactionModal, closeCashTransactionModal, openQuickAddModal, closeQuickAddModal, openEditModal, closeEditModal, openResolveModal, closeResolveModal, openPlaySpecialOddModal, closePlaySpecialOddModal, showImageModal, closeImageModal, closeAdPopup, renderCustomPlatformsModal, openImportModal, closeImportModal } from './components/modals.js';
 import { updateStatisticsPage } from './components/statistics.js';
 import { updatePerformanceSummary } from './components/dashboard.js';
@@ -1338,3 +1337,4 @@ export function setupEventListeners() {
     console.log("Event listeners başarıyla bağlandı.");
 }
 
+}

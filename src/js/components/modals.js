@@ -19,6 +19,15 @@ export function closeModal(modalId) {
     }
 }
 
+export function closeImportModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+
 export function openPlatformManager() {
     openModal('platform-manager-modal');
     renderCustomPlatformsModal();
@@ -170,4 +179,5 @@ export function renderCustomPlatformsModal() {
         </div>
     `).join('');
 }
+
 

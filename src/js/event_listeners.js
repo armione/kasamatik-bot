@@ -113,13 +113,37 @@ async function handleBetFormSubmitAttempt(e) {
     const addButton = document.getElementById('add-bet-btn');
     setButtonLoading(addButton, true, 'Ekleniyor...');
 
+    // --- BAŞLANGIÇ: Form Doğrulama Bloğu ---
+    const platform = document.getElementById('platform').value;
+    const betAmount = parseFloat(document.getElementById('bet-amount').value);
+    const odds = parseFloat(document.getElementById('odds').value);
+
+    if (!platform || platform === 'all' || platform === 'Platform Seçin' || platform === '') {
+        showNotification('Lütfen geçerli bir platform seçin.', 'warning');
+        setButtonLoading(addButton, false);
+        return;
+    }
+
+    if (isNaN(betAmount) || betAmount <= 0) {
+        showNotification('Lütfen 0\'dan büyük geçerli bir bahis miktarı girin.', 'warning');
+        setButtonLoading(addButton, false);
+        return;
+    }
+
+    if (isNaN(odds) || odds <= 1) {
+        showNotification('Lütfen 1.00\'den büyük geçerli bir oran girin.', 'warning');
+        setButtonLoading(addButton, false);
+        return;
+    }
+    // --- BİTİŞ: Form Doğrulama Bloğu ---
+
     const newBetData = {
         user_id: state.currentUser.id,
-        platform: document.getElementById('platform').value,
+        platform: platform,
         bet_type: document.getElementById('bet-type').value,
         description: document.getElementById('description').value || 'Açıklama yok',
-        bet_amount: parseFloat(document.getElementById('bet-amount').value),
-        odds: parseFloat(document.getElementById('odds').value),
+        bet_amount: betAmount,
+        odds: odds,
         date: document.getElementById('bet-date').value,
         status: 'pending',
         win_amount: 0,

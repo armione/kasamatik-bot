@@ -23,6 +23,14 @@
     <script src="/_vercel/speed-insights/script.js"></script>
     
     <link rel="stylesheet" href="src/css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.76.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="text-white">
 
@@ -403,9 +411,14 @@
                                 <p class="font-bold text-white">Önce Kuponunu Yükle, Zaman Kazan!</p>
                                 <p class="text-gray-300">Bahis kuponu resmini buraya sürükleyin veya Ctrl+V ile yapıştırın</p>
                                 <input type="file" id="image-input" accept="image/*" class="hidden">
-                                <button type="button" id="image-select-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
-                                    📁 Dosya Seç
-                                </button>
+                                <div class="flex justify-center items-center gap-x-4 mt-2">
+                                    <button type="button" id="image-select-btn" class="gradient-button px-6 py-3 rounded-lg text-white">
+                                        📁 Dosya Seç
+                                    </button>
+                                    <button type="button" data-action="paste-from-clipboard" data-type="main" class="gradient-button px-6 py-3 rounded-lg text-white">
+                                        📋 Yapıştır
+                                    </button>
+                                </div>
                             </div>
                             <div id="image-preview" class="hidden mt-4">
                                 <img id="preview-img" class="max-w-full max-h-48 mx-auto rounded-lg">
@@ -1038,9 +1051,14 @@
                             <div class="text-2xl">📸</div>
                             <p class="text-gray-300 text-sm">Kupon resmi sürükleyin veya Ctrl+V ile yapıştırın</p>
                             <input type="file" id="quick-image-input" accept="image/*" class="hidden">
-                            <button type="button" id="quick-image-select-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
-                                📁 Seç
-                            </button>
+                             <div class="flex justify-center items-center gap-x-4 mt-2">
+                                <button type="button" id="quick-image-select-btn" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
+                                    📁 Seç
+                                </button>
+                                <button type="button" data-action="paste-from-clipboard" data-type="quick" class="gradient-button px-3 py-2 rounded-lg text-white text-sm">
+                                    📋 Yapıştır
+                                </button>
+                            </div>
                         </div>
                         <div id="quick-image-preview" class="hidden mt-3">
                             <img id="quick-preview-img" class="max-w-full max-h-32 mx-auto rounded-lg">
@@ -1147,5 +1165,6 @@
     </div>
 
     <script type="module" src="src/js/main.js" defer></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

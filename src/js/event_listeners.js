@@ -16,6 +16,38 @@ let searchDebounceTimer;
 
 // HANDLER FUNCTIONS (OLAY YÖNETİCİLERİ)
 
+/**
+ * Tarayıcının panosundan resim yapıştırmayı yönetir.
+ * @param {'main'|'quick'|'admin'} type Hangi resim yükleme alanının hedeflendiği.
+ */
+async function handlePasteFromClipboard(type) {
+    try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+            showNotification('Tarayıcınız bu özelliği desteklemiyor.', 'warning');
+            return;
+        }
+
+        const items = await navigator.clipboard.read();
+        const imageItem = items.find(item => item.types.some(t => t.startsWith('image/')));
+
+        if (imageItem) {
+            const blob = await imageItem.getType(imageItem.types.find(t => t.startsWith('image/')));
+            const file = new File([blob], "clipboard-image.png", { type: blob.type });
+            handleImageFile(file, type);
+            showNotification('📋 Resim panodan yapıştırıldı!', 'success');
+        } else {
+            showNotification('Panoda yapıştırılacak bir resim bulunamadı.', 'info');
+        }
+    } catch (err) {
+        console.error('Panodan okuma hatası:', err);
+        if (err.name === 'NotAllowedError') {
+             showNotification('Panoya erişim izni reddedildi.', 'error');
+        } else {
+             showNotification('Panodan resim okunurken bir hata oluştu.', 'error');
+        }
+    }
+}
+
 async function handleLoginAttempt() {
     const loginBtn = DOM.get('loginBtn');
     const authForm = DOM.get('authForm');
@@ -569,6 +601,7 @@ export function setupEventListeners() {
         const src = target.dataset.src;
         const period = target.dataset.period; // String veya number olabilir, kontrol edilecek
         const status = target.dataset.status;
+        const type = target.dataset.type;
 
         // console.log("data-action tıklandı:", { action, id, name, page, src, period, status }); // EKLENDİ: Hangi action tıklandı?
 
@@ -630,6 +663,9 @@ export function setupEventListeners() {
                     // Dinamik import ile admin fonksiyonunu çağır
                     import('./admin_actions.js').then(module => module.handleDeleteAd(id));
                 }
+                break;
+            case 'paste-from-clipboard':
+                if (type) handlePasteFromClipboard(type);
                 break;
         }
     });

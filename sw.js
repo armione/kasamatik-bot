@@ -1,5 +1,5 @@
 // Service Worker (sw.js)
-const CACHE_NAME = 'kasamatik-cache-v5'; // Sürüm v4'ten v5'e yükseltildi.
+const CACHE_NAME = 'kasamatik-cache-v6'; // Sürüm v5'ten v6'ya yükseltildi.
 // Dış CDN linkleri kaldırıldı, sadece kendi dosyalarımız cache'lenecek.
 const urlsToCache = [
   '/',
@@ -119,4 +119,3 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-

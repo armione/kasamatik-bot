@@ -1,0 +1,21 @@
+{
+  "name": "kasamatik-serverless-functions",
+  "version": "1.0.0",
+  "description": "Kasamatik projesi için Vercel'de çalışacak sunucusuz fonksiyonların bağımlılıkları.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vercel",
+    "serverless",
+    "supabase",
+    "gemini"
+  ],
+  "author": "Kasamatik Team",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4"
+  }
+}
+

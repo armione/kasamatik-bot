@@ -19,7 +19,8 @@ interface SpecialOddsFiltersProps {
 const SpecialOddsFilters: React.FC<SpecialOddsFiltersProps> = ({ filters, setFilters }) => {
     const specialOdds = useDataStore((state) => state.specialOdds);
 
-    const allPlatforms = useMemo(() => {
+    // FIX: Explicitly type `allPlatforms` as `string[]` to resolve type inference issues.
+    const allPlatforms: string[] = useMemo(() => {
         const platformSet = new Set(specialOdds.map(odd => odd.platform));
         // FIX: Use Array.from instead of spread syntax to ensure correct type inference.
         return Array.from(platformSet).sort();

@@ -3,14 +3,17 @@ import { useState, useMemo } from 'react';
 import Flatpickr from 'react-flatpickr';
 import { Turkish } from 'flatpickr/dist/l10n/tr.js';
 import { useDataStore } from '../stores/dataStore';
-import { Bet } from '../types';
 import StatsSummary from '../components/statistics/StatsSummary';
 import ProfitChart from '../components/statistics/ProfitChart';
 import PlatformChart from '../components/statistics/PlatformChart';
 import { FaCalendar, FaTimes } from 'react-icons/fa';
+import HighlightsPanel from '../components/statistics/HighlightsPanel';
+import PlatformPerformance from '../components/statistics/PlatformPerformance';
+import PerformanceByDay from '../components/statistics/PerformanceByDay';
 
 const StatisticsPage = () => {
     const [dateRange, setDateRange] = useState<Date[]>([]);
+    const [activeTab, setActiveTab] = useState<'overview' | 'analysis'>('overview');
     const allBets = useDataStore((state) => state.bets);
 
     const filteredBets = useMemo(() => {
@@ -60,17 +63,54 @@ const StatisticsPage = () => {
                 </div>
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex space-x-2 p-1 bg-gray-900/50 rounded-lg">
+                 <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`w-full text-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'overview'
+                        ? 'gradient-button shadow-md'
+                        : 'text-gray-400 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    Genel Bakış
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('analysis')}
+                    className={`w-full text-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === 'analysis'
+                        ? 'gradient-button shadow-md'
+                        : 'text-gray-400 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    Derinlemesine Analiz
+                  </button>
+            </div>
+
             {filteredBets.length > 0 ? (
                 <>
-                    <StatsSummary filteredBets={filteredBets} />
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                        <div className="lg:col-span-3 glass-card rounded-2xl p-4 h-96">
-                            <ProfitChart filteredBets={filteredBets} />
-                        </div>
-                        <div className="lg:col-span-2 glass-card rounded-2xl p-4 h-96">
-                            <PlatformChart filteredBets={filteredBets} />
-                        </div>
+                  {activeTab === 'overview' && (
+                    <div className="space-y-6">
+                      <StatsSummary filteredBets={filteredBets} />
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                          <div className="lg:col-span-3 glass-card rounded-2xl p-4 h-96">
+                              <ProfitChart filteredBets={filteredBets} />
+                          </div>
+                          <div className="lg:col-span-2 glass-card rounded-2xl p-4 h-96">
+                              <PlatformChart filteredBets={filteredBets} />
+                          </div>
+                      </div>
                     </div>
+                  )}
+                  {activeTab === 'analysis' && (
+                    <div className="space-y-6">
+                      <HighlightsPanel filteredBets={filteredBets} />
+                      <PlatformPerformance filteredBets={filteredBets} />
+                      <div className="glass-card rounded-2xl p-4 h-96">
+                        <PerformanceByDay filteredBets={filteredBets} />
+                      </div>
+                    </div>
+                  )}
                 </>
             ) : (
                 <div className="text-center py-16 text-gray-400 glass-card rounded-2xl">

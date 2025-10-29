@@ -4,10 +4,11 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
 import toast from 'react-hot-toast';
+import { SpecialOdd } from '../types';
 
 export const useData = () => {
   const { user } = useAuthStore();
-  const { setInitialData, setLoading } = useDataStore();
+  const { setInitialData, setLoading, addSpecialOdd, updateSpecialOdd } = useDataStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,5 +54,61 @@ export const useData = () => {
     if (user) {
       fetchData();
     }
-  }, [user, setInitialData, setLoading]);
+
+    // Realtime Subscription
+    const channel = supabase
+      .channel('special_odds_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'special_odds' },
+        (payload) => {
+          console.log('Realtime change received!', payload);
+
+          if (payload.eventType === 'INSERT') {
+            const newOdd = payload.new as SpecialOdd;
+            addSpecialOdd(newOdd);
+            // FIX: Replaced `toast.info` with the default `toast` function, as `info` is not a standard method in react-hot-toast.
+            toast(`Yeni Fırsat: ${newOdd.platform} @ ${newOdd.odds.toFixed(2)}`, { icon: '⭐' });
+          }
+
+          if (payload.eventType === 'UPDATE') {
+            const updatedOdd = payload.new as SpecialOdd;
+            const oldOdd = payload.old as Partial<SpecialOdd>;
+            
+            updateSpecialOdd(updatedOdd);
+
+            // Only notify if the status just changed from pending
+            if (oldOdd.status === 'pending' && updatedOdd.status !== 'pending') {
+               let toastMessage = `Sonuçlandı: ${updatedOdd.platform} fırsatı`;
+               switch (updatedOdd.status) {
+                   case 'won':
+                       toast.success(`${toastMessage} Kazandı!`, { icon: '🏆' });
+                       break;
+                   case 'lost':
+                       toast.error(`${toastMessage} Kaybetti.`, { icon: '😔' });
+                       break;
+                   case 'refunded':
+                       // FIX: Replaced `toast.info` with the default `toast` function, as `info` is not a standard method in react-hot-toast.
+                       toast(`${toastMessage} İade Edildi.`, { icon: '↩️' });
+                       break;
+               }
+            }
+          }
+        }
+      )
+      .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+              console.log('Successfully subscribed to special_odds changes!');
+          }
+          if (status === 'CHANNEL_ERROR') {
+              console.error('Subscription error:', err);
+          }
+      });
+
+    // Cleanup function to remove the channel subscription on component unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
+  }, [user, setInitialData, setLoading, addSpecialOdd, updateSpecialOdd]);
 };

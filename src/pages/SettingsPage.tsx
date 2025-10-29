@@ -1,11 +1,16 @@
-
 // src/pages/SettingsPage.tsx
 import AccountSettings from '../components/settings/AccountSettings';
 import DataManagement from '../components/settings/DataManagement';
 import DangerZone from '../components/settings/DangerZone';
 import PwaInstallButton from '../components/shared/PwaInstallButton';
+import AddSpecialOddForm from '../components/admin/AddSpecialOddForm';
+import { useAuthStore } from '../stores/authStore';
+import { ADMIN_USER_ID } from '../lib/constants';
 
 const SettingsPage = () => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.id === ADMIN_USER_ID;
+
   return (
     <div className="space-y-8">
       <div>
@@ -27,6 +32,13 @@ const SettingsPage = () => {
           <DangerZone />
         </div>
       </div>
+
+      {isAdmin && (
+        <div className="mt-8">
+           <AddSpecialOddForm />
+        </div>
+      )}
+
     </div>
   );
 };

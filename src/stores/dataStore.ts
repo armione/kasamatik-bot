@@ -1,4 +1,3 @@
-// src/stores/dataStore.ts
 import { create } from 'zustand';
 import { Bet, Platform, Sponsor, Ad, SpecialOdd } from '../types';
 
@@ -15,6 +14,7 @@ interface DataState {
   deleteBet: (betId: number) => void;
   addPlatform: (platform: Platform) => void;
   deletePlatform: (platformId: number) => void;
+  addSpecialOdd: (odd: SpecialOdd) => void;
   updateSpecialOdd: (updatedOdd: SpecialOdd) => void;
   clearUserData: () => void;
   setLoading: (loading: boolean) => void;
@@ -42,6 +42,7 @@ export const useDataStore = create<DataState>((set) => ({
     set((state) => ({
       platforms: state.platforms.filter((platform) => platform.id !== platformId),
     })),
+  addSpecialOdd: (odd) => set((state) => ({ specialOdds: [odd, ...state.specialOdds].sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) })),
   updateSpecialOdd: (updatedOdd) =>
     set((state) => ({
       specialOdds: state.specialOdds.map((odd) => (odd.id === updatedOdd.id ? updatedOdd : odd)),

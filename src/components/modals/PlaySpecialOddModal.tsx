@@ -76,13 +76,18 @@ const PlaySpecialOddModal = () => {
 
             // 2. Increment play_count
             const newPlayCount = playingSpecialOdd.play_count + 1;
-            const { data: updatedOdd, error: oddError } = await supabase
+            const { error: oddError } = await supabase
                 .from('special_odds')
                 .update({ play_count: newPlayCount })
-                .eq('id', playingSpecialOdd.id)
-                .select()
-                .single();
+                .eq('id', playingSpecialOdd.id);
+            
             if (oddError) throw oddError;
+            
+            // Manually construct the updated odd object for the local state
+            const updatedOdd: SpecialOdd = {
+              ...playingSpecialOdd,
+              play_count: newPlayCount,
+            };
             
             // 3. Update state
             addBet(newBet);

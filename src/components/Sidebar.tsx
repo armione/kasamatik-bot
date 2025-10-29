@@ -18,7 +18,7 @@ import {
 
 const Sidebar = () => {
   const { user } = useAuthStore();
-  const { isSidebarCollapsed, toggleSidebar } = useUiStore();
+  const { isSidebarCollapsed, toggleSidebar, isMobileMenuOpen } = useUiStore();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -42,7 +42,7 @@ const Sidebar = () => {
     <aside
       className={`sidebar flex flex-col ${
         isSidebarCollapsed ? 'collapsed' : ''
-      }`}
+      } ${isMobileMenuOpen ? 'mobile-open' : ''}`}
     >
       <div className="flex h-20 items-center border-b border-white/10 px-4 flex-shrink-0">
         <img src="/assets/logo.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
@@ -99,7 +99,7 @@ const Sidebar = () => {
           )}
           <button
             onClick={toggleSidebar}
-            className={`rounded p-2 text-gray-400 hover:bg-white/10 hover:text-white ${isSidebarCollapsed ? 'mx-auto' : ''}`}
+            className={`hidden md:block rounded p-2 text-gray-400 hover:bg-white/10 hover:text-white ${isSidebarCollapsed ? 'mx-auto' : ''}`}
             aria-label="Toggle sidebar"
           >
             {isSidebarCollapsed ? <FaAnglesRight /> : <FaAnglesLeft />}

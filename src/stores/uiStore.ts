@@ -5,6 +5,10 @@ interface UiState {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
 
+  isMobileMenuOpen: boolean;
+  toggleMobileMenu: () => void;
+  closeMobileMenu: () => void;
+
   isPlatformManagerModalOpen: boolean;
   openPlatformManagerModal: () => void;
   closePlatformManagerModal: () => void;
@@ -22,6 +26,10 @@ interface UiState {
 export const useUiStore = create<UiState>((set) => ({
   isSidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+
+  isMobileMenuOpen: false,
+  toggleMobileMenu: () => set((state) => ({ isMobileMenuOpen: !state.isMobileMenuOpen })),
+  closeMobileMenu: () => set({ isMobileMenuOpen: false }),
 
   isPlatformManagerModalOpen: false,
   openPlatformManagerModal: () => set({ isPlatformManagerModalOpen: true }),

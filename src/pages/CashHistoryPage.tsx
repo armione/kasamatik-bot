@@ -53,7 +53,7 @@ const CashHistoryPage = () => {
                     <h1 className="text-3xl font-bold gradient-text">Kasa Geçmişi</h1>
                     <p className="mt-1 text-gray-400">Tüm para yatırma ve çekme işlemleriniz.</p>
                 </div>
-                <button onClick={openCashTransactionModal} className="gradient-button flex items-center gap-2 px-4 py-2 rounded-lg mt-4 sm:mt-0">
+                <button onClick={openCashTransactionModal} className="w-full sm:w-auto gradient-button flex items-center justify-center gap-2 px-4 py-2 rounded-lg mt-4 sm:mt-0">
                     <FaPlus /> Yeni İşlem
                 </button>
             </div>

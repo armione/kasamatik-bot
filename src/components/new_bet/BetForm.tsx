@@ -1,4 +1,3 @@
-
 // src/components/new_bet/BetForm.tsx
 import React, { useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
@@ -126,9 +125,9 @@ const BetForm: React.FC<BetFormProps> = ({ formData, setFormData }) => {
             <input type="date" name="date" value={formData.date} onChange={handleChange} className="mt-1 block w-full appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-primary-blue sm:text-sm" />
           </div>
         </div>
-        <div className="flex justify-end gap-4 pt-2">
-            <button type="button" onClick={resetForm} className="px-6 py-2 rounded-lg text-sm font-semibold bg-gray-600 hover:bg-gray-500 transition-colors">Temizle</button>
-            <button type="submit" disabled={loading} className="gradient-button px-8 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-transform duration-150 ease-in-out hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-2">
+            <button type="button" onClick={resetForm} className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-semibold bg-gray-600 hover:bg-gray-500 transition-colors">Temizle</button>
+            <button type="submit" disabled={loading} className="w-full sm:w-auto gradient-button px-8 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm transition-transform duration-150 ease-in-out hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
                 {loading ? 'Ekleniyor...' : 'Bahsi Ekle'}
             </button>
         </div>

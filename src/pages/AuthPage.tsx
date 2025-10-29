@@ -65,7 +65,7 @@ const AuthPage = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
       <div className="w-full max-w-md">
-         <img src="/assets/logo.png" alt="Kasamatik Logo" className="mx-auto h-16 w-auto mb-6" />
+         <img src="/assets/logo.png" alt="Kasamatik Logo" className="mx-auto h-20 w-auto mb-6" />
         <div className="glass-card rounded-2xl p-8 shadow-2xl">
           <h2 className="text-center text-3xl font-bold text-white mb-2 font-montserrat">
             {isSignUp ? 'Hesap Oluştur' : 'Kasamatik\'e Hoş Geldiniz'}

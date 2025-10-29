@@ -45,7 +45,7 @@ const Sidebar = () => {
       }`}
     >
       <div className="flex h-20 items-center border-b border-white/10 px-4 flex-shrink-0">
-        <img src="/assets/logo.png" alt="Logo" className="h-10 w-10 flex-shrink-0" />
+        <img src="/assets/logo.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
         {!isSidebarCollapsed && (
           <span className="ml-3 text-xl font-bold font-montserrat">Kasamatik</span>
         )}

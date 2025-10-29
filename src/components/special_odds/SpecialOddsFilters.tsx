@@ -21,9 +21,8 @@ const SpecialOddsFilters: React.FC<SpecialOddsFiltersProps> = ({ filters, setFil
 
     const allPlatforms = useMemo(() => {
         const platformSet = new Set(specialOdds.map(odd => odd.platform));
-        // FIX: Use spread syntax instead of Array.from to ensure correct type inference.
-        // This resolves the 'unknown' type error for the map key below.
-        return [...platformSet].sort();
+        // FIX: Use Array.from instead of spread syntax to ensure correct type inference.
+        return Array.from(platformSet).sort();
     }, [specialOdds]);
     
     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Bet } from '../types';
+import { Bet, SpecialOdd } from '../types';
 
 interface UiState {
   isSidebarCollapsed: boolean;
@@ -21,6 +21,11 @@ interface UiState {
   isCashTransactionModalOpen: boolean;
   openCashTransactionModal: () => void;
   closeCashTransactionModal: () => void;
+
+  isPlaySpecialOddModalOpen: boolean;
+  playingSpecialOdd: SpecialOdd | null;
+  openPlaySpecialOddModal: (odd: SpecialOdd) => void;
+  closePlaySpecialOddModal: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -43,4 +48,9 @@ export const useUiStore = create<UiState>((set) => ({
   isCashTransactionModalOpen: false,
   openCashTransactionModal: () => set({ isCashTransactionModalOpen: true }),
   closeCashTransactionModal: () => set({ isCashTransactionModalOpen: false }),
+
+  isPlaySpecialOddModalOpen: false,
+  playingSpecialOdd: null,
+  openPlaySpecialOddModal: (odd) => set({ isPlaySpecialOddModalOpen: true, playingSpecialOdd: odd }),
+  closePlaySpecialOddModal: () => set({ isPlaySpecialOddModalOpen: false, playingSpecialOdd: null }),
 }));

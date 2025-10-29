@@ -14,6 +14,7 @@ import {
   FaRightFromBracket,
   FaAnglesLeft,
   FaAnglesRight,
+  FaStar,
 } from 'react-icons/fa6';
 
 const Sidebar = () => {
@@ -29,6 +30,7 @@ const Sidebar = () => {
     { to: '/new-bet', icon: <FaPlus />, text: 'Yeni Kayıt' },
     { to: '/history', icon: <FaClockRotateLeft />, text: 'Bahis Geçmişi' },
     { to: '/cash-history', icon: <FaLandmark />, text: 'Kasa Geçmişi' },
+    { to: '/special-odds', icon: <FaStar />, text: 'Fırsatlar' },
     { to: '/statistics', icon: <FaChartPie />, text: 'İstatistikler' },
   ];
 

@@ -21,6 +21,8 @@ import SettingsPage from './pages/SettingsPage';
 import PlatformManagerModal from './components/modals/PlatformManagerModal';
 import EditBetModal from './components/modals/EditBetModal';
 import CashTransactionModal from './components/modals/CashTransactionModal';
+import SpecialOddsPage from './pages/SpecialOddsPage';
+import PlaySpecialOddModal from './components/modals/PlaySpecialOddModal';
 
 /**
  * Bu bileşen, kullanıcı giriş yaptıktan sonra tüm verileri çeker
@@ -41,6 +43,7 @@ function App() {
   const isPlatformManagerModalOpen = useUiStore((state) => state.isPlatformManagerModalOpen);
   const isEditBetModalOpen = useUiStore((state) => state.isEditBetModalOpen);
   const isCashTransactionModalOpen = useUiStore((state) => state.isCashTransactionModalOpen);
+  const isPlaySpecialOddModalOpen = useUiStore((state) => state.isPlaySpecialOddModalOpen);
 
   // Kimlik doğrulama durumunu dinleyen merkezi useEffect
   useEffect(() => {
@@ -71,6 +74,7 @@ function App() {
       {isPlatformManagerModalOpen && <PlatformManagerModal />}
       {isEditBetModalOpen && <EditBetModal />}
       {isCashTransactionModalOpen && <CashTransactionModal />}
+      {isPlaySpecialOddModalOpen && <PlaySpecialOddModal />}
 
       {/* Ana Yönlendirme (Routing) */}
       <Routes>
@@ -84,6 +88,7 @@ function App() {
             <Route path="/new-bet" element={<NewBetPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/cash-history" element={<CashHistoryPage />} />
+            <Route path="/special-odds" element={<SpecialOddsPage />} />
             <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/guide" element={<GuidePage />} />
             <Route path="/sponsors" element={<SponsorsPage />} />

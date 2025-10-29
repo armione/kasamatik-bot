@@ -3,59 +3,55 @@ import { useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
-import { ADMIN_USER_ID } from '../lib/constants';
+import toast from 'react-hot-toast';
 
 export const useData = () => {
   const { user } = useAuthStore();
-  const { setInitialData, setLoading, setError } = useDataStore();
+  const { setInitialData, setLoading } = useDataStore();
 
   useEffect(() => {
-    if (!user) return;
+    const fetchData = async () => {
+      if (!user) return;
 
-    const loadInitialData = async () => {
       setLoading(true);
+
       try {
-        const isAdmin = user.id === ADMIN_USER_ID;
-
-        const specialOddsQuery = supabase
-          .from('special_odds')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (!isAdmin) {
-          const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-          specialOddsQuery.or(`is_active.eq.true,resulted_at.gte.${yesterday}`);
-        }
-
-        const [betsResponse, platformsResponse, sponsorsResponse, adsResponse, specialOddsResponse] = await Promise.all([
+        const [
+          betsRes,
+          platformsRes,
+          sponsorsRes,
+          adsRes,
+          specialOddsRes
+        ] = await Promise.all([
           supabase.from('bets').select('*, special_odds(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
-          // FIX: Select all columns to include 'user_id' which is required by the 'Platform' type.
-          supabase.from('platforms').select('*').eq('user_id', user.id),
-          supabase.from('sponsors').select('*').order('created_at', { ascending: false }),
-          supabase.from('ads').select('*').order('created_at', { ascending: false }),
-          specialOddsQuery,
+          supabase.from('platforms').select('*').eq('user_id', user.id).order('name', { ascending: true }),
+          supabase.from('sponsors').select('*').order('created_at', { ascending: true }),
+          supabase.from('ads').select('*'),
+          supabase.from('special_odds').select('*').eq('is_active', true).order('created_at', { ascending: false })
         ]);
 
-        if (betsResponse.error) throw betsResponse.error;
-        if (platformsResponse.error) throw platformsResponse.error;
-        if (sponsorsResponse.error) throw sponsorsResponse.error;
-        if (adsResponse.error) throw adsResponse.error;
-        if (specialOddsResponse.error) throw specialOddsResponse.error;
-
+        if (betsRes.error) throw betsRes.error;
+        if (platformsRes.error) throw platformsRes.error;
+        if (sponsorsRes.error) throw sponsorsRes.error;
+        if (adsRes.error) throw adsRes.error;
+        if (specialOddsRes.error) throw specialOddsRes.error;
+        
         setInitialData({
-          bets: betsResponse.data || [],
-          platforms: platformsResponse.data || [],
-          sponsors: sponsorsResponse.data || [],
-          ads: adsResponse.data || [],
-          specialOdds: specialOddsResponse.data || [],
+          bets: betsRes.data || [],
+          platforms: platformsRes.data || [],
+          sponsors: sponsorsRes.data || [],
+          ads: adsRes.data || [],
+          specialOdds: specialOddsRes.data || [],
         });
-
-      } catch (err: any) {
-        console.error('Veri yükleme hatası:', err);
-        setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
+      } catch (error: any) {
+        toast.error(`Veriler yüklenirken bir hata oluştu: ${error.message}`);
+        console.error('Data fetching error:', error);
       }
+      // setLoading(false) is called inside setInitialData
     };
 
-    loadInitialData();
-  }, [user, setInitialData, setLoading, setError]);
+    if (user) {
+      fetchData();
+    }
+  }, [user, setInitialData, setLoading]);
 };

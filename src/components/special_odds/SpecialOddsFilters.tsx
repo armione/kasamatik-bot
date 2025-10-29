@@ -1,0 +1,58 @@
+// src/components/special_odds/SpecialOddsFilters.tsx
+import React, { useMemo } from 'react';
+import { useDataStore } from '../../stores/dataStore';
+
+interface SpecialOddsFiltersProps {
+    filters: {
+        status: string;
+        platform: string;
+        sort: string;
+    };
+    // FIX: Replaced 'any' with a specific type definition for better type safety.
+    setFilters: React.Dispatch<React.SetStateAction<{
+        status: string;
+        platform: string;
+        sort: string;
+    }>>;
+}
+
+const SpecialOddsFilters: React.FC<SpecialOddsFiltersProps> = ({ filters, setFilters }) => {
+    const specialOdds = useDataStore((state) => state.specialOdds);
+
+    const allPlatforms = useMemo(() => {
+        const platformSet = new Set(specialOdds.map(odd => odd.platform));
+        // FIX: Use spread syntax instead of Array.from to ensure correct type inference.
+        // This resolves the 'unknown' type error for the map key below.
+        return [...platformSet].sort();
+    }, [specialOdds]);
+    
+    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        // FIX: Removed 'any' type from state update for better type safety.
+        setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    return (
+        <div className="glass-card rounded-2xl p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select name="status" value={filters.status} onChange={handleFilterChange} className="appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-primary-blue sm:text-sm">
+                    <option value="pending">Bekleyen Fırsatlar</option>
+                    <option value="all">Tüm Fırsatlar</option>
+                    <option value="won">Kazananlar</option>
+                    <option value="lost">Kaybedenler</option>
+                    <option value="refunded">İade Edilenler</option>
+                </select>
+                <select name="platform" value={filters.platform} onChange={handleFilterChange} className="appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-primary-blue sm:text-sm">
+                    <option value="all">Tüm Platformlar</option>
+                    {allPlatforms.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <select name="sort" value={filters.sort} onChange={handleFilterChange} className="appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-primary-blue sm:text-sm">
+                    <option value="newest">En Yeni</option>
+                    <option value="odds_desc">En Yüksek Oran</option>
+                    <option value="popularity_desc">En Popüler</option>
+                </select>
+            </div>
+        </div>
+    );
+};
+
+export default SpecialOddsFilters;

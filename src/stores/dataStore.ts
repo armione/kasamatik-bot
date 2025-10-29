@@ -28,7 +28,7 @@ interface DataState {
   addPlatform: (platform: Platform) => void;
   deletePlatform: (platformId: number) => void;
   
-  clearAllData: () => void;
+  clearUserData: () => void;
 }
 
 export const useDataStore = create<DataState>((set) => ({
@@ -56,5 +56,5 @@ export const useDataStore = create<DataState>((set) => ({
   deletePlatform: (platformId) =>
     set((state) => ({ platforms: state.platforms.filter((p) => p.id !== platformId) })),
 
-  clearAllData: () => set({ bets: [], platforms: [] }),
+  clearUserData: () => set({ bets: [], platforms: [] }),
 }));

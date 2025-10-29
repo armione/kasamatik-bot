@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { supabase } from './lib/supabaseClient';
 import { useAuthStore } from './stores/authStore';
@@ -22,46 +22,44 @@ import PlatformManagerModal from './components/modals/PlatformManagerModal';
 import EditBetModal from './components/modals/EditBetModal';
 import CashTransactionModal from './components/modals/CashTransactionModal';
 
-// Hata Düzeltmesi: Bu bileşenleri ana App fonksiyonunun DIŞINA taşıdık.
-// Bu, her render'da yeniden oluşturulmalarını önler ve React'in state'i kaybetmesine engel olur.
-const AuthStateChanger = () => {
-    const { setSession, setUser, setLoading } = useAuthStore();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
-        
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                 navigate('/auth', { replace: true });
-            }
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
-    }, [setSession, setUser, setLoading, navigate]);
-
-    return null;
-};
-
-const DataProviderLayout = () => {
+/**
+ * Bu bileşen, kullanıcı giriş yaptıktan sonra tüm verileri çeker
+ * ve ana uygulama düzenini (Sidebar + içerik alanı) gösterir.
+ */
+const MainAppLayout = () => {
+  // Veri çekme hook'unu burada çağırıyoruz.
+  // Bu bileşen sadece kullanıcı giriş yaptıktan sonra render edilir.
   useData();
+  
+  // AppLayout, Outlet'i içinde barındırır, bu sayede
+  // /history, /settings gibi sayfalar bu layout içinde görünür.
   return <AppLayout />;
 };
 
-
 function App() {
+  const { setSession, setUser, setLoading } = useAuthStore();
   const isPlatformManagerModalOpen = useUiStore((state) => state.isPlatformManagerModalOpen);
   const isEditBetModalOpen = useUiStore((state) => state.isEditBetModalOpen);
   const isCashTransactionModalOpen = useUiStore((state) => state.isCashTransactionModalOpen);
 
+  // Kimlik doğrulama durumunu dinleyen merkezi useEffect
+  useEffect(() => {
+    // anlık değişiklikleri dinle
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Sayfa ilk yüklendiğinde mevcut oturumu kontrol et
+    supabase.auth.getSession().finally(() => setLoading(false));
+
+    return () => subscription.unsubscribe();
+  }, [setSession, setUser, setLoading]);
+
   return (
     <BrowserRouter>
-      <AuthStateChanger />
+      {/* Bildirim ve Global Modallar */}
       <Toaster position="top-center" toastOptions={{
           className: 'glass-card',
           style: {
@@ -70,16 +68,18 @@ function App() {
               border: '1px solid rgba(255, 255, 255, 0.2)',
           },
       }} />
-
       {isPlatformManagerModalOpen && <PlatformManagerModal />}
       {isEditBetModalOpen && <EditBetModal />}
       {isCashTransactionModalOpen && <CashTransactionModal />}
 
+      {/* Ana Yönlendirme (Routing) */}
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         
+        {/* Korumalı Alan */}
         <Route element={<ProtectedRoute />}>
-          <Route element={<DataProviderLayout />}>
+          {/* MainAppLayout, tüm korumalı sayfaları sarar */}
+          <Route element={<MainAppLayout />}>
             <Route index path="/" element={<DashboardPage />} />
             <Route path="/new-bet" element={<NewBetPage />} />
             <Route path="/history" element={<HistoryPage />} />

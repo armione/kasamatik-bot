@@ -29,7 +29,8 @@ export const useData = () => {
 
         const [betsResponse, platformsResponse, sponsorsResponse, adsResponse, specialOddsResponse] = await Promise.all([
           supabase.from('bets').select('*, special_odds(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
-          supabase.from('platforms').select('id, name').eq('user_id', user.id),
+          // FIX: Select all columns to include 'user_id' which is required by the 'Platform' type.
+          supabase.from('platforms').select('*').eq('user_id', user.id),
           supabase.from('sponsors').select('*').order('created_at', { ascending: false }),
           supabase.from('ads').select('*').order('created_at', { ascending: false }),
           specialOddsQuery,

@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { useState } from 'react';
 
 const DangerZone = () => {
-    const { clearAllData } = useDataStore();
+    const { clearUserData } = useDataStore();
     const { user } = useAuthStore();
     const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ const DangerZone = () => {
             const { error: platformsError } = await supabase.from('platforms').delete().eq('user_id', user.id);
             if (platformsError) throw platformsError;
 
-            clearAllData();
+            clearUserData();
             toast.success('Tüm verileriniz başarıyla silindi.', { id: toastId });
 
         } catch (error: any) {

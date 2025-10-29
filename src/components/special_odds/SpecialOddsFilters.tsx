@@ -21,7 +21,8 @@ const SpecialOddsFilters: React.FC<SpecialOddsFiltersProps> = ({ filters, setFil
 
     // FIX: Explicitly type `allPlatforms` as `string[]` to resolve type inference issues.
     const allPlatforms: string[] = useMemo(() => {
-        const platformSet = new Set(specialOdds.map(odd => odd.platform));
+        // FIX: Explicitly type `platformSet` as `Set<string>` to fix the type inference issue where `Array.from` was returning `unknown[]`.
+        const platformSet: Set<string> = new Set(specialOdds.map(odd => odd.platform));
         // FIX: Use Array.from instead of spread syntax to ensure correct type inference.
         return Array.from(platformSet).sort();
     }, [specialOdds]);

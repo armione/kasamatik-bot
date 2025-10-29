@@ -5,6 +5,7 @@ import BetFilters from '../components/history/BetFilters';
 import BetCard from '../components/history/BetCard';
 import Pagination from '../components/shared/Pagination';
 import { ITEMS_PER_PAGE } from '../lib/constants';
+import HistorySummaryStats from '../components/history/HistorySummaryStats';
 
 const HistoryPage = () => {
   const bets = useDataStore((state) => state.bets);
@@ -59,6 +60,8 @@ const HistoryPage = () => {
       </div>
 
       <BetFilters filters={filters} setFilters={setFilters} />
+      
+      <HistorySummaryStats filteredBets={filteredBets} />
 
       {paginatedBets.length > 0 ? (
         <div className="space-y-4">

@@ -11,7 +11,7 @@ const StatCard = ({ title, value, subtext, colorClass }: { title: string; value:
     <div className="glass-card p-4 rounded-xl">
         <p className="text-sm text-gray-400">{title}</p>
         <p className={`text-2xl font-bold font-montserrat ${colorClass || 'text-white'}`}>{value}</p>
-        <p className="text-xs text-gray-400 mt-1">{subtext}</p>
+        <p className="text-sm text-gray-300 mt-1">{subtext}</p>
     </div>
 );
 
@@ -47,7 +47,7 @@ const StatsSummary: React.FC<StatsSummaryProps> = ({ filteredBets }) => {
             <StatCard 
                 title="Kazanma Oranı"
                 value={`${stats.winRate.toFixed(1)}%`}
-                subtext="Kazanan / Sonuçlanan Bahis"
+                subtext={`${stats.wonCount} / ${stats.settledCount} bahis`}
                 colorClass={stats.winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}
             />
             <StatCard 
@@ -58,7 +58,7 @@ const StatsSummary: React.FC<StatsSummaryProps> = ({ filteredBets }) => {
             <StatCard 
                 title="Yatırım Geri Dönüşü (ROI)"
                 value={`${stats.roi.toFixed(1)}%`}
-                subtext="Net Kar / Toplam Yatırım"
+                subtext={`${stats.netProfit.toFixed(2)}₺ / ${stats.totalInvested.toFixed(2)}₺`}
                 colorClass={stats.roi >= 0 ? 'text-green-400' : 'text-red-400'}
             />
         </div>

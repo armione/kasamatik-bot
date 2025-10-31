@@ -8,7 +8,7 @@ import { FaXmark } from 'react-icons/fa6';
 import { Bet } from '../../types';
 
 const EditBetModal = () => {
-    const { editingBet, closeEditBetModal } = useUiStore();
+    const { editingBet, prefilledBetData, closeEditBetModal } = useUiStore();
     const { updateBet: updateBetInStore } = useDataStore();
 
     const [status, setStatus] = useState<'pending' | 'won' | 'lost' | 'refunded'>('pending');
@@ -17,10 +17,11 @@ const EditBetModal = () => {
 
     useEffect(() => {
         if (editingBet) {
-            setStatus(editingBet.status);
-            setWinAmount(editingBet.win_amount);
+            // Use prefilled data if available, otherwise use the bet's current data
+            setStatus(prefilledBetData?.status || editingBet.status);
+            setWinAmount(prefilledBetData?.win_amount || editingBet.win_amount);
         }
-    }, [editingBet]);
+    }, [editingBet, prefilledBetData]);
 
     if (!editingBet) return null;
 

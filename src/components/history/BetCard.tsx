@@ -56,33 +56,51 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
       setIsFetchingResult(true);
       setAiResult(null);
       const toastId = toast.loading('Yapay zeka maç sonucunu arıyor...');
+      
       try {
-        const response = await fetch('/api/get-match-result', {
+        // Step 1: Get match result
+        const resultResponse = await fetch('/api/get-match-result', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ matchDescription: bet.description }),
         });
+        if (!resultResponse.ok) throw new Error('Maç sonucu alınamadı.');
+        const matchResult = await resultResponse.json();
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Sonuç bulunamadı.');
+        // If match is not finished, just show info and stop.
+        if (matchResult.status !== 'finished' || !matchResult.winner) {
+          const infoText = matchResult.status === 'in_progress' ? 'Maç henüz devam ediyor.' : 'Maç sonucu bulunamadı veya başlamadı.';
+          setAiResult(infoText);
+          toast(infoText, { id: toastId, icon: '⏳' });
+          setIsFetchingResult(false);
+          return;
         }
 
-        const result = await response.json();
-        
-        let resultText = '';
-        if (result.status === 'finished') {
-          resultText = `Maç bitti. Kazanan: ${result.winner === 'draw' ? 'Beraberlik' : result.winner}. Skor: ${result.score || 'N/A'}`;
-          toast.success('Maç sonucu bulundu!', { id: toastId });
-        } else if (result.status === 'in_progress') {
-          resultText = 'Maç henüz devam ediyor.';
-           // FIX: Replaced `toast.info` with the default `toast` function, as `info` is not a standard method in react-hot-toast.
-           toast('Maç henüz bitmemiş.', { id: toastId, icon: '⏳' });
+        toast.loading('Sonuç bulundu, bahis yorumlanıyor...', { id: toastId });
+
+        // Step 2: Evaluate bet against the result
+        const evaluateResponse = await fetch('/api/evaluate-bet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ betDescription: bet.description, matchResult }),
+        });
+        if (!evaluateResponse.ok) throw new Error('Bahis yorumlanamadı.');
+        const evaluation = await evaluateResponse.json();
+
+        // Step 3: Act on the evaluation
+        if (evaluation.outcome === 'won' || evaluation.outcome === 'lost') {
+            const prefilledData = {
+                status: evaluation.outcome,
+                win_amount: evaluation.outcome === 'won' ? bet.bet_amount * bet.odds : 0,
+            };
+            openEditBetModal(bet, prefilledData);
+            toast.success('Bahis sonucu yorumlandı! Lütfen onaylayın.', { id: toastId });
         } else {
-          resultText = 'Maç sonucu bulunamadı veya maç henüz başlamadı.';
-          toast.error('Maç sonucu bulunamadı.', { id: toastId });
+            // Fallback for unknown outcomes
+            const resultText = `Maç bitti. Kazanan: ${matchResult.winner === 'draw' ? 'Beraberlik' : matchResult.winner}. Skor: ${matchResult.final_score || 'N/A'}`;
+            setAiResult(resultText);
+            toast.success('Maç sonucu bulundu, lütfen manuel sonuçlandırın.', { id: toastId });
         }
-        setAiResult(resultText);
 
       } catch (error: any) {
         toast.error(error.message, { id: toastId });

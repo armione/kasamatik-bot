@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { Bet, SpecialOdd } from '../types';
 
+interface PrefilledBetData {
+  status: 'won' | 'lost' | 'refunded';
+  win_amount: number;
+}
+
 interface UiState {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
@@ -15,7 +20,8 @@ interface UiState {
 
   isEditBetModalOpen: boolean;
   editingBet: Bet | null;
-  openEditBetModal: (bet: Bet) => void;
+  prefilledBetData: PrefilledBetData | null;
+  openEditBetModal: (bet: Bet, prefilledData?: PrefilledBetData) => void;
   closeEditBetModal: () => void;
   
   isCashTransactionModalOpen: boolean;
@@ -42,8 +48,9 @@ export const useUiStore = create<UiState>((set) => ({
 
   isEditBetModalOpen: false,
   editingBet: null,
-  openEditBetModal: (bet) => set({ isEditBetModalOpen: true, editingBet: bet }),
-  closeEditBetModal: () => set({ isEditBetModalOpen: false, editingBet: null }),
+  prefilledBetData: null,
+  openEditBetModal: (bet, prefilledData) => set({ isEditBetModalOpen: true, editingBet: bet, prefilledBetData: prefilledData || null }),
+  closeEditBetModal: () => set({ isEditBetModalOpen: false, editingBet: null, prefilledBetData: null }),
   
   isCashTransactionModalOpen: false,
   openCashTransactionModal: () => set({ isCashTransactionModalOpen: true }),

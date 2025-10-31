@@ -23,19 +23,22 @@ export default async function handler(request, response) {
     const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `
-      Sen bir spor veri analistisin. Görevin, arama yeteneklerini kullanarak belirli bir spor maçının sonucunu bulmak.
+      Sen bir spor veri analistisin. Görevin, Google Search yeteneklerini kullanarak belirli bir spor maçı hakkında detaylı bilgi bulmak.
       
       Şu maç tanımını analiz et: "${matchDescription}"
       
-      Bu maçın nihai sonucunu bul.
+      Bu maçla ilgili bulabildiğin en detaylı bilgileri topla.
       
       Yanıt olarak SADECE ve SADECE bir markdown kod bloğu içinde aşağıdaki yapıyı içeren bir JSON nesnesi döndür. Başka hiçbir metin, açıklama veya selamlama ekleme.
       JSON nesnesi şu alanları içermelidir:
-      - "status": Bir string. Değerleri "finished" (bitti), "in_progress" (devam ediyor), "not_found" (bulunamadı) veya "scheduled" (planlandı) olabilir.
-      - "winner": Kazanan takımın adını içeren bir string. Beraberlik durumunda değer "draw" olmalı. Maç bitmediyse bu alan null olmalıdır.
-      - "score": Nihai skoru temsil eden bir string (ör. "2-1", "105-98"). Maç bitmediyse bu alan null olmalıdır.
+      - "status": (string) Maçın durumu. Değerleri "finished", "in_progress", "not_found", "scheduled" olabilir.
+      - "winner": (string) Kazanan takımın adı. Beraberlik durumunda değer "draw" olmalı. Maç bitmediyse bu alan null olmalıdır.
+      - "final_score": (string) Nihai skor (ör. "2-1", "105-98"). Maç bitmediyse null.
+      - "first_half_score": (string) İlk yarı skoru. Bulunamazsa null.
+      - "total_goals": (number) Maçtaki toplam gol/sayı sayısı. Bulunamazsa null.
+      - "goal_scorers": (string dizisi) Gol atan oyuncuların listesi. Bulunamazsa null.
       
-      Maç için kesin bir sonuç bulamazsan, durumu "not_found" olarak ayarla ve diğer alanları null yap.
+      Eğer bir bilgiyi bulamazsan, o alanın değerini null olarak ayarla. Maç için hiçbir bilgi bulamazsan, durumu "not_found" yap ve diğer tüm alanları null bırak.
     `;
 
     const geminiResponse = await ai.models.generateContent({

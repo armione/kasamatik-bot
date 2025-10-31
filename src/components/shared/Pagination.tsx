@@ -1,3 +1,4 @@
+
 // src/components/shared/Pagination.tsx
 import React from 'react';
 
@@ -19,14 +20,14 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
       <button
         onClick={() => handlePageClick(1)}
         disabled={currentPage === 1}
-        className="pagination-btn"
+        className="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-700/50 text-white transition-colors hover:bg-gray-600/80 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         &laquo;
       </button>
       <button
         onClick={() => handlePageClick(currentPage - 1)}
         disabled={currentPage === 1}
-        className="pagination-btn"
+        className="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-700/50 text-white transition-colors hover:bg-gray-600/80 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         &larr;
       </button>
@@ -38,14 +39,14 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
       <button
         onClick={() => handlePageClick(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="pagination-btn"
+        className="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-700/50 text-white transition-colors hover:bg-gray-600/80 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         &rarr;
       </button>
       <button
         onClick={() => handlePageClick(totalPages)}
         disabled={currentPage === totalPages}
-        className="pagination-btn"
+        className="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-700/50 text-white transition-colors hover:bg-gray-600/80 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         &raquo;
       </button>

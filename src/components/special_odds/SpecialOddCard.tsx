@@ -1,3 +1,4 @@
+
 // src/components/special_odds/SpecialOddCard.tsx
 import React, { useState } from 'react';
 import { SpecialOdd } from '../../types';

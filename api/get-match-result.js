@@ -14,33 +14,29 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
- * Gemini'den gelen JSON verisinin beklenen şemaya uyup uymadığını kontrol eder.
- * @param {object} data - Gemini'den gelen JSON nesnesi.
+ * Gemini'den gelen JSON verisini beklenen şemaya uyup uymadığını kontrol eder ve temizler.
+ * Daha esnek bir yapıya güncellendi, böylece Gemini eksik alanlar döndürse bile kısmi veriler korunur.
+ * @param {object | null} data - Gemini'den gelen JSON nesnesi.
  * @returns {object|null} - Veri geçerliyse temizlenmiş nesneyi, değilse null döndürür.
  */
 function validateAndSanitize(data) {
+  // Veri boşsa veya bir 'status' alanı içermiyorsa geçersizdir.
   if (!data || typeof data.status !== 'string') {
     return null;
   }
 
-  // Temel şema kontrolü
-  const expectedFields = ['status', 'winner', 'final_score', 'first_half_score', 'total_goals', 'goal_scorers'];
-  for (const field of expectedFields) {
-    if (!(field in data)) {
-      console.warn(`Gemini yanıtında eksik alan: ${field}`);
-      return null; // Alan eksikse geçersiz say
-    }
-  }
-
-  // Sadece beklenen alanları içeren temiz bir nesne döndür
-  return {
+  // 'status' alanı var. Eksik alanlar için 'null' kullanarak
+  // temizlenmiş bir nesne oluşturalım.
+  const sanitized = {
     status: data.status,
-    winner: data.winner,
-    final_score: data.final_score,
-    first_half_score: data.first_half_score,
-    total_goals: data.total_goals,
-    goal_scorers: data.goal_scorers,
+    winner: data.winner !== undefined ? data.winner : null,
+    final_score: data.final_score !== undefined ? data.final_score : null,
+    first_half_score: data.first_half_score !== undefined ? data.first_half_score : null,
+    total_goals: data.total_goals !== undefined ? data.total_goals : null,
+    goal_scorers: data.goal_scorers !== undefined ? data.goal_scorers : null,
   };
+  
+  return sanitized;
 }
 
 

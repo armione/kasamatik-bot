@@ -72,9 +72,13 @@ const ResultSpecialOdds = () => {
                     
                     // Pre-fill confirmation if AI is confident
                     if (result.suggestedStatus === 'won' || result.suggestedStatus === 'lost') {
+                        // FIX: The type of `result.suggestedStatus` is narrowed to 'won' | 'lost' here,
+                        // but TypeScript can fail to infer this correctly inside the state updater's return object.
+                        // Assigning it to a new constant `newStatus` helps the type checker resolve the error.
+                        const newStatus = result.suggestedStatus;
                          setConfirmedResults(prev => ({
                             ...prev,
-                            [task.special_odd_id]: result.suggestedStatus
+                            [task.special_odd_id]: newStatus,
                         }));
                     }
 

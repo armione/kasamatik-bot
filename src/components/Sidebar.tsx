@@ -15,11 +15,14 @@ import {
   FaAnglesLeft,
   FaAnglesRight,
   FaStar,
+  FaUserShield,
 } from 'react-icons/fa6';
+import { ADMIN_USER_ID } from '../lib/constants';
 
 const Sidebar = () => {
   const { user } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar, isMobileMenuOpen } = useUiStore();
+  const isAdmin = user?.id === ADMIN_USER_ID;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -37,8 +40,14 @@ const Sidebar = () => {
   const secondaryNavItems = [
     { to: '/guide', icon: <FaBookOpen />, text: 'Rehber' },
     { to: '/sponsors', icon: <FaHandHoldingHeart />, text: 'Sponsorlar' },
-    { to: '/settings', icon: <FaGear />, text: 'Ayarlar' },
   ];
+
+  if (isAdmin) {
+    secondaryNavItems.push({ to: '/admin', icon: <FaUserShield />, text: 'Yönetim Paneli' });
+  }
+
+  secondaryNavItems.push({ to: '/settings', icon: <FaGear />, text: 'Ayarlar' });
+
 
   return (
     <aside

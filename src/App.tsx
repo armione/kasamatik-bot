@@ -23,6 +23,8 @@ import EditBetModal from './components/modals/EditBetModal';
 import CashTransactionModal from './components/modals/CashTransactionModal';
 import SpecialOddsPage from './pages/SpecialOddsPage';
 import PlaySpecialOddModal from './components/modals/PlaySpecialOddModal';
+import AdminRoute from './components/AdminRoute';
+import AdminPage from './pages/AdminPage';
 
 /**
  * Bu bileşen, kullanıcı giriş yaptıktan sonra tüm verileri çeker
@@ -93,6 +95,11 @@ function App() {
             <Route path="/guide" element={<GuidePage />} />
             <Route path="/sponsors" element={<SponsorsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            
+            {/* Admin Route */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

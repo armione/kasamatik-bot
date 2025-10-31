@@ -1,8 +1,8 @@
 // src/components/admin/ResultSpecialOdds.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useDataStore } from '../../stores/dataStore';
-import { FaPlay, FaCheck } from 'react-icons/fa6';
+import { FaPlay, FaCheck, FaTimes, FaQuestion } from 'react-icons/fa6';
 import { SpecialOdd } from '../../types';
 
 interface AnalysisTask {
@@ -52,8 +52,7 @@ const ResultSpecialOdds = () => {
 
             // Step 2: Process tasks one by one
             const newResults: AnalysisResult[] = [];
-            const newConfirmed: Record<number, 'won' | 'lost'> = {};
-
+            
             for (let i = 0; i < fetchedTasks.length; i++) {
                 const task = fetchedTasks[i];
                 try {
@@ -73,7 +72,10 @@ const ResultSpecialOdds = () => {
                     
                     // Pre-fill confirmation if AI is confident
                     if (result.suggestedStatus === 'won' || result.suggestedStatus === 'lost') {
-                        newConfirmed[task.special_odd_id] = result.suggestedStatus;
+                         setConfirmedResults(prev => ({
+                            ...prev,
+                            [task.special_odd_id]: result.suggestedStatus
+                        }));
                     }
 
                 } catch (taskError) {
@@ -82,7 +84,6 @@ const ResultSpecialOdds = () => {
                 }
                 
                 setResults([...newResults]);
-                setConfirmedResults(prev => ({...prev, ...newConfirmed}));
                 const newProgress = ((i + 1) / fetchedTasks.length) * 100;
                 setProgress(newProgress);
                 toast.loading(`Analiz ediliyor: ${i + 1}/${fetchedTasks.length}`, { id: toastId });
@@ -145,9 +146,9 @@ const ResultSpecialOdds = () => {
     
     const getStatusInfo = (status: 'won' | 'lost' | 'unknown') => {
         switch(status) {
-            case 'won': return { class: 'bg-green-500/20 text-green-300', text: 'Kazandı' };
-            case 'lost': return { class: 'bg-red-500/20 text-red-300', text: 'Kaybetti' };
-            default: return { class: 'bg-yellow-500/20 text-yellow-300', text: 'Belirsiz' };
+            case 'won': return { class: 'border-green-500/50 text-green-300', text: 'Kazandı', icon: <FaCheck/> };
+            case 'lost': return { class: 'border-red-500/50 text-red-300', text: 'Kaybetti', icon: <FaTimes /> };
+            default: return { class: 'border-yellow-500/50 text-yellow-300', text: 'Belirsiz', icon: <FaQuestion /> };
         }
     };
 
@@ -181,41 +182,34 @@ const ResultSpecialOdds = () => {
                 <div className="space-y-4 mt-6">
                     <h4 className="text-lg font-semibold text-white">Analiz Sonuçları</h4>
                     <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
-                    {results.map(result => (
-                        <div key={result.id} className="p-3 bg-gray-800/50 rounded-lg">
-                            <p className="text-sm text-gray-300 mb-2">{result.description}</p>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-sm">
-                                    <span className="text-gray-400">AI Önerisi:</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusInfo(result.suggestedStatus).class}`}>
-                                        {getStatusInfo(result.suggestedStatus).text}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <label className="flex items-center gap-1 cursor-pointer">
-                                        <input 
-                                            type="radio"
-                                            name={`result-${result.special_odd_id}`}
-                                            checked={confirmedResults[result.special_odd_id] === 'won'}
-                                            onChange={() => handleConfirmResultChange(result.special_odd_id, 'won')}
-                                            className="form-radio h-4 w-4 text-green-500 bg-gray-700 border-gray-600 focus:ring-green-600"
-                                        />
-                                        <span className="text-sm text-green-300">Kazandı</span>
-                                    </label>
-                                    <label className="flex items-center gap-1 cursor-pointer">
-                                        <input 
-                                            type="radio"
-                                            name={`result-${result.special_odd_id}`}
-                                            checked={confirmedResults[result.special_odd_id] === 'lost'}
-                                            onChange={() => handleConfirmResultChange(result.special_odd_id, 'lost')}
-                                            className="form-radio h-4 w-4 text-red-500 bg-gray-700 border-gray-600 focus:ring-red-600"
-                                        />
-                                        <span className="text-sm text-red-300">Kaybetti</span>
-                                    </label>
+                    {results.map(result => {
+                        const statusInfo = getStatusInfo(result.suggestedStatus);
+                        return (
+                            <div key={result.id} className="p-3 bg-gray-800/50 rounded-lg">
+                                <p className="text-sm text-gray-300 mb-3">{result.description}</p>
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className={`flex items-center gap-2 text-sm font-semibold border ${statusInfo.class} px-3 py-1.5 rounded-md`}>
+                                        {statusInfo.icon}
+                                        <span>AI Önerisi: {statusInfo.text}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                        <button 
+                                            onClick={() => handleConfirmResultChange(result.special_odd_id, 'won')}
+                                            className={`flex-1 transition-all duration-200 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${confirmedResults[result.special_odd_id] === 'won' ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700/60 text-gray-300 hover:bg-gray-600'}`}
+                                        >
+                                            <FaCheck /> Kazandı
+                                        </button>
+                                         <button 
+                                            onClick={() => handleConfirmResultChange(result.special_odd_id, 'lost')}
+                                            className={`flex-1 transition-all duration-200 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${confirmedResults[result.special_odd_id] === 'lost' ? 'bg-red-500 text-white shadow-lg' : 'bg-gray-700/60 text-gray-300 hover:bg-gray-600'}`}
+                                        >
+                                            <FaTimes /> Kaybetti
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                     </div>
                     
                     <button 

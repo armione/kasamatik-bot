@@ -50,23 +50,26 @@ export default async function handler(request, response) {
     
     const rawText = geminiResponse.text;
     if (!rawText) {
-        throw new Error("Gemini'den geçerli bir cevap alınamadı.");
+        // Gemini'den boş cevap gelirse 'unknown' olarak kabul et
+        return response.status(200).json({ outcome: 'unknown' });
     }
 
-    const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
-
-    if (!jsonMatch || !jsonMatch[1]) {
-        try {
-            const parsed = JSON.parse(rawText);
-            return response.status(200).json(parsed);
-        } catch(e) {
-             throw new Error("API'den gelen cevap ayrıştırılamadı. Ham cevap: " + rawText);
+    let parsedJson;
+    try {
+        const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
+        const jsonText = jsonMatch ? jsonMatch[1] : rawText;
+        parsedJson = JSON.parse(jsonText);
+        // Doğrulama: Gelen JSON'da 'outcome' alanı var mı?
+        if (typeof parsedJson.outcome !== 'string') {
+            parsedJson = { outcome: 'unknown' };
         }
+    } catch (e) {
+        console.error('Bet evaluation JSON parse hatası, ham metin:', rawText);
+        // Hata durumunda güvenli bir şekilde 'unknown' döndür
+        parsedJson = { outcome: 'unknown' };
     }
     
-    const jsonText = jsonMatch[1];
-    
-    response.status(200).json(JSON.parse(jsonText));
+    response.status(200).json(parsedJson);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error);

@@ -8,7 +8,6 @@ import { createClient } from '@supabase/supabase-js';
 // --- Gerekli İstemcileri Başlat ---
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-// FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
 const apiKey = process.env.API_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey || !apiKey) {
@@ -55,15 +54,15 @@ export default async function handler(request, response) {
                 const matches = await parseCoupon(bet.description);
                 
                 const matchResults = await Promise.all(
-                    matches.map(matchDesc => getMatchResult(matchDesc, bet.date))
+                    matches.map(match => getMatchResult(match.normalizedName, bet.date))
                 );
 
                 const evaluations = await Promise.all(
                     matchResults.map((result, index) => {
-                        if (result.status !== 'finished') {
+                        if (!result || result.status !== 'finished') {
                             return { outcome: 'pending' };
                         }
-                        return evaluateBet(matches[index], result);
+                        return evaluateBet(matches[index].fullDescription, result);
                     })
                 );
                 
@@ -115,26 +114,29 @@ export default async function handler(request, response) {
 // --- Yardımcı Fonksiyonlar (Diğer API dosyalarından uyarlanmıştır) ---
 
 async function parseCoupon(couponDescription) {
-    const prompt = `Bu kombine bahis kuponu açıklamasını analiz et ve her bir maçı ayrı bir eleman olarak içeren bir JSON dizisi oluştur. Açıklama: "${couponDescription}". Yanıt olarak SADECE ve SADECE bu JSON dizisini içeren bir markdown kod bloğu döndür.`;
+    const prompt = `Bu bahis kuponu açıklamasını analiz et: "${couponDescription}". Yanıt olarak SADECE ve SADECE bir markdown kod bloğu içinde, her maç için {"fullDescription": "...", "normalizedName": "..."} içeren bir JSON dizisi döndür.`;
     const result = await getGeminiJsonResponse(prompt);
-    if (!Array.isArray(result)) return [couponDescription]; // Fallback
+    if (!Array.isArray(result) || result.length === 0 || !result[0].fullDescription) {
+        return [{ fullDescription: couponDescription, normalizedName: couponDescription }]; // Fallback
+    }
     return result;
 }
 
-async function getMatchResult(matchDescription, matchDate) {
-    const cacheKey = `${matchDescription}|${matchDate}`;
+async function getMatchResult(normalizedName, matchDate) {
+    const cacheKey = `${normalizedName}|${matchDate}`;
     const { data: cachedResult } = await supabase.from('match_results_cache').select('match_data').eq('match_description', cacheKey).single();
     if (cachedResult && cachedResult.match_data?.status === 'finished') {
         return cachedResult.match_data;
     }
 
-    const prompt = `Sen bir spor veri analistisin. Şu maç tanımını analiz et: "${matchDescription}". Bu maçın oynandığı tarih yaklaşık olarak: "${matchDate}". Yanıt olarak SADECE bir markdown kod bloğu içinde şu yapıyı içeren bir JSON nesnesi döndür: {"status": "finished" | "in_progress" | "not_found", "winner": "takım adı" | "draw" | null, "final_score": "2-1" | null, "first_half_score": "1-0" | null, "total_goals": 3 | null, "goal_scorers": ["oyuncu1", "oyuncu2"] | null}.`;
+    const prompt = `Sen bir spor veri analistisin. Şu maç tanımını analiz et: "${normalizedName}". Bu maçın oynandığı tarih yaklaşık olarak: "${matchDate}". Yanıt olarak SADECE bir markdown kod bloğu içinde şu yapıyı içeren bir JSON nesnesi döndür: {"status": "finished" | "in_progress" | "not_found", "winner": "takım adı" | "draw" | null, "final_score": "2-1" | null, "first_half_score": "1-0" | null, "total_goals": 3 | null, "goal_scorers": ["oyuncu1", "oyuncu2"] | null}.`;
     const resultJson = await getGeminiJsonResponse(prompt, true); // googleSearch=true
     
-    if (resultJson) {
+    // Basit bir doğrulama
+    if (resultJson && typeof resultJson.status === 'string') {
         await supabase.from('match_results_cache').upsert({ match_description: cacheKey, match_data: resultJson, last_checked_at: new Date().toISOString() }, { onConflict: 'match_description' });
     }
-    return resultJson;
+    return resultJson || { status: 'not_found' };
 }
 
 async function evaluateBet(betDescription, matchResult) {

@@ -93,6 +93,7 @@ const ResultSpecialOdds = () => {
 
         if (updatesToSubmit.length === 0) {
             toast.error('Onaylanacak net bir sonuç bulunamadı.');
+            setProposals([]); // Clear the list after acknowledging
             return;
         }
 
@@ -133,7 +134,7 @@ const ResultSpecialOdds = () => {
             <h3 className="text-xl font-bold text-white mb-4">Admin: Özel Fırsatları Sonuçlandır</h3>
             <p className="text-gray-300 text-sm mb-4">Bekleyen özel oranları yapay zeka ile analiz edin ve sonuçları tek tıkla onaylayın.</p>
             
-            {!isAnalyzing && (
+            {!isAnalyzing && proposals.length === 0 && (
                  <button
                     onClick={handleAnalyze}
                     disabled={confirming}
@@ -171,7 +172,7 @@ const ResultSpecialOdds = () => {
                     </div>
                      <button
                         onClick={handleConfirm}
-                        disabled={confirming || isAnalyzing || finalProposalCount === 0}
+                        disabled={confirming || isAnalyzing}
                         className="w-full bg-green-600/80 hover:bg-green-600/100 text-white flex justify-center items-center py-2.5 rounded-lg font-semibold disabled:opacity-50"
                     >
                         <FaCheckDouble className="mr-2" />

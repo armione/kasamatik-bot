@@ -13,6 +13,36 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * Gemini'den gelen JSON verisinin beklenen şemaya uyup uymadığını kontrol eder.
+ * @param {object} data - Gemini'den gelen JSON nesnesi.
+ * @returns {object|null} - Veri geçerliyse temizlenmiş nesneyi, değilse null döndürür.
+ */
+function validateAndSanitize(data) {
+  if (!data || typeof data.status !== 'string') {
+    return null;
+  }
+
+  // Temel şema kontrolü
+  const expectedFields = ['status', 'winner', 'final_score', 'first_half_score', 'total_goals', 'goal_scorers'];
+  for (const field of expectedFields) {
+    if (!(field in data)) {
+      console.warn(`Gemini yanıtında eksik alan: ${field}`);
+      return null; // Alan eksikse geçersiz say
+    }
+  }
+
+  // Sadece beklenen alanları içeren temiz bir nesne döndür
+  return {
+    status: data.status,
+    winner: data.winner,
+    final_score: data.final_score,
+    first_half_score: data.first_half_score,
+    total_goals: data.total_goals,
+    goal_scorers: data.goal_scorers,
+  };
+}
+
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -58,7 +88,6 @@ export default async function handler(request, response) {
 
 
     // --- 2. ADIM: Gemini'ye Sor (Önbellekte yoksa veya eski/geçici bir kayıt varsa) ---
-    // FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
       throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
@@ -95,39 +124,40 @@ export default async function handler(request, response) {
     });
     
     const rawText = geminiResponse.text;
-    if (!rawText) {
-        throw new Error("Gemini'den geçerli bir cevap alınamadı.");
-    }
-
     let resultJson;
-    const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
-    if (!jsonMatch || !jsonMatch[1]) {
+    
+    if (rawText) {
+        const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
         try {
-            resultJson = JSON.parse(rawText);
-        } catch(e) {
-             throw new Error("API'den gelen cevap ayrıştırılamadı. Ham cevap: " + rawText);
+            const jsonText = jsonMatch ? jsonMatch[1] : rawText;
+            resultJson = JSON.parse(jsonText);
+        } catch (e) {
+            console.error("JSON parse hatası, ham metin:", rawText);
+            resultJson = null; // Parse edilemezse null yap
         }
     } else {
-        resultJson = JSON.parse(jsonMatch[1]);
+        throw new Error("Gemini'den geçerli bir cevap alınamadı.");
     }
     
-    // --- 3. ADIM: Sonucu Önbelleğe Kaydet/Güncelle ---
-    if (resultJson) {
-        const { error: upsertError } = await supabase
-            .from('match_results_cache')
-            .upsert({ 
-                match_description: cacheKey, 
-                match_data: resultJson,
-                last_checked_at: new Date().toISOString()
-            }, { onConflict: 'match_description' });
+    const validatedData = validateAndSanitize(resultJson);
+    const finalData = validatedData || { status: 'not_found', winner: null, final_score: null, first_half_score: null, total_goals: null, goal_scorers: null };
 
-        if (upsertError) {
-            console.error("Cache yazma hatası:", upsertError);
-        }
+
+    // --- 3. ADIM: Sonucu Önbelleğe Kaydet/Güncelle ---
+    const { error: upsertError } = await supabase
+        .from('match_results_cache')
+        .upsert({ 
+            match_description: cacheKey, 
+            match_data: finalData,
+            last_checked_at: new Date().toISOString()
+        }, { onConflict: 'match_description' });
+
+    if (upsertError) {
+        console.error("Cache yazma hatası:", upsertError);
     }
     
     // Sonucu kullanıcıya gönder
-    response.status(200).json(resultJson);
+    response.status(200).json(finalData);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error);

@@ -14,6 +14,11 @@ interface BetCardProps {
     bet: Bet;
 }
 
+interface ParsedMatch {
+    fullDescription: string;
+    normalizedName: string;
+}
+
 const BetCard: React.FC<BetCardProps> = ({ bet }) => {
     const { openEditBetModal } = useUiStore();
     const { deleteBet: deleteBetFromStore } = useDataStore();
@@ -57,7 +62,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
         setAiResult(null);
         const toastId = toast.loading('Yapay zeka analiz için hazırlanıyor...');
 
-        let matches: string[];
+        let matches: ParsedMatch[];
         try {
             // Step 1: Parse the coupon description
             const parseResponse = await fetch('/api/parse-coupon', {
@@ -67,27 +72,30 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
             });
             if (!parseResponse.ok) throw new Error('Kupon ayrıştırılamadı.');
             
-            const parsedMatches = await parseResponse.json();
-            if (!Array.isArray(parsedMatches) || parsedMatches.length === 0) throw new Error('Ayrıştırma sonucu geçersiz.');
-            
-            matches = parsedMatches;
+            const parsedData = await parseResponse.json();
+             if (!Array.isArray(parsedData) || parsedData.length === 0 || !parsedData[0].fullDescription) {
+                // Fallback for safety or single descriptions that are not parsed as arrays.
+                matches = [{ fullDescription: bet.description, normalizedName: bet.description }];
+            } else {
+                matches = parsedData;
+            }
         } catch (e) {
             // Fallback: treat the whole description as one match
-            matches = [bet.description];
+            matches = [{ fullDescription: bet.description, normalizedName: bet.description }];
         }
 
         try {
             toast.loading(`Analiz ediliyor (${matches.length} maç)...`, { id: toastId });
 
             // Step 2: Get results for all matches
-            setAiResult(matches.map(m => `- ${m.substring(0, 40)}... ⏳`));
+            setAiResult(matches.map(m => `- ${m.fullDescription.substring(0, 40)}... ⏳`));
 
             const matchResults = await Promise.all(
-                matches.map(async (matchDesc) => {
+                matches.map(async (match) => {
                     const res = await fetch('/api/get-match-result', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ matchDescription: matchDesc, matchDate: bet.date }),
+                        body: JSON.stringify({ matchDescription: match.normalizedName, matchDate: bet.date }),
                     });
                     if (!res.ok) return { status: 'not_found', error: `API hatası: ${res.status}` };
                     return res.json();
@@ -97,15 +105,15 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
             // Step 3: Evaluate each match
             const evaluations = await Promise.all(
                 matchResults.map((result, index) => {
-                    const currentMatchDesc = matches[index];
-                    if (result.status !== 'finished' || !result.winner) {
+                    const currentMatchFullDesc = matches[index].fullDescription;
+                    if (!result || result.status !== 'finished' || !result.winner) {
                         return Promise.resolve({ outcome: 'pending', result });
                     }
 
                     return fetch('/api/evaluate-bet', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ betDescription: currentMatchDesc, matchResult: result }),
+                        body: JSON.stringify({ betDescription: currentMatchFullDesc, matchResult: result }),
                     }).then(res => res.json()).then(evalResult => ({ ...evalResult, result }));
                 })
             );
@@ -118,8 +126,8 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
             let anyLegPending = false;
 
             evaluations.forEach((evalItem, index) => {
-                const matchDesc = matches[index];
-                const score = evalItem.result.final_score ? `(${evalItem.result.final_score})` : '';
+                const matchDesc = matches[index].fullDescription;
+                const score = evalItem.result?.final_score ? `(${evalItem.result.final_score})` : '';
                 let line = `- ${matchDesc} ${score}`;
 
                 if (evalItem.outcome === 'won') {
@@ -129,7 +137,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
                     allLegsWon = false;
                     anyLegLost = true;
                 } else { // unknown or pending
-                    const infoText = evalItem.result.status === 'in_progress' ? '(Devam ediyor)' : '(Sonuç bulunamadı)';
+                    const infoText = evalItem.result?.status === 'in_progress' ? '(Devam ediyor)' : '(Sonuç bulunamadı)';
                     line += ` ⏳ ${infoText}`;
                     allLegsWon = false;
                     anyLegPending = true;

@@ -23,12 +23,20 @@ export default async function handler(request, response) {
     const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `
-      Bu kombine bahis kuponu açıklamasını analiz et ve her bir maçı ayrı bir eleman olarak içeren bir JSON dizisi oluştur.
-      Açıklama: "${couponDescription}"
-      
-      Örneğin, "Maç A (Bahis A) / Maç B (Bahis B)" açıklaması için ["Maç A (Bahis A)", "Maç B (Bahis B)"] şeklinde bir sonuç döndür.
-      
-      Yanıt olarak SADECE ve SADECE bu JSON dizisini içeren bir markdown kod bloğu döndür. Başka hiçbir metin veya açıklama ekleme.
+      Bu bahis kuponu açıklamasını analiz et: "${couponDescription}"
+
+      Yanıt olarak SADECE ve SADECE bir markdown kod bloğu içinde bir JSON dizisi döndür.
+      Bu dizi, kupondaki her bir maç için bir obje içermelidir.
+      Her obje şu iki anahtarı içermelidir:
+      1. "fullDescription": (string) Maçın, bahis detayı dahil tam açıklaması. Örn: "Konyaspor vs Beşiktaş (Maç Sonucu: 2, 2.23)"
+      2. "normalizedName": (string) Maçın bahis detaylarından arındırılmış, standart adı. Sadece takım isimlerini içermelidir. Örn: "Konyaspor vs Beşiktaş"
+
+      Eğer kupon tek bir maç içeriyorsa, dizi tek bir obje içermelidir.
+      Örnek: "Maç A (Bahis A) / Maç B (Bahis B)" açıklaması için şu sonucu döndür:
+      [
+        { "fullDescription": "Maç A (Bahis A)", "normalizedName": "Maç A" },
+        { "fullDescription": "Maç B (Bahis B)", "normalizedName": "Maç B" }
+      ]
     `;
 
     const geminiResponse = await ai.models.generateContent({

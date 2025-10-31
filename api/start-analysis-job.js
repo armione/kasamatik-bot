@@ -16,6 +16,9 @@ export default async function handler(request, response) {
     }
 
     try {
+        // 0. Önceki tamamlanmamış görevleri temizle
+        await supabase.from('analysis_tasks').delete().neq('status', 'completed');
+
         // 1. Bekleyen tüm özel oranları bul
         const { data: pendingOdds, error: fetchError } = await supabase
             .from('special_odds')

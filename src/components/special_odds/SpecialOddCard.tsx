@@ -60,7 +60,7 @@ const SpecialOddCard: React.FC<SpecialOddCardProps> = ({ odd }) => {
                     <h3 className="font-bold text-white text-lg">{odd.platform}</h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo[odd.status].class}`}>{statusInfo[odd.status].text}</span>
                 </div>
-                <p className="text-gray-300 text-sm mb-4 h-16">{odd.description}</p>
+                <p className="text-gray-300 text-sm mb-4 overflow-hidden break-words line-clamp-3">{odd.description}</p>
 
                 <div className="flex justify-between items-center text-sm text-gray-400 border-t border-b border-gray-600/50 py-2">
                     <div className="flex items-center gap-2" title="Oynanma Sayısı">

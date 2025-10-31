@@ -87,7 +87,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
                     const res = await fetch('/api/get-match-result', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ matchDescription: matchDesc }),
+                        body: JSON.stringify({ matchDescription: matchDesc, matchDate: bet.date }),
                     });
                     if (!res.ok) return { status: 'not_found', error: `API hatası: ${res.status}` };
                     return res.json();

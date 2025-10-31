@@ -1,7 +1,18 @@
 // Bu dosyanın adı: /api/get-match-result.js
 // Bu kod, Vercel sunucusunda çalışır ve bir maçın sonucunu bulmak için Gemini'yi kullanır.
+// YENİ: Sonuçları akıllı ve tarih-odaklı bir şekilde önbelleğe alma mantığı eklendi.
 
 import { GoogleGenAI } from "@google/genai";
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase istemcisini başlat
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase ortam değişkenleri bulunamadı.");
+}
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -9,12 +20,44 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { matchDescription } = request.body;
+    const { matchDescription, matchDate } = request.body;
     
-    if (!matchDescription) {
-      return response.status(400).json({ message: 'Maç açıklaması gerekli.' });
+    if (!matchDescription || !matchDate) {
+      return response.status(400).json({ message: 'Maç açıklaması ve tarihi gerekli.' });
+    }
+    
+    const cacheKey = `${matchDescription}|${matchDate}`;
+
+    // --- 1. ADIM: Önbelleği Kontrol Et ---
+    const { data: cachedResult, error: cacheError } = await supabase
+      .from('match_results_cache')
+      .select('match_data, last_checked_at')
+      .eq('match_description', cacheKey)
+      .single();
+      
+    if (cacheError && cacheError.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error("Cache okuma hatası:", cacheError);
     }
 
+    if (cachedResult && cachedResult.match_data) {
+        const matchData = cachedResult.match_data;
+
+        // EĞER MAÇ BİTMİŞSE: Sonuç kalıcıdır. API'ye tekrar sorma, direkt önbellekten döndür.
+        if (matchData.status === 'finished') {
+            return response.status(200).json(matchData);
+        }
+
+        // EĞER MAÇ BİTMEMİŞSE (devam ediyor, bulunamadı vb.):
+        // Kısa bir süre önce kontrol edildiyse, API'yi tekrar meşgul etme.
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const lastChecked = new Date(cachedResult.last_checked_at);
+        if (lastChecked > fiveMinutesAgo) {
+            return response.status(200).json(matchData);
+        }
+    }
+
+
+    // --- 2. ADIM: Gemini'ye Sor (Önbellekte yoksa veya eski/geçici bir kayıt varsa) ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
@@ -26,8 +69,9 @@ export default async function handler(request, response) {
       Sen bir spor veri analistisin. Görevin, Google Search yeteneklerini kullanarak belirli bir spor maçı hakkında detaylı bilgi bulmak.
       
       Şu maç tanımını analiz et: "${matchDescription}"
+      Bu maçın oynandığı tarih yaklaşık olarak: "${matchDate}"
       
-      Bu maçla ilgili bulabildiğin en detaylı bilgileri topla.
+      Bu maçla ilgili bulabildiğin en detaylı bilgileri topla. Tarihi kullanarak doğru maçı bulduğundan emin ol.
       
       Yanıt olarak SADECE ve SADECE bir markdown kod bloğu içinde aşağıdaki yapıyı içeren bir JSON nesnesi döndür. Başka hiçbir metin, açıklama veya selamlama ekleme.
       JSON nesnesi şu alanları içermelidir:
@@ -54,22 +98,35 @@ export default async function handler(request, response) {
         throw new Error("Gemini'den geçerli bir cevap alınamadı.");
     }
 
+    let resultJson;
     const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
-
     if (!jsonMatch || !jsonMatch[1]) {
-        console.error("API'den gelen cevapta JSON bulunamadı:", rawText);
-        // Gemini bazen markdown olmadan sadece JSON döndürebilir, bu durumu da kontrol edelim.
         try {
-            const parsed = JSON.parse(rawText);
-            return response.status(200).json(parsed);
+            resultJson = JSON.parse(rawText);
         } catch(e) {
              throw new Error("API'den gelen cevap ayrıştırılamadı. Ham cevap: " + rawText);
         }
+    } else {
+        resultJson = JSON.parse(jsonMatch[1]);
     }
     
-    const jsonText = jsonMatch[1];
+    // --- 3. ADIM: Sonucu Önbelleğe Kaydet/Güncelle ---
+    if (resultJson) {
+        const { error: upsertError } = await supabase
+            .from('match_results_cache')
+            .upsert({ 
+                match_description: cacheKey, 
+                match_data: resultJson,
+                last_checked_at: new Date().toISOString()
+            }, { onConflict: 'match_description' });
+
+        if (upsertError) {
+            console.error("Cache yazma hatası:", upsertError);
+        }
+    }
     
-    response.status(200).json(JSON.parse(jsonText));
+    // Sonucu kullanıcıya gönder
+    response.status(200).json(resultJson);
 
   } catch (error) {
     console.error('Sunucu fonksiyonunda hata:', error);

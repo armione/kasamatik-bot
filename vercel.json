@@ -1,1 +1,12 @@
-full contents of vercel.json
+{
+  "crons": [
+    {
+      "path": "/api/auto-result-bets?secret=${CRON_SECRET}",
+      "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/process-task-queue?secret=${CRON_SECRET}",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

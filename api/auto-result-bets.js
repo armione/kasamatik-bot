@@ -8,7 +8,8 @@ import { createClient } from '@supabase/supabase-js';
 // --- Gerekli İstemcileri Başlat ---
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const apiKey = process.env.GEMINI_API_KEY;
+// FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
+const apiKey = process.env.API_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey || !apiKey) {
     throw new Error("Gerekli ortam değişkenleri (Supabase, Gemini) bulunamadı.");

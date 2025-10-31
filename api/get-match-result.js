@@ -58,7 +58,8 @@ export default async function handler(request, response) {
 
 
     // --- 2. ADIM: Gemini'ye Sor (Önbellekte yoksa veya eski/geçici bir kayıt varsa) ---
-    const apiKey = process.env.GEMINI_API_KEY;
+    // FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
       throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }

@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/auto-result-bets?secret=${CRON_SECRET}",
-      "schedule": "0 0,7,12,17,21 * * *"
+      "schedule": "30 21 * * *"
     }
   ]
 }

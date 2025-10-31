@@ -4,6 +4,7 @@ import DataManagement from '../components/settings/DataManagement';
 import DangerZone from '../components/settings/DangerZone';
 import PwaInstallButton from '../components/shared/PwaInstallButton';
 import AddSpecialOddForm from '../components/admin/AddSpecialOddForm';
+import ResultSpecialOdds from '../components/admin/ResultSpecialOdds'; // YENİ İÇE AKTARMA
 import { useAuthStore } from '../stores/authStore';
 import { ADMIN_USER_ID } from '../lib/constants';
 
@@ -34,7 +35,8 @@ const SettingsPage = () => {
       </div>
 
       {isAdmin && (
-        <div className="mt-8">
+        <div className="mt-8 space-y-8">
+           <ResultSpecialOdds />
            <AddSpecialOddForm />
         </div>
       )}

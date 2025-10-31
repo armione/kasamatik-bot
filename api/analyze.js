@@ -18,7 +18,8 @@ export default async function handler(request, response) {
     }
 
     // Vercel'e gizli olarak eklediğiniz API anahtarını güvenli bir şekilde al
-    const apiKey = process.env.GEMINI_API_KEY;
+    // FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
         throw new Error("API anahtarı Vercel ortam değişkenlerinde bulunamadı.");
     }

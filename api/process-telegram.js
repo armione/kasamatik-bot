@@ -84,8 +84,10 @@ export default async function handler(request, response) {
       return response.status(401).json({ message: 'Yetkisiz Erişim.' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("GEMINI_API_KEY ortam değişkeni bulunamadı.");
+    // FIX: Switched from `process.env.GEMINI_API_KEY` to `process.env.API_KEY` to adhere to API key guidelines.
+    const apiKey = process.env.API_KEY;
+    // FIX: Updated the error message to reflect the correct environment variable name.
+    if (!apiKey) throw new Error("API_KEY ortam değişkeni bulunamadı.");
     
     // Google AI SDK'sını başlat
     const ai = new GoogleGenAI({ apiKey });

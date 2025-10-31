@@ -18,7 +18,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
     const { openEditBetModal } = useUiStore();
     const { deleteBet: deleteBetFromStore } = useDataStore();
     const [isFetchingResult, setIsFetchingResult] = useState(false);
-    const [aiResult, setAiResult] = useState<string | null>(null);
+    const [aiResult, setAiResult] = useState<string[] | null>(null);
 
     const isSpecialOdd = !!bet.special_odd_id;
     const status = isSpecialOdd && bet.special_odds ? bet.special_odds.status : bet.status;
@@ -53,62 +53,130 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
     };
     
     const handleFindResult = async () => {
-      setIsFetchingResult(true);
-      setAiResult(null);
-      const toastId = toast.loading('Yapay zeka maç sonucunu arıyor...');
-      
-      try {
-        // Step 1: Get match result
-        const resultResponse = await fetch('/api/get-match-result', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matchDescription: bet.description }),
-        });
-        if (!resultResponse.ok) throw new Error('Maç sonucu alınamadı.');
-        const matchResult = await resultResponse.json();
+        setIsFetchingResult(true);
+        setAiResult(null);
+        const toastId = toast.loading('Yapay zeka analiz için hazırlanıyor...');
 
-        // If match is not finished, just show info and stop.
-        if (matchResult.status !== 'finished' || !matchResult.winner) {
-          const infoText = matchResult.status === 'in_progress' ? 'Maç henüz devam ediyor.' : 'Maç sonucu bulunamadı veya başlamadı.';
-          setAiResult(infoText);
-          toast(infoText, { id: toastId, icon: '⏳' });
-          setIsFetchingResult(false);
-          return;
+        let matches: string[];
+        try {
+            // Step 1: Parse the coupon description
+            const parseResponse = await fetch('/api/parse-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ couponDescription: bet.description }),
+            });
+            if (!parseResponse.ok) throw new Error('Kupon ayrıştırılamadı.');
+            
+            const parsedMatches = await parseResponse.json();
+            if (!Array.isArray(parsedMatches) || parsedMatches.length === 0) throw new Error('Ayrıştırma sonucu geçersiz.');
+            
+            matches = parsedMatches;
+        } catch (e) {
+            // Fallback: treat the whole description as one match
+            matches = [bet.description];
         }
 
-        toast.loading('Sonuç bulundu, bahis yorumlanıyor...', { id: toastId });
+        try {
+            toast.loading(`Analiz ediliyor (${matches.length} maç)...`, { id: toastId });
 
-        // Step 2: Evaluate bet against the result
-        const evaluateResponse = await fetch('/api/evaluate-bet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ betDescription: bet.description, matchResult }),
-        });
-        if (!evaluateResponse.ok) throw new Error('Bahis yorumlanamadı.');
-        const evaluation = await evaluateResponse.json();
+            // Step 2: Get results for all matches
+            setAiResult(matches.map(m => `- ${m.substring(0, 40)}... ⏳`));
 
-        // Step 3: Act on the evaluation
-        if (evaluation.outcome === 'won' || evaluation.outcome === 'lost') {
-            const prefilledData = {
-                status: evaluation.outcome,
-                win_amount: evaluation.outcome === 'won' ? bet.bet_amount * bet.odds : 0,
-            };
-            openEditBetModal(bet, prefilledData);
-            toast.success('Bahis sonucu yorumlandı! Lütfen onaylayın.', { id: toastId });
-        } else {
-            // Fallback for unknown outcomes
-            const resultText = `Maç bitti. Kazanan: ${matchResult.winner === 'draw' ? 'Beraberlik' : matchResult.winner}. Skor: ${matchResult.final_score || 'N/A'}`;
-            setAiResult(resultText);
-            toast.success('Maç sonucu bulundu, lütfen manuel sonuçlandırın.', { id: toastId });
+            const matchResults = await Promise.all(
+                matches.map(async (matchDesc) => {
+                    const res = await fetch('/api/get-match-result', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ matchDescription: matchDesc }),
+                    });
+                    if (!res.ok) return { status: 'not_found', error: `API hatası: ${res.status}` };
+                    return res.json();
+                })
+            );
+
+            // Step 3: Evaluate each match
+            const evaluations = await Promise.all(
+                matchResults.map((result, index) => {
+                    const currentMatchDesc = matches[index];
+                    if (result.status !== 'finished' || !result.winner) {
+                        return Promise.resolve({ outcome: 'pending', result });
+                    }
+
+                    return fetch('/api/evaluate-bet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ betDescription: currentMatchDesc, matchResult: result }),
+                    }).then(res => res.json()).then(evalResult => ({ ...evalResult, result }));
+                })
+            );
+            
+            // Step 4: Display results and determine coupon outcome
+            let finalCouponOutcome: 'won' | 'lost' | 'pending' | 'unknown' = 'pending';
+            const resultTextLines: string[] = [];
+            let allLegsWon = true;
+            let anyLegLost = false;
+            let anyLegPending = false;
+
+            evaluations.forEach((evalItem, index) => {
+                const matchDesc = matches[index];
+                const score = evalItem.result.final_score ? `(${evalItem.result.final_score})` : '';
+                let line = `- ${matchDesc} ${score}`;
+
+                if (evalItem.outcome === 'won') {
+                    line += ' ✅';
+                } else if (evalItem.outcome === 'lost') {
+                    line += ' ❌';
+                    allLegsWon = false;
+                    anyLegLost = true;
+                } else { // unknown or pending
+                    const infoText = evalItem.result.status === 'in_progress' ? '(Devam ediyor)' : '(Sonuç bulunamadı)';
+                    line += ` ⏳ ${infoText}`;
+                    allLegsWon = false;
+                    anyLegPending = true;
+                }
+                resultTextLines.push(line);
+            });
+            
+            if (matches.length > 1) {
+                resultTextLines.push('---');
+                if (anyLegLost) {
+                    finalCouponOutcome = 'lost';
+                    resultTextLines.push('🏁 Kupon Sonucu: Kaybetti');
+                } else if (anyLegPending) {
+                    finalCouponOutcome = 'pending';
+                    resultTextLines.push('⏳ Kupon Sonucu: Beklemede (henüz bitmemiş maçlar var)');
+                } else if (allLegsWon) {
+                    finalCouponOutcome = 'won';
+                    resultTextLines.push('🏆 Kupon Sonucu: Kazandı!');
+                } else {
+                    finalCouponOutcome = 'unknown';
+                    resultTextLines.push('❓ Kupon Sonucu: Belirsiz (bazı maçlar yorumlanamadı)');
+                }
+            } else { // Single bet logic
+                finalCouponOutcome = evaluations[0]?.outcome === 'won' ? 'won' : evaluations[0]?.outcome === 'lost' ? 'lost' : 'pending';
+            }
+
+            setAiResult(resultTextLines);
+
+            // Step 5: Open modal if conclusive
+            if (finalCouponOutcome === 'won' || finalCouponOutcome === 'lost') {
+                 const prefilledData = {
+                    status: finalCouponOutcome,
+                    win_amount: finalCouponOutcome === 'won' ? bet.bet_amount * bet.odds : 0,
+                };
+                openEditBetModal(bet, prefilledData);
+                toast.success('Bahis sonucu yorumlandı! Lütfen onaylayın.', { id: toastId });
+            } else {
+                toast('Maç sonuçları bulundu, ancak kupon sonucu net değil. Lütfen manuel kontrol edin.', { id: toastId, icon: 'ℹ️' });
+            }
+        } catch (error: any) {
+            toast.error(error.message, { id: toastId });
+            setAiResult([`Bir hata oluştu: ${error.message}`]);
+        } finally {
+            setIsFetchingResult(false);
         }
-
-      } catch (error: any) {
-        toast.error(error.message, { id: toastId });
-        setAiResult('Bir hata oluştu.');
-      } finally {
-        setIsFetchingResult(false);
-      }
     };
+
 
     return (
         <div className={`glass-card rounded-2xl p-4 border-l-4 ${statusInfo[status].class}`}>
@@ -132,7 +200,11 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
                         <p className="font-semibold flex items-center gap-2">
                            <FaWandMagicSparkles /> Yapay Zeka Analizi:
                         </p>
-                        <p className="pl-1 mt-1">{aiResult}</p>
+                        <div className="pl-1 mt-1 space-y-1 font-mono text-xs">
+                            {aiResult.map((line, index) => (
+                                <p key={index} className="break-words">{line}</p>
+                            ))}
+                        </div>
                     </div>
                 )}
 

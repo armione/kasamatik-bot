@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useDataStore } from '../../stores/dataStore';
-import { FaPlay, FaCheck, FaTimes, FaQuestion } from 'react-icons/fa6';
+import { FaPlay, FaCheck, FaXmark, FaQuestion } from 'react-icons/fa6';
 import { SpecialOdd } from '../../types';
 
 interface AnalysisTask {
@@ -147,7 +147,7 @@ const ResultSpecialOdds = () => {
     const getStatusInfo = (status: 'won' | 'lost' | 'unknown') => {
         switch(status) {
             case 'won': return { class: 'border-green-500/50 text-green-300', text: 'Kazandı', icon: <FaCheck/> };
-            case 'lost': return { class: 'border-red-500/50 text-red-300', text: 'Kaybetti', icon: <FaTimes /> };
+            case 'lost': return { class: 'border-red-500/50 text-red-300', text: 'Kaybetti', icon: <FaXmark /> };
             default: return { class: 'border-yellow-500/50 text-yellow-300', text: 'Belirsiz', icon: <FaQuestion /> };
         }
     };
@@ -203,7 +203,7 @@ const ResultSpecialOdds = () => {
                                             onClick={() => handleConfirmResultChange(result.special_odd_id, 'lost')}
                                             className={`flex-1 transition-all duration-200 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${confirmedResults[result.special_odd_id] === 'lost' ? 'bg-red-500 text-white shadow-lg' : 'bg-gray-700/60 text-gray-300 hover:bg-gray-600'}`}
                                         >
-                                            <FaTimes /> Kaybetti
+                                            <FaXmark /> Kaybetti
                                         </button>
                                     </div>
                                 </div>

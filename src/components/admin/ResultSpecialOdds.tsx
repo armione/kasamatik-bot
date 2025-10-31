@@ -1,182 +1,230 @@
 // src/components/admin/ResultSpecialOdds.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useDataStore } from '../../stores/dataStore';
+import { FaPlay, FaCheck } from 'react-icons/fa6';
 import { SpecialOdd } from '../../types';
-import { FaWandMagicSparkles, FaCheckDouble } from 'react-icons/fa6';
 
-interface Proposal {
-    id: number;
-    description: string;
-    platform: string;
-    odds: number;
-    proposedStatus: 'won' | 'lost' | 'pending';
-}
-
-interface Task {
+interface AnalysisTask {
     id: number;
     special_odd_id: number;
     description: string;
 }
 
+interface AnalysisResult extends AnalysisTask {
+    suggestedStatus: 'won' | 'lost' | 'unknown';
+}
+
 const ResultSpecialOdds = () => {
-    const [proposals, setProposals] = useState<Proposal[]>([]);
+    const [tasks, setTasks] = useState<AnalysisTask[]>([]);
+    const [results, setResults] = useState<AnalysisResult[]>([]);
+    const [confirmedResults, setConfirmedResults] = useState<Record<number, 'won' | 'lost'>>({});
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [confirming, setConfirming] = useState(false);
-    const [totalTasks, setTotalTasks] = useState(0);
-    const [completedTasks, setCompletedTasks] = useState(0);
-    const [currentTaskDescription, setCurrentTaskDescription] = useState('');
+    const [isConfirming, setIsConfirming] = useState(false);
+    const [progress, setProgress] = useState(0);
     const { updateSpecialOdd } = useDataStore();
 
-    const handleAnalyze = async () => {
+    const handleStartAnalysis = async () => {
         setIsAnalyzing(true);
-        setProposals([]);
-        setCompletedTasks(0);
-        setTotalTasks(0);
-        setCurrentTaskDescription('');
+        setProgress(0);
+        setTasks([]);
+        setResults([]);
+        setConfirmedResults({});
         const toastId = toast.loading('Analiz işi başlatılıyor...');
 
         try {
-            // Adım 1: Analiz işini başlat ve görev listesini al
-            const startResponse = await fetch('/api/start-analysis-job', { method: 'POST' });
-            const startData = await startResponse.json();
-
-            if (!startResponse.ok) {
-                throw new Error(startData.message || 'Analiz işi başlatılamadı.');
+            // Step 1: Start the job and get tasks
+            const startRes = await fetch('/api/start-analysis-job', { method: 'POST' });
+            if (!startRes.ok) {
+                const errorData = await startRes.json();
+                throw new Error(errorData.message || 'Analiz başlatılamadı.');
             }
+            const { tasks: fetchedTasks, message } = await startRes.json();
 
-            const tasks: Task[] = startData.tasks;
-            if (tasks.length === 0) {
-                toast.success('Analiz edilecek bekleyen fırsat yok.', { id: toastId });
+            if (!fetchedTasks || fetchedTasks.length === 0) {
+                toast.success(message || 'Analiz edilecek öğe yok.', { id: toastId });
                 setIsAnalyzing(false);
                 return;
             }
 
-            setTotalTasks(tasks.length);
-            toast.loading(`Analiz başladı: ${tasks.length} fırsat işlenecek...`, { id: toastId });
+            setTasks(fetchedTasks);
+            toast.loading(`Analiz ediliyor: 0/${fetchedTasks.length}`, { id: toastId });
 
-            // Adım 2: Görevleri tek tek işle
-            const results: Proposal[] = [];
-            for (const task of tasks) {
-                setCurrentTaskDescription(task.description);
+            // Step 2: Process tasks one by one
+            const newResults: AnalysisResult[] = [];
+            const newConfirmed: Record<number, 'won' | 'lost'> = {};
+
+            for (let i = 0; i < fetchedTasks.length; i++) {
+                const task = fetchedTasks[i];
                 try {
-                    const processResponse = await fetch('/api/process-analysis-task', {
+                    const processRes = await fetch('/api/process-analysis-task', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ taskId: task.id }),
                     });
-                    const processData = await processResponse.json();
-                    if (processResponse.ok && processData.proposal) {
-                        results.push(processData.proposal);
+
+                    if (!processRes.ok) {
+                       throw new Error(`Görev ${task.id} işlenemedi.`);
                     }
-                } catch (error) {
-                    console.error(`Görev ${task.id} işlenirken hata oluştu:`, error);
+
+                    const resultData = await processRes.json();
+                    const result: AnalysisResult = { ...task, suggestedStatus: resultData.suggestedStatus };
+                    newResults.push(result);
+                    
+                    // Pre-fill confirmation if AI is confident
+                    if (result.suggestedStatus === 'won' || result.suggestedStatus === 'lost') {
+                        newConfirmed[task.special_odd_id] = result.suggestedStatus;
+                    }
+
+                } catch (taskError) {
+                    console.error(taskError);
+                    newResults.push({ ...task, suggestedStatus: 'unknown' });
                 }
-                setCompletedTasks(prev => prev + 1);
+                
+                setResults([...newResults]);
+                setConfirmedResults(prev => ({...prev, ...newConfirmed}));
+                const newProgress = ((i + 1) / fetchedTasks.length) * 100;
+                setProgress(newProgress);
+                toast.loading(`Analiz ediliyor: ${i + 1}/${fetchedTasks.length}`, { id: toastId });
             }
-            
-            setProposals(results);
-            toast.success('Analiz tamamlandı! Lütfen sonuçları onaylayın.', { id: toastId });
+
+            toast.success('Analiz tamamlandı! Lütfen sonuçları kontrol edip onaylayın.', { id: toastId });
 
         } catch (error: any) {
-            toast.error(`Hata: ${error.message}`, { id: toastId });
+            toast.error(error.message, { id: toastId });
         } finally {
             setIsAnalyzing(false);
-            setCurrentTaskDescription('');
         }
     };
+    
+    const handleConfirmResultChange = (specialOddId: number, status: 'won' | 'lost') => {
+        setConfirmedResults(prev => ({ ...prev, [specialOddId]: status }));
+    };
 
-    const handleConfirm = async () => {
-        const updatesToSubmit = proposals
-            .filter(p => p.proposedStatus === 'won' || p.proposedStatus === 'lost')
-            .map(p => ({ id: p.id, newStatus: p.proposedStatus, }));
+    const handleConfirmAll = async () => {
+        setIsConfirming(true);
+        const toastId = toast.loading('Sonuçlar kaydediliyor...');
+        
+        const updates = Object.entries(confirmedResults).map(([oddId, status]) => ({
+            id: parseInt(oddId, 10),
+            newStatus: status,
+        }));
 
-        if (updatesToSubmit.length === 0) {
-            toast.error('Onaylanacak net bir sonuç bulunamadı.');
-            setProposals([]); // Clear the list after acknowledging
-            return;
-        }
-
-        setConfirming(true);
-        const toastId = toast.loading('Sonuçlar onaylanıyor...');
         try {
-            const response = await fetch('/api/admin-confirm-special-odd-results', {
+            const res = await fetch('/api/admin-confirm-special-odd-results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ updates: updatesToSubmit }),
+                body: JSON.stringify({ updates }),
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Onaylama işlemi başarısız.');
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Onaylama başarısız oldu.');
+            }
             
-            result.updatedOdds.forEach((odd: SpecialOdd) => updateSpecialOdd(odd));
-            toast.success(result.message, { id: toastId });
-            setProposals([]);
+            const { updatedCount, updatedOdds } = await res.json();
+            
+            // Update local state store
+            if (updatedOdds) {
+                updatedOdds.forEach((odd: SpecialOdd) => updateSpecialOdd(odd));
+            }
+
+            toast.success(`${updatedCount} fırsat güncellendi.`, { id: toastId });
+            
+            // Reset state
+            setTasks([]);
+            setResults([]);
+            setConfirmedResults({});
+
         } catch (error: any) {
-            toast.error(`Hata: ${error.message}`, { id: toastId });
+            toast.error(error.message, { id: toastId });
         } finally {
-            setConfirming(false);
+            setIsConfirming(false);
         }
     };
     
-    const getStatusChip = (status: string) => {
+    const getStatusInfo = (status: 'won' | 'lost' | 'unknown') => {
         switch(status) {
-            case 'won': return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-300">Öneri: Kazandı ✅</span>;
-            case 'lost': return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-300">Öneri: Kaybetti ❌</span>;
-            default: return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-300">Beklemede ⏳</span>;
+            case 'won': return { class: 'bg-green-500/20 text-green-300', text: 'Kazandı' };
+            case 'lost': return { class: 'bg-red-500/20 text-red-300', text: 'Kaybetti' };
+            default: return { class: 'bg-yellow-500/20 text-yellow-300', text: 'Belirsiz' };
         }
-    }
-    
-    const finalProposalCount = proposals.filter(p => p.proposedStatus !== 'pending').length;
-    const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    };
+
 
     return (
         <div className="glass-card rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Admin: Özel Fırsatları Sonuçlandır</h3>
-            <p className="text-gray-300 text-sm mb-4">Bekleyen özel oranları yapay zeka ile analiz edin ve sonuçları tek tıkla onaylayın.</p>
+            <h3 className="text-xl font-bold text-white mb-4">Admin: Bekleyen Fırsatları Sonuçlandır</h3>
             
-            {!isAnalyzing && proposals.length === 0 && (
-                 <button
-                    onClick={handleAnalyze}
-                    disabled={confirming}
-                    className="w-full gradient-button flex justify-center items-center py-2.5 rounded-lg font-semibold disabled:opacity-50"
-                >
-                    <FaWandMagicSparkles className="mr-2" />
-                    Bekleyen Fırsatları Analiz Et
-                </button>
+            {!isAnalyzing && results.length === 0 && (
+                <>
+                    <p className="text-gray-300 mb-4">
+                        Bekleyen tüm özel oranları yapay zeka ile analiz etmek için butona tıklayın. Analiz sonuçları aşağıda listelenecektir.
+                    </p>
+                    <button onClick={handleStartAnalysis} disabled={isAnalyzing} className="gradient-button w-full flex justify-center items-center py-2.5 rounded-lg font-semibold">
+                        <FaPlay className="mr-2" />
+                        Analizi Başlat
+                    </button>
+                </>
             )}
 
             {isAnalyzing && (
-                <div className="space-y-3">
-                    <p className="text-center text-primary-blue">Analiz ediliyor, lütfen bekleyin...</p>
+                <div>
+                    <p className="text-center text-gray-300 mb-2">{tasks.length > 0 ? `Analiz ediliyor: ${results.length}/${tasks.length}` : 'İş hazırlanıyor...'}</p>
                     <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div className="bg-primary-blue h-2.5 rounded-full" style={{ width: `${progressPercentage}%`, transition: 'width 0.5s ease' }}></div>
+                        <div className="bg-primary-blue h-2.5 rounded-full" style={{ width: `${progress}%`, transition: 'width 0.5s ease-in-out' }}></div>
                     </div>
-                    <p className="text-center text-sm text-gray-400 truncate">({completedTasks}/{totalTasks}) {currentTaskDescription}</p>
                 </div>
             )}
-
-            {proposals.length > 0 && !isAnalyzing && (
-                <div className="mt-6 space-y-4">
-                    <div className="max-h-96 overflow-y-auto pr-2 space-y-3">
-                        {proposals.map(p => (
-                             <div key={p.id} className="p-3 rounded-lg flex items-center justify-between bg-gray-800/50">
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-white truncate">{p.platform} @ {p.odds}</p>
-                                    <p className="text-xs text-gray-400 truncate">{p.description}</p>
+            
+            {results.length > 0 && (
+                <div className="space-y-4 mt-6">
+                    <h4 className="text-lg font-semibold text-white">Analiz Sonuçları</h4>
+                    <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
+                    {results.map(result => (
+                        <div key={result.id} className="p-3 bg-gray-800/50 rounded-lg">
+                            <p className="text-sm text-gray-300 mb-2">{result.description}</p>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-gray-400">AI Önerisi:</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusInfo(result.suggestedStatus).class}`}>
+                                        {getStatusInfo(result.suggestedStatus).text}
+                                    </span>
                                 </div>
-                                <div className="ml-4 flex-shrink-0">
-                                    {getStatusChip(p.proposedStatus)}
+                                <div className="flex items-center gap-2">
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input 
+                                            type="radio"
+                                            name={`result-${result.special_odd_id}`}
+                                            checked={confirmedResults[result.special_odd_id] === 'won'}
+                                            onChange={() => handleConfirmResultChange(result.special_odd_id, 'won')}
+                                            className="form-radio h-4 w-4 text-green-500 bg-gray-700 border-gray-600 focus:ring-green-600"
+                                        />
+                                        <span className="text-sm text-green-300">Kazandı</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input 
+                                            type="radio"
+                                            name={`result-${result.special_odd_id}`}
+                                            checked={confirmedResults[result.special_odd_id] === 'lost'}
+                                            onChange={() => handleConfirmResultChange(result.special_odd_id, 'lost')}
+                                            className="form-radio h-4 w-4 text-red-500 bg-gray-700 border-gray-600 focus:ring-red-600"
+                                        />
+                                        <span className="text-sm text-red-300">Kaybetti</span>
+                                    </label>
                                 </div>
-                             </div>
-                        ))}
+                            </div>
+                        </div>
+                    ))}
                     </div>
-                     <button
-                        onClick={handleConfirm}
-                        disabled={confirming || isAnalyzing}
-                        className="w-full bg-green-600/80 hover:bg-green-600/100 text-white flex justify-center items-center py-2.5 rounded-lg font-semibold disabled:opacity-50"
+                    
+                    <button 
+                        onClick={handleConfirmAll} 
+                        disabled={isConfirming || Object.keys(confirmedResults).length === 0}
+                        className="gradient-button w-full flex justify-center items-center py-2.5 rounded-lg font-semibold disabled:opacity-50"
                     >
-                        <FaCheckDouble className="mr-2" />
-                        {confirming ? 'Onaylanıyor...' : `Netleşen ${finalProposalCount} Sonucu Onayla`}
+                        <FaCheck className="mr-2" />
+                        {isConfirming ? 'Onaylanıyor...' : `${Object.keys(confirmedResults).length} Sonucu Onayla`}
                     </button>
                 </div>
             )}

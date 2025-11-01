@@ -25,6 +25,16 @@ const EditBetModal = () => {
 
     if (!editingBet) return null;
 
+    const handleStatusChange = (newStatus: 'pending' | 'won' | 'lost' | 'refunded') => {
+        setStatus(newStatus);
+        if (newStatus === 'won' && editingBet) {
+            const calculatedWinAmount = editingBet.bet_amount * editingBet.odds;
+            setWinAmount(calculatedWinAmount);
+        } else {
+            setWinAmount(0);
+        }
+    };
+
     const handleSave = async () => {
         setLoading(true);
         let profit_loss = 0;
@@ -76,7 +86,7 @@ const EditBetModal = () => {
                         <label className="block text-sm font-medium text-gray-300">Durum</label>
                         <select
                             value={status}
-                            onChange={(e) => setStatus(e.target.value as any)}
+                            onChange={(e) => handleStatusChange(e.target.value as any)}
                             className="mt-1 block w-full appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white"
                         >
                             <option value="pending">Bekleyen</option>
@@ -92,7 +102,7 @@ const EditBetModal = () => {
                             <input
                                 type="number"
                                 value={winAmount}
-                                onChange={(e) => setWinAmount(parseFloat(e.target.value))}
+                                onChange={(e) => setWinAmount(parseFloat(e.target.value) || 0)}
                                 className="mt-1 block w-full appearance-none rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-white"
                             />
                         </div>

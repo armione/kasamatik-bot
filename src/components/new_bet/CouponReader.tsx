@@ -36,6 +36,7 @@ const CouponReader: React.FC<CouponReaderProps> = ({ onAnalysisComplete }) => {
   useEffect(() => {
     const handleDocumentPaste = (event: ClipboardEvent) => {
         const activeElement = document.activeElement;
+        // Don't interfere if the user is typing in an input/textarea
         if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
             return;
         }
@@ -49,9 +50,9 @@ const CouponReader: React.FC<CouponReaderProps> = ({ onAnalysisComplete }) => {
                 if (blob) {
                     handleFile(blob);
                     toast.success('Resim panodan yapıştırıldı!');
-                    event.preventDefault();
+                    event.preventDefault(); // Prevent default paste action
                 }
-                break;
+                break; // Stop after finding the first image
             }
         }
     };

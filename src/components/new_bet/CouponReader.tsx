@@ -1,6 +1,5 @@
-
 // src/components/new_bet/CouponReader.tsx
-import React, { useState, useRef, DragEvent } from 'react';
+import React, { useState, useRef, DragEvent, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { FaUpload, FaPaste, FaTrash, FaBrain } from 'react-icons/fa6';
 
@@ -22,7 +21,7 @@ const CouponReader: React.FC<CouponReaderProps> = ({ onAnalysisComplete }) => {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File | null) => {
+  const handleFile = useCallback((file: File | null) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -32,7 +31,36 @@ const CouponReader: React.FC<CouponReaderProps> = ({ onAnalysisComplete }) => {
     } else {
       toast.error('Lütfen geçerli bir resim dosyası seçin.');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleDocumentPaste = (event: ClipboardEvent) => {
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            return;
+        }
+        
+        const items = event.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                const blob = items[i].getAsFile();
+                if (blob) {
+                    handleFile(blob);
+                    toast.success('Resim panodan yapıştırıldı!');
+                    event.preventDefault();
+                }
+                break;
+            }
+        }
+    };
+
+    document.addEventListener('paste', handleDocumentPaste);
+    return () => {
+      document.removeEventListener('paste', handleDocumentPaste);
+    };
+  }, [handleFile]);
 
   const handlePaste = async () => {
     try {

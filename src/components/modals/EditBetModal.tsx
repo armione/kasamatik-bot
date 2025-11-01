@@ -28,8 +28,16 @@ const EditBetModal = () => {
     const handleStatusChange = (newStatus: 'pending' | 'won' | 'lost' | 'refunded') => {
         setStatus(newStatus);
         if (newStatus === 'won' && editingBet) {
-            const calculatedWinAmount = editingBet.bet_amount * editingBet.odds;
-            setWinAmount(calculatedWinAmount);
+            const amount = Number(editingBet.bet_amount);
+            const odds = Number(editingBet.odds);
+            
+            if (!isNaN(amount) && !isNaN(odds)) {
+                const calculatedWinAmount = amount * odds;
+                // Round to 2 decimal places to avoid floating point issues
+                setWinAmount(Math.round(calculatedWinAmount * 100) / 100);
+            } else {
+                setWinAmount(0);
+            }
         } else {
             setWinAmount(0);
         }

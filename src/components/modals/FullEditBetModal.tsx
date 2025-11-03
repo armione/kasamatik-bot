@@ -12,9 +12,8 @@ import { DEFAULT_PLATFORMS } from '../../lib/constants';
 type BetEditFormData = Omit<Bet, 'id' | 'created_at' | 'user_id' | 'status' | 'win_amount' | 'profit_loss' | 'special_odd_id' | 'special_odds'>;
 
 const FullEditBetModal = () => {
-    const { isFullEditBetModalOpen, fullEditingBet, closeFullEditBetModal } = useUiStore();
+    const { isFullEditBetModalOpen, fullEditingBet, closeFullEditBetModal, openPlatformManagerModal } = useUiStore();
     const { platforms: customPlatforms, updateBet: updateBetInStore } = useDataStore();
-    const { openPlatformManagerModal } = useUiStore();
     const { user } = useAuthStore();
 
     const [formData, setFormData] = useState<BetEditFormData>({

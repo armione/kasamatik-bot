@@ -25,6 +25,7 @@ import SpecialOddsPage from './pages/SpecialOddsPage';
 import PlaySpecialOddModal from './components/modals/PlaySpecialOddModal';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage';
+import FullEditBetModal from './components/modals/FullEditBetModal';
 
 /**
  * Bu bileşen, kullanıcı giriş yaptıktan sonra tüm verileri çeker
@@ -46,6 +47,7 @@ function App() {
   const isEditBetModalOpen = useUiStore((state) => state.isEditBetModalOpen);
   const isCashTransactionModalOpen = useUiStore((state) => state.isCashTransactionModalOpen);
   const isPlaySpecialOddModalOpen = useUiStore((state) => state.isPlaySpecialOddModalOpen);
+  const isFullEditBetModalOpen = useUiStore((state) => state.isFullEditBetModalOpen); // YENİ SATIR
 
   // Kimlik doğrulama durumunu dinleyen merkezi useEffect
   useEffect(() => {
@@ -77,6 +79,7 @@ function App() {
       {isEditBetModalOpen && <EditBetModal />}
       {isCashTransactionModalOpen && <CashTransactionModal />}
       {isPlaySpecialOddModalOpen && <PlaySpecialOddModal />}
+      {isFullEditBetModalOpen && <FullEditBetModal />} {/* YENİ SATIR */}
 
       {/* Ana Yönlendirme (Routing) */}
       <Routes>

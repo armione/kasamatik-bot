@@ -32,6 +32,11 @@ interface UiState {
   playingSpecialOdd: SpecialOdd | null;
   openPlaySpecialOddModal: (odd: SpecialOdd) => void;
   closePlaySpecialOddModal: () => void;
+
+  isFullEditBetModalOpen: boolean;
+  fullEditingBet: Bet | null;
+  openFullEditBetModal: (bet: Bet) => void;
+  closeFullEditBetModal: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -60,4 +65,9 @@ export const useUiStore = create<UiState>((set) => ({
   playingSpecialOdd: null,
   openPlaySpecialOddModal: (odd) => set({ isPlaySpecialOddModalOpen: true, playingSpecialOdd: odd }),
   closePlaySpecialOddModal: () => set({ isPlaySpecialOddModalOpen: false, playingSpecialOdd: null }),
+
+  isFullEditBetModalOpen: false,
+  fullEditingBet: null,
+  openFullEditBetModal: (bet) => set({ isFullEditBetModalOpen: true, fullEditingBet: bet }),
+  closeFullEditBetModal: () => set({ isFullEditBetModalOpen: false, fullEditingBet: null }),
 }));

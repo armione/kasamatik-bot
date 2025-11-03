@@ -187,18 +187,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
 
 
     return (
-        <div className={`glass-card rounded-2xl p-4 border-l-4 ${statusInfo[status].class} relative`}>
-            {/* YENİ "DÜZENLE" BUTONU */}
-            {!isSpecialOdd && (
-                <button
-                    onClick={() => openFullEditBetModal(bet)}
-                    className="absolute top-3 right-3 p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
-                    title="Bahsi Düzenle"
-                >
-                    <FaPen />
-                </button>
-            )}
-            {/* MEVCUT KOD */}
+        <div className={`glass-card rounded-2xl p-4 border-l-4 ${statusInfo[status].class}`}>
             <div className="flex flex-col space-y-4">
                 <div className="flex justify-between items-start">
                     <div className="flex items-center space-x-3">
@@ -208,7 +197,18 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
                             <p className="text-gray-400 text-sm">{bet.bet_type}</p>
                         </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo[status].class}`}>{statusInfo[status].text}</span>
+                    <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo[status].class}`}>{statusInfo[status].text}</span>
+                        {!isSpecialOdd && (
+                            <button
+                                onClick={() => openFullEditBetModal(bet)}
+                                className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                                title="Bahsi Düzenle"
+                            >
+                                <FaPen />
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="bg-gray-800 bg-opacity-30 rounded-lg p-3 text-gray-300">
                     <p>{bet.description}</p>

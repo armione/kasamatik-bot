@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { useDataStore } from '../../stores/dataStore';
 import { calculateProfitLoss } from '../../lib/utils';
-import { FaMoneyBillWave, FaChartLine, FaReceipt, FaSackDollar } from 'react-icons/fa6';
+import { FaMoneyBillWave, FaChartLine, FaReceipt, FaSackDollar, FaArrowTrendUp } from 'react-icons/fa6';
 // Fix: Import React to provide scope for React.ReactNode type.
 import React from 'react';
 
@@ -36,8 +36,29 @@ const StatCards = () => {
     };
   }, [bets]);
 
+  const potentialWinnings = useMemo(() => {
+    // 1. Kasa İşlemi olmayan bahisleri al
+    const pendingBets = bets.filter(bet => {
+      if (bet.bet_type === 'Kasa İşlemi') return false;
+  
+      // 2. Gerçek durumu kontrol et (Özel Oranlar için)
+      const isSpecialOdd = !!bet.special_odd_id;
+      // bet.special_odds null olabilir, ?. (optional chaining) kullandığından emin ol
+      const status = isSpecialOdd && bet.special_odds ? bet.special_odds.status : bet.status;
+  
+      // 3. Sadece "bekleyen" bahisleri tut
+      return status === 'pending';
+    });
+  
+    // 4. Potansiyel kazancı hesapla
+    return pendingBets.reduce((total, bet) => {
+      return total + (bet.bet_amount * bet.odds);
+    }, 0);
+  
+  }, [bets]);
+
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
       <StatCard 
         icon={<FaMoneyBillWave />}
         title="Toplam Kasa"
@@ -58,9 +79,15 @@ const StatCards = () => {
       />
       <StatCard 
         icon={<FaSackDollar />}
-        title="Toplam Yatırım"
+        title="Oynadığımız Bahis Miktarı"
         value={`${stats.totalInvestment.toFixed(2)} ₺`}
         colorClass="text-yellow-400"
+      />
+      <StatCard 
+        icon={<FaArrowTrendUp />}
+        title="Potansiyel Kazanç"
+        value={`${potentialWinnings.toFixed(2)} ₺`}
+        colorClass="text-cyan-400"
       />
     </div>
   );

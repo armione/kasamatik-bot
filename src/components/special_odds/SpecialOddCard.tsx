@@ -1,4 +1,3 @@
-
 // src/components/special_odds/SpecialOddCard.tsx
 import React, { useState } from 'react';
 import { SpecialOdd } from '../../types';
@@ -7,7 +6,6 @@ import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
 import { supabase } from '../../lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { ADMIN_USER_ID } from '../../lib/constants';
 import { FaUsers, FaCoins, FaExternalLinkAlt, FaTag, FaCheck, FaTimes, FaUndo } from 'react-icons/fa';
 
 interface SpecialOddCardProps {
@@ -16,11 +14,13 @@ interface SpecialOddCardProps {
 
 const SpecialOddCard: React.FC<SpecialOddCardProps> = ({ odd }) => {
     const { openPlaySpecialOddModal } = useUiStore();
-    const { user } = useAuthStore();
+    // FIX: Replaced hardcoded ADMIN_USER_ID with a role-based check.
+    const { user, profileRole } = useAuthStore();
     const { updateSpecialOdd } = useDataStore();
     const [loading, setLoading] = useState(false);
 
-    const isAdmin = user?.id === ADMIN_USER_ID;
+    // FIX: Use profileRole to determine admin status, consistent with other components.
+    const isAdmin = profileRole === 'admin' || profileRole === 'moderator';
 
     const handleResultUpdate = async (newStatus: 'won' | 'lost' | 'refunded') => {
         setLoading(true);

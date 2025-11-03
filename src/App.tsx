@@ -42,19 +42,49 @@ const MainAppLayout = () => {
 };
 
 function App() {
-  const { setSession, setUser, setLoading } = useAuthStore();
+  const { setSession, setUser, setLoading, setProfileRole } = useAuthStore();
   const isPlatformManagerModalOpen = useUiStore((state) => state.isPlatformManagerModalOpen);
   const isEditBetModalOpen = useUiStore((state) => state.isEditBetModalOpen);
   const isCashTransactionModalOpen = useUiStore((state) => state.isCashTransactionModalOpen);
   const isPlaySpecialOddModalOpen = useUiStore((state) => state.isPlaySpecialOddModalOpen);
-  const isFullEditBetModalOpen = useUiStore((state) => state.isFullEditBetModalOpen); // YENİ SATIR
+  const isFullEditBetModalOpen = useUiStore((state) => state.isFullEditBetModalOpen);
 
   // Kimlik doğrulama durumunu dinleyen merkezi useEffect
   useEffect(() => {
     // anlık değişiklikleri dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // YENİ ROL ÇEKME MANTIĞI
+      if (session?.user) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (error) {
+            console.error('Profil rolü çekilirken hata:', error);
+            throw error;
+          }
+
+          if (profile) {
+            setProfileRole(profile.role);
+          } else {
+            // Profil henüz oluşturulmamış olabilir (trigger gecikmesi?), 'user' varsayalım
+            setProfileRole('user');
+          }
+        } catch (error) {
+          console.error(error);
+          setProfileRole(null); // Hata durumunda rolü null yap
+        }
+      } else {
+        // Oturum kapandıysa rolü temizle
+        setProfileRole(null);
+      }
+
       setLoading(false);
     });
 
@@ -62,7 +92,7 @@ function App() {
     supabase.auth.getSession().finally(() => setLoading(false));
 
     return () => subscription.unsubscribe();
-  }, [setSession, setUser, setLoading]);
+  }, [setSession, setUser, setLoading, setProfileRole]);
 
   return (
     <BrowserRouter>
@@ -79,7 +109,7 @@ function App() {
       {isEditBetModalOpen && <EditBetModal />}
       {isCashTransactionModalOpen && <CashTransactionModal />}
       {isPlaySpecialOddModalOpen && <PlaySpecialOddModal />}
-      {isFullEditBetModalOpen && <FullEditBetModal />} {/* YENİ SATIR */}
+      {isFullEditBetModalOpen && <FullEditBetModal />}
 
       {/* Ana Yönlendirme (Routing) */}
       <Routes>

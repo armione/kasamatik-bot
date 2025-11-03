@@ -17,12 +17,11 @@ import {
   FaStar,
   FaUserShield,
 } from 'react-icons/fa6';
-import { ADMIN_USER_ID } from '../lib/constants';
 
 const Sidebar = () => {
-  const { user } = useAuthStore();
+  const { user, profileRole } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar, isMobileMenuOpen } = useUiStore();
-  const isAdmin = user?.id === ADMIN_USER_ID;
+  const isAdmin = profileRole === 'admin';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -42,7 +41,7 @@ const Sidebar = () => {
     { to: '/sponsors', icon: <FaHandHoldingHeart />, text: 'Sponsorlar' },
   ];
 
-  if (isAdmin) {
+  if (profileRole === 'admin' || profileRole === 'moderator') {
     secondaryNavItems.push({ to: '/admin', icon: <FaUserShield />, text: 'Yönetim Paneli' });
   }
 

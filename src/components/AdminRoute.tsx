@@ -1,13 +1,12 @@
 // src/components/AdminRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { ADMIN_USER_ID } from '../lib/constants';
 
 const AdminRoute = () => {
-  const { user } = useAuthStore();
+  const { profileRole } = useAuthStore();
 
-  // Redirect non-admins to the home page
-  if (user?.id !== ADMIN_USER_ID) {
+  // Redirect non-admins/moderators to the home page
+  if (profileRole !== 'admin' && profileRole !== 'moderator') {
     return <Navigate to="/" replace />;
   }
 

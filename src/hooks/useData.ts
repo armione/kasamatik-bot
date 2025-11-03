@@ -1,5 +1,5 @@
 // src/hooks/useData.ts
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
@@ -8,49 +8,51 @@ import { SpecialOdd } from '../types';
 
 export const useData = () => {
   const { user } = useAuthStore();
-  const { setInitialData, setLoading, addSpecialOdd, updateSpecialOdd } = useDataStore();
+  const { setInitialData, setLoading, addSpecialOdd, updateSpecialOdd, setError } = useDataStore();
+
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [
+        betsRes,
+        platformsRes,
+        sponsorsRes,
+        adsRes,
+        specialOddsRes
+      ] = await Promise.all([
+        supabase.from('bets').select('*, special_odds(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('platforms').select('*').eq('user_id', user.id).order('name', { ascending: true }),
+        supabase.from('sponsors').select('*').order('created_at', { ascending: true }),
+        supabase.from('ads').select('*'),
+        supabase.from('special_odds').select('*').eq('is_active', true).order('created_at', { ascending: false })
+      ]);
+
+      if (betsRes.error) throw betsRes.error;
+      if (platformsRes.error) throw platformsRes.error;
+      if (sponsorsRes.error) throw sponsorsRes.error;
+      if (adsRes.error) throw adsRes.error;
+      if (specialOddsRes.error) throw specialOddsRes.error;
+      
+      setInitialData({
+        bets: betsRes.data || [],
+        platforms: platformsRes.data || [],
+        sponsors: sponsorsRes.data || [],
+        ads: adsRes.data || [],
+        specialOdds: specialOddsRes.data || [],
+      });
+    } catch (error: any) {
+      const errorMessage = `Veriler yüklenirken bir hata oluştu: ${error.message}`;
+      toast.error(errorMessage);
+      console.error('Data fetching error:', error);
+      setError(errorMessage);
+    }
+  }, [user, setInitialData, setLoading, setError]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
-
-      setLoading(true);
-
-      try {
-        const [
-          betsRes,
-          platformsRes,
-          sponsorsRes,
-          adsRes,
-          specialOddsRes
-        ] = await Promise.all([
-          supabase.from('bets').select('*, special_odds(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
-          supabase.from('platforms').select('*').eq('user_id', user.id).order('name', { ascending: true }),
-          supabase.from('sponsors').select('*').order('created_at', { ascending: true }),
-          supabase.from('ads').select('*'),
-          supabase.from('special_odds').select('*').eq('is_active', true).order('created_at', { ascending: false })
-        ]);
-
-        if (betsRes.error) throw betsRes.error;
-        if (platformsRes.error) throw platformsRes.error;
-        if (sponsorsRes.error) throw sponsorsRes.error;
-        if (adsRes.error) throw adsRes.error;
-        if (specialOddsRes.error) throw specialOddsRes.error;
-        
-        setInitialData({
-          bets: betsRes.data || [],
-          platforms: platformsRes.data || [],
-          sponsors: sponsorsRes.data || [],
-          ads: adsRes.data || [],
-          specialOdds: specialOddsRes.data || [],
-        });
-      } catch (error: any) {
-        toast.error(`Veriler yüklenirken bir hata oluştu: ${error.message}`);
-        console.error('Data fetching error:', error);
-      }
-      // setLoading(false) is called inside setInitialData
-    };
-
     if (user) {
       fetchData();
     }
@@ -67,7 +69,6 @@ export const useData = () => {
           if (payload.eventType === 'INSERT') {
             const newOdd = payload.new as SpecialOdd;
             addSpecialOdd(newOdd);
-            // FIX: Replaced `toast.info` with the default `toast` function, as `info` is not a standard method in react-hot-toast.
             toast(`Yeni Fırsat: ${newOdd.platform} @ ${newOdd.odds.toFixed(2)}`, { icon: '⭐' });
           }
 
@@ -88,7 +89,6 @@ export const useData = () => {
                        toast.error(`${toastMessage} Kaybetti.`, { icon: '😔' });
                        break;
                    case 'refunded':
-                       // FIX: Replaced `toast.info` with the default `toast` function, as `info` is not a standard method in react-hot-toast.
                        toast(`${toastMessage} İade Edildi.`, { icon: '↩️' });
                        break;
                }
@@ -110,5 +110,7 @@ export const useData = () => {
       supabase.removeChannel(channel);
     };
 
-  }, [user, setInitialData, setLoading, addSpecialOdd, updateSpecialOdd]);
+  }, [user, fetchData, addSpecialOdd, updateSpecialOdd]);
+  
+  return { refetch: fetchData };
 };

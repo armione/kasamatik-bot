@@ -1,11 +1,10 @@
 // src/App.tsx
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { supabase } from './lib/supabaseClient';
 import { useAuthStore } from './stores/authStore';
 import { useUiStore } from './stores/uiStore';
-import { useData } from './hooks/useData';
 
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -26,20 +25,7 @@ import PlaySpecialOddModal from './components/modals/PlaySpecialOddModal';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage';
 import FullEditBetModal from './components/modals/FullEditBetModal';
-
-/**
- * Bu bileşen, kullanıcı giriş yaptıktan sonra tüm verileri çeker
- * ve ana uygulama düzenini (Sidebar + içerik alanı) gösterir.
- */
-const MainAppLayout = () => {
-  // Veri çekme hook'unu burada çağırıyoruz.
-  // Bu bileşen sadece kullanıcı giriş yaptıktan sonra render edilir.
-  useData();
-  
-  // AppLayout, Outlet'i içinde barındırır, bu sayede
-  // /history, /settings gibi sayfalar bu layout içinde görünür.
-  return <AppLayout />;
-};
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const { setSession, setUser, setLoading, setProfileRole } = useAuthStore();
@@ -95,48 +81,49 @@ function App() {
   }, [setSession, setUser, setLoading, setProfileRole]);
 
   return (
-    <BrowserRouter>
-      {/* Bildirim ve Global Modallar */}
-      <Toaster position="top-center" toastOptions={{
-          className: 'glass-card',
-          style: {
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-          },
-      }} />
-      {isPlatformManagerModalOpen && <PlatformManagerModal />}
-      {isEditBetModalOpen && <EditBetModal />}
-      {isCashTransactionModalOpen && <CashTransactionModal />}
-      {isPlaySpecialOddModalOpen && <PlaySpecialOddModal />}
-      {isFullEditBetModalOpen && <FullEditBetModal />}
+    <ErrorBoundary>
+      <BrowserRouter>
+        {/* Bildirim ve Global Modallar */}
+        <Toaster position="top-center" toastOptions={{
+            className: 'glass-card',
+            style: {
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+            },
+        }} />
+        {isPlatformManagerModalOpen && <PlatformManagerModal />}
+        {isEditBetModalOpen && <EditBetModal />}
+        {isCashTransactionModalOpen && <CashTransactionModal />}
+        {isPlaySpecialOddModalOpen && <PlaySpecialOddModal />}
+        {isFullEditBetModalOpen && <FullEditBetModal />}
 
-      {/* Ana Yönlendirme (Routing) */}
-      <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        
-        {/* Korumalı Alan */}
-        <Route element={<ProtectedRoute />}>
-          {/* MainAppLayout, tüm korumalı sayfaları sarar */}
-          <Route element={<MainAppLayout />}>
-            <Route index path="/" element={<DashboardPage />} />
-            <Route path="/new-bet" element={<NewBetPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/cash-history" element={<CashHistoryPage />} />
-            <Route path="/special-odds" element={<SpecialOddsPage />} />
-            <Route path="/statistics" element={<StatisticsPage />} />
-            <Route path="/guide" element={<GuidePage />} />
-            <Route path="/sponsors" element={<SponsorsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            
-            {/* Admin Route */}
-            <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminPage />} />
+        {/* Ana Yönlendirme (Routing) */}
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Korumalı Alan */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route index path="/" element={<DashboardPage />} />
+              <Route path="/new-bet" element={<NewBetPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/cash-history" element={<CashHistoryPage />} />
+              <Route path="/special-odds" element={<SpecialOddsPage />} />
+              <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/guide" element={<GuidePage />} />
+              <Route path="/sponsors" element={<SponsorsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              
+              {/* Admin Route */}
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminPage />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

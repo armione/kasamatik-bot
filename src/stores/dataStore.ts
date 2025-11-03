@@ -8,6 +8,7 @@ interface DataState {
   ads: Ad[];
   specialOdds: SpecialOdd[];
   loading: boolean;
+  error: string | null;
   setInitialData: (data: { bets: Bet[]; platforms: Platform[]; sponsors: Sponsor[]; ads: Ad[]; specialOdds: SpecialOdd[] }) => void;
   addBet: (bet: Bet) => void;
   updateBet: (updatedBet: Bet) => void;
@@ -18,6 +19,7 @@ interface DataState {
   updateSpecialOdd: (updatedOdd: SpecialOdd) => void;
   clearUserData: () => void;
   setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 export const useDataStore = create<DataState>((set) => ({
@@ -27,7 +29,8 @@ export const useDataStore = create<DataState>((set) => ({
   ads: [],
   specialOdds: [],
   loading: true,
-  setInitialData: (data) => set({ ...data, loading: false }),
+  error: null,
+  setInitialData: (data) => set({ ...data, loading: false, error: null }),
   addBet: (bet) => set((state) => ({ bets: [bet, ...state.bets] })),
   updateBet: (updatedBet) =>
     set((state) => ({
@@ -49,4 +52,5 @@ export const useDataStore = create<DataState>((set) => ({
     })),
   clearUserData: () => set({ bets: [], platforms: [] }),
   setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ loading: false, error }),
 }));

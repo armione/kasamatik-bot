@@ -13,8 +13,8 @@ const PerformanceSummary = () => {
     const startDate = new Date();
 
     if (period === 1) {
-      // 'Bugün' filtresi, son 24 saat yerine takvim gününü (00:00'dan itibaren) baz alacak şekilde güncellendi.
-      startDate.setHours(0, 0, 0, 0);
+      // "Bugün" filtresi, gece yarısı maçlarını yakalamak için "son 24 saati" baz almalıdır (takvim günü değil).
+      startDate.setTime(endDate.getTime() - 24 * 60 * 60 * 1000);
     } else {
       startDate.setDate(endDate.getDate() - (period - 1));
       startDate.setHours(0, 0, 0, 0);

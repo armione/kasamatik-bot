@@ -1,15 +1,2 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './src/App';
-import './src/index.css';
-
-const rootElement = document.getElementById('root');
-if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
-} else {
-  console.error("Root element with id 'root' not found in the document.");
-}
+// This file is intentionally left blank.
+// The application entry point has been moved to /src/index.tsx to follow standard project structure.

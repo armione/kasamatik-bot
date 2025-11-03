@@ -1,4 +1,14 @@
-<script type="importmap">
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kasamatik - Akıllı Bahis Takibi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <script type="importmap">
 {
   "imports": {
     "vite": "https://aistudiocdn.com/vite@^7.1.12",
@@ -15,9 +25,16 @@
     "react-flatpickr": "https://aistudiocdn.com/react-flatpickr@^4.0.11",
     "flatpickr/": "https://aistudiocdn.com/flatpickr@^4.6.13/",
     "zustand": "https://aistudiocdn.com/zustand@^5.0.8",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
   }
 }
 </script>
 <link rel="stylesheet" href="/index.css">
-<script type="module" src="/index.tsx"></script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

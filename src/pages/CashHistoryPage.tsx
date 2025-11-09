@@ -7,6 +7,7 @@ import Pagination from '../components/shared/Pagination';
 import { ITEMS_PER_PAGE } from '../lib/constants';
 import TransactionCard from '../components/cash_history/TransactionCard';
 import { Bet } from '../types';
+import { TransactionCardSkeleton } from '../components/shared/Skeletons';
 
 interface CashHistoryStatsProps {
     transactions: Bet[];
@@ -35,7 +36,7 @@ const CashHistoryStats: React.FC<CashHistoryStatsProps> = ({ transactions }) => 
 }
 
 const CashHistoryPage = () => {
-    const bets = useDataStore((state) => state.bets);
+    const { bets, loading } = useDataStore((state) => ({ bets: state.bets, loading: state.loading }));
     const { openCashTransactionModal } = useUiStore();
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -60,7 +61,11 @@ const CashHistoryPage = () => {
 
             <CashHistoryStats transactions={cashTransactions} />
 
-            {paginatedTxs.length > 0 ? (
+            {loading ? (
+                <div className="space-y-4">
+                    {[...Array(Math.floor(ITEMS_PER_PAGE / 2))].map((_, i) => <TransactionCardSkeleton key={i} />)}
+                </div>
+            ) : paginatedTxs.length > 0 ? (
                 <div className="space-y-4">
                     {paginatedTxs.map(tx => (
                         <TransactionCard key={tx.id} transaction={tx} />
@@ -73,7 +78,7 @@ const CashHistoryPage = () => {
                 </div>
             )}
             
-            {totalPages > 1 && (
+            {!loading && totalPages > 1 && (
                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             )}
         </div>

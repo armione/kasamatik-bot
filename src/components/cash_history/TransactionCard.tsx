@@ -43,7 +43,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
                 <p className={`text-lg font-bold ${isDeposit ? 'text-green-400' : 'text-red-400'}`}>
                     {transaction.profit_loss > 0 ? '+' : ''}{transaction.profit_loss.toFixed(2)} ₺
                 </p>
-                <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-500 transition-colors">
+                <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-500 transition-colors" aria-label="İşlemi sil">
                     <FaTrash />
                 </button>
             </div>

@@ -151,7 +151,7 @@ const CouponReader: React.FC<CouponReaderProps> = ({ onAnalysisComplete }) => {
         <div className="relative group">
           <img src={imagePreview} alt="Kupon Önizleme" className="rounded-lg w-full max-h-64 object-contain" />
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={removeImage} className="p-3 bg-red-600 rounded-full text-white hover:bg-red-500 transition-colors">
+            <button onClick={removeImage} className="p-3 bg-red-600 rounded-full text-white hover:bg-red-500 transition-colors" aria-label="Resmi kaldır">
               <FaTrash />
             </button>
           </div>

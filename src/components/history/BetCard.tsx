@@ -203,7 +203,7 @@ const BetCard: React.FC<BetCardProps> = ({ bet }) => {
                             <button
                                 onClick={() => openFullEditBetModal(bet)}
                                 className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
-                                title="Bahsi Düzenle"
+                                aria-label="Bahsi Düzenle"
                             >
                                 <FaPen />
                             </button>

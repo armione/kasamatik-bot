@@ -6,9 +6,10 @@ import BetCard from '../components/history/BetCard';
 import Pagination from '../components/shared/Pagination';
 import { ITEMS_PER_PAGE } from '../lib/constants';
 import HistorySummaryStats from '../components/history/HistorySummaryStats';
+import { BetCardSkeleton, HistorySummaryStatsSkeleton } from '../components/shared/Skeletons';
 
 const HistoryPage = () => {
-  const bets = useDataStore((state) => state.bets);
+  const { bets, loading } = useDataStore((state) => ({ bets: state.bets, loading: state.loading }));
   const [filters, setFilters] = useState({
     status: 'all',
     platform: 'all',
@@ -61,9 +62,13 @@ const HistoryPage = () => {
 
       <BetFilters filters={filters} setFilters={setFilters} />
       
-      <HistorySummaryStats filteredBets={filteredBets} />
+      {loading ? <HistorySummaryStatsSkeleton /> : <HistorySummaryStats filteredBets={filteredBets} />}
 
-      {paginatedBets.length > 0 ? (
+      {loading ? (
+        <div className="space-y-4">
+            {[...Array(Math.floor(ITEMS_PER_PAGE / 2))].map((_, i) => <BetCardSkeleton key={i} />)}
+        </div>
+      ) : paginatedBets.length > 0 ? (
         <div className="space-y-4">
           {paginatedBets.map(bet => (
             <BetCard key={bet.id} bet={bet} />
@@ -76,7 +81,7 @@ const HistoryPage = () => {
         </div>
       )}
 
-      {totalPages > 1 && (
+      {!loading && totalPages > 1 && (
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       )}
     </div>

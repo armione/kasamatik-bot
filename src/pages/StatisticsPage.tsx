@@ -10,11 +10,12 @@ import { FaCalendar, FaTimes } from 'react-icons/fa';
 import HighlightsPanel from '../components/statistics/HighlightsPanel';
 import PlatformPerformance from '../components/statistics/PlatformPerformance';
 import PerformanceByDay from '../components/statistics/PerformanceByDay';
+import { HistorySummaryStatsSkeleton } from '../components/shared/Skeletons';
 
 const StatisticsPage = () => {
     const [dateRange, setDateRange] = useState<Date[]>([]);
     const [activeTab, setActiveTab] = useState<'overview' | 'analysis'>('overview');
-    const allBets = useDataStore((state) => state.bets);
+    const { allBets, loading } = useDataStore((state) => ({ allBets: state.bets, loading: state.loading }));
 
     const filteredBets = useMemo(() => {
         const actualBets = allBets.filter(b => b.bet_type !== 'Kasa İşlemi');
@@ -87,7 +88,15 @@ const StatisticsPage = () => {
                   </button>
             </div>
 
-            {filteredBets.length > 0 ? (
+            {loading ? (
+                <div className="space-y-6">
+                    <HistorySummaryStatsSkeleton />
+                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                         <div className="lg:col-span-3 glass-card rounded-2xl p-4 h-96 skeleton" />
+                         <div className="lg:col-span-2 glass-card rounded-2xl p-4 h-96 skeleton" />
+                     </div>
+                </div>
+            ) : filteredBets.length > 0 ? (
                 <>
                   {activeTab === 'overview' && (
                     <div className="space-y-6">

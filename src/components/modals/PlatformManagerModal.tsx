@@ -81,7 +81,7 @@ const PlatformManagerModal = () => {
                         {platforms.length > 0 ? platforms.map(p => (
                             <div key={p.id} className="flex justify-between items-center p-2 bg-gray-800/50 rounded-lg">
                                 <span>{p.name}</span>
-                                <button onClick={() => handleDeletePlatform(p.id, p.name)} className="text-red-500 hover:text-red-400 p-1">
+                                <button onClick={() => handleDeletePlatform(p.id, p.name)} className="text-red-500 hover:text-red-400 p-1" aria-label={`${p.name} platformunu sil`}>
                                     <FaTrash />
                                 </button>
                             </div>

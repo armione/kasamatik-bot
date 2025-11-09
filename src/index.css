@@ -150,3 +150,16 @@ body {
         transform: translateX(0);
     }
 }
+
+/* === Skeleton Loader === */
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: rgba(107, 114, 128, 0.3); /* gray-500 with opacity */
+  border-radius: 0.5rem; /* rounded-lg */
+}

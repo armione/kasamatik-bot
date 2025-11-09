@@ -98,10 +98,10 @@ const Sidebar = () => {
       </nav>
 
       <div className="border-t border-white/10 p-4 flex-shrink-0">
-         <div className={`sidebar-item cursor-pointer`} onClick={handleLogout} title="Çıkış Yap">
+         <button className="sidebar-item w-full" onClick={handleLogout} aria-label="Çıkış Yap">
             <span className="sidebar-icon"><FaRightFromBracket /></span>
             <span className="sidebar-text">Çıkış Yap</span>
-         </div>
+         </button>
         <div className="mt-4 flex items-center justify-between">
           {!isSidebarCollapsed && user && (
             <div className="overflow-hidden flex-1 mr-2">

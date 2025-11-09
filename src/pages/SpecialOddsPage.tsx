@@ -4,6 +4,7 @@ import { useDataStore } from '../stores/dataStore';
 import { SpecialOdd } from '../types';
 import SpecialOddsFilters from '../components/special_odds/SpecialOddsFilters';
 import SpecialOddCard from '../components/special_odds/SpecialOddCard';
+import { SpecialOddCardSkeleton } from '../components/shared/Skeletons';
 
 const SpecialOddsPage = () => {
     const { specialOdds, loading } = useDataStore();
@@ -53,8 +54,8 @@ const SpecialOddsPage = () => {
             <SpecialOddsFilters filters={filters} setFilters={setFilters} />
             
             {loading ? (
-                 <div className="flex justify-center items-center py-16">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-blue border-t-transparent"></div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, i) => <SpecialOddCardSkeleton key={i} />)}
                  </div>
             ) : sortedAndFilteredOdds.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

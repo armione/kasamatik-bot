@@ -3,8 +3,12 @@ import StatCards from '../components/dashboard/StatCards';
 import PerformanceSummary from '../components/dashboard/PerformanceSummary';
 import RecentBets from '../components/dashboard/RecentBets';
 import DashboardBannerAd from '../components/dashboard/DashboardBannerAd';
+import { useDataStore } from '../stores/dataStore';
+import { StatCardsSkeleton, PerformanceSummarySkeleton, RecentBetsSkeleton } from '../components/shared/Skeletons';
 
 const DashboardPage = () => {
+  const loading = useDataStore((state) => state.loading);
+
   return (
     <div className="space-y-6">
       <div>
@@ -12,18 +16,18 @@ const DashboardPage = () => {
         <p className="mt-1 text-gray-400">Kasanızın genel durumuna hoş geldiniz.</p>
       </div>
       
-      <StatCards />
+      {loading ? <StatCardsSkeleton /> : <StatCards />}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <PerformanceSummary />
+          {loading ? <PerformanceSummarySkeleton /> : <PerformanceSummary />}
         </div>
         <div>
-          <RecentBets />
+          {loading ? <RecentBetsSkeleton /> : <RecentBets />}
         </div>
       </div>
       
-      <DashboardBannerAd />
+      {!loading && <DashboardBannerAd />}
     </div>
   );
 }
